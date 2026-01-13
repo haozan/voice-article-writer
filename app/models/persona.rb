@@ -1,21 +1,39 @@
 class Persona < ApplicationRecord
   # LLM Provider validation
-  validates :llm_provider, inclusion: { in: %w[grok qwen deepseek], message: "%{value} is not a valid LLM provider" }, allow_nil: false
+  validates :llm_provider, inclusion: { in: %w[grok qwen deepseek gemini zhipu chatgpt], message: "%{value} is not a valid LLM provider" }, allow_nil: false
   
   # Get LLM configuration based on provider
   def llm_config
     case llm_provider
     when 'qwen'
       {
-        base_url: ENV.fetch('QWEN_BASE_URL'),
-        api_key: ENV.fetch('QWEN_API_KEY'),
-        model: ENV.fetch('QWEN_MODEL')
+        base_url: ENV.fetch('QWEN_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('QWEN_API_KEY_OPTIONAL'),
+        model: ENV.fetch('QWEN_MODEL_OPTIONAL')
       }
     when 'deepseek'
       {
-        base_url: ENV.fetch('DEEPSEEK_BASE_URL'),
-        api_key: ENV.fetch('DEEPSEEK_API_KEY'),
-        model: ENV.fetch('DEEPSEEK_MODEL')
+        base_url: ENV.fetch('DEEPSEEK_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('DEEPSEEK_API_KEY_OPTIONAL'),
+        model: ENV.fetch('DEEPSEEK_MODEL_OPTIONAL')
+      }
+    when 'gemini'
+      {
+        base_url: ENV.fetch('GEMINI_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('GEMINI_API_KEY_OPTIONAL'),
+        model: ENV.fetch('GEMINI_MODEL_OPTIONAL')
+      }
+    when 'zhipu'
+      {
+        base_url: ENV.fetch('ZHIPU_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('ZHIPU_API_KEY_OPTIONAL'),
+        model: ENV.fetch('ZHIPU_MODEL_OPTIONAL')
+      }
+    when 'chatgpt'
+      {
+        base_url: ENV.fetch('CHATGPT_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('CHATGPT_API_KEY_OPTIONAL'),
+        model: ENV.fetch('CHATGPT_MODEL_OPTIONAL')
       }
     when 'grok'
       {
@@ -40,6 +58,12 @@ class Persona < ApplicationRecord
       '阿里云千问'
     when 'deepseek'
       'DeepSeek'
+    when 'gemini'
+      'Google Gemini'
+    when 'zhipu'
+      '智谱 GLM'
+    when 'chatgpt'
+      'ChatGPT'
     when 'grok'
       'Grok AI'
     else

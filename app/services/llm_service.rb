@@ -31,12 +31,6 @@ class LlmService < ApplicationService
     # Support custom base_url and api_key (both symbol and string keys)
     @base_url = options[:base_url] || options['base_url']
     @api_key = options[:api_key] || options['api_key']
-    
-    # Debug logging
-    Rails.logger.info "[LlmService#initialize] options: #{options.inspect}"
-    Rails.logger.info "[LlmService#initialize] @base_url: #{@base_url}"
-    Rails.logger.info "[LlmService#initialize] @api_key: #{@api_key&.slice(0, 15)}..."
-    Rails.logger.info "[LlmService#initialize] @model: #{@model}"
 
     # Tool call support
     @tools = options[:tools] || []
@@ -267,11 +261,6 @@ class LlmService < ApplicationService
   def prepare_http_request(stream)
     base_url = @base_url || ENV.fetch('LLM_BASE_URL')
     uri = URI.parse("#{base_url}/chat/completions")
-    
-    # Debug logging
-    Rails.logger.info "[LlmService#prepare_http_request] base_url: #{base_url}"
-    Rails.logger.info "[LlmService#prepare_http_request] full URL: #{uri}"
-    Rails.logger.info "[LlmService#prepare_http_request] api_key: #{api_key&.slice(0, 15)}..."
 
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = (uri.scheme == 'https')

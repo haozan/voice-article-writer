@@ -1,31 +1,40 @@
 import BaseChannelController from "./base_channel_controller"
 import { showToast } from "../toast"
+import consumer from "../channels/consumer"
 
 /**
- * Articles Controller - Handles WebSocket streaming for Grok's response + UI interactions
+ * Articles Controller - Handles WebSocket streaming for multi-model concurrent responses + UI interactions
  * 
- * This controller manages single-step Grok response:
+ * This controller manages concurrent responses from 5 AI models:
  * - User provides original thoughts/content
- * - Grok shares his genuine thinking, ideas, and suggestions (no expansion)
+ * - All 5 models (Grok, Qwen, DeepSeek, Gemini, Zhipu) respond simultaneously
+ * - Each model streams to its own dedicated response area
  *
  * Targets:
  * - inputText: Text input area
- * - responseSection: Section showing Grok's response
- * - responseText: Display area for Grok's response
- * - copyButton: Button to copy Grok's response
+ * - responsesContainer: Container for all model responses
+ * - responseGrok/Qwen/Deepseek/Gemini/Zhipu: Display areas for each model
+ * - copyButtonGrok/Qwen/Deepseek/Gemini/Zhipu: Copy buttons for each model
  * - actionButtons: Container for action buttons
  *
  * Values:
- * - streamName: Unique stream name for this session
+ * - streamName: Base stream name for this session
  */
 export default class extends BaseChannelController {
   static targets = [
     "inputText",
-    "responseSection",
-    "responseText",
-    "copyButton",
-    "actionButtons",
-    "providerRadio"
+    "responsesContainer",
+    "responseGrok",
+    "responseQwen",
+    "responseDeepseek",
+    "responseGemini",
+    "responseZhipu",
+    "copyButtonGrok",
+    "copyButtonQwen",
+    "copyButtonDeepseek",
+    "copyButtonGemini",
+    "copyButtonZhipu",
+    "actionButtons"
   ]
 
   static values = {
@@ -33,37 +42,101 @@ export default class extends BaseChannelController {
   }
 
   declare readonly inputTextTarget: HTMLTextAreaElement
-  declare readonly responseSectionTarget: HTMLElement
-  declare readonly responseTextTarget: HTMLElement
-  declare readonly copyButtonTarget: HTMLElement
+  declare readonly responsesContainerTarget: HTMLElement
+  declare readonly responseGrokTarget: HTMLElement
+  declare readonly responseQwenTarget: HTMLElement
+  declare readonly responseDeepseekTarget: HTMLElement
+  declare readonly responseGeminiTarget: HTMLElement
+  declare readonly responseZhipuTarget: HTMLElement
+  declare readonly copyButtonGrokTarget: HTMLElement
+  declare readonly copyButtonQwenTarget: HTMLElement
+  declare readonly copyButtonDeepseekTarget: HTMLElement
+  declare readonly copyButtonGeminiTarget: HTMLElement
+  declare readonly copyButtonZhipuTarget: HTMLElement
   declare readonly actionButtonsTarget: HTMLElement
-  declare readonly providerRadioTargets: HTMLInputElement[]
   declare readonly streamNameValue: string
   declare readonly hasInputTextTarget: boolean
 
   private originalTranscript: string = ""
-  private responseContent: string = ""
-  private currentStep: "idle" | "responding" = "idle"
+  private responseContents: { [key: string]: string } = {
+    grok: "",
+    qwen: "",
+    deepseek: "",
+    gemini: "",
+    zhipu: ""
+  }
+  private completedModels: Set<string> = new Set()
+  private subscriptions: { [key: string]: any } = {}
+  private commandSubscription: any = null
 
   connect(): void {
     console.log("Articles controller connected")
 
-    // Subscribe to WebSocket channel
-    this.createSubscription("ArticlesChannel", {
-      stream_name: this.streamNameValue
+    // Create a base subscription for sending commands (using base stream name)
+    this.commandSubscription = consumer.subscriptions.create(
+      {
+        channel: "ArticlesChannel",
+        stream_name: this.streamNameValue  // Base stream name without provider suffix
+      },
+      {
+        connected: () => {
+          console.log("Command channel connected")
+        },
+        disconnected: () => {
+          console.log("Command channel disconnected")
+        },
+        received: () => {
+          // This subscription is only for sending commands, not receiving
+        }
+      }
+    )
+
+    // Subscribe to WebSocket channels for all 5 models (for receiving responses)
+    const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
+    
+    providers.forEach(provider => {
+      const streamName = `${this.streamNameValue}_${provider}`
+      this.subscriptions[provider] = consumer.subscriptions.create(
+        {
+          channel: "ArticlesChannel",
+          stream_name: streamName
+        },
+        {
+          connected: () => {
+            console.log(`${provider} channel connected`)
+          },
+          disconnected: () => {
+            console.log(`${provider} channel disconnected`)
+          },
+          received: (data: any) => {
+            this.handleProviderMessage(provider, data)
+          }
+        }
+      )
     })
   }
 
   disconnect(): void {
-    this.destroySubscription()
+    // Unsubscribe from command channel
+    this.commandSubscription?.unsubscribe()
+    this.commandSubscription = null
+    
+    // Unsubscribe from all provider channels
+    Object.values(this.subscriptions).forEach(subscription => {
+      subscription?.unsubscribe()
+    })
+    this.subscriptions = {}
   }
 
-  protected channelConnected(): void {
-    console.log("Articles channel connected")
-  }
-
-  protected channelDisconnected(): void {
-    console.log("Articles channel disconnected")
+  // Handle messages from a specific provider
+  private handleProviderMessage(provider: string, data: any): void {
+    if (data.type === 'chunk') {
+      this.handleChunkForProvider(provider, data.chunk)
+    } else if (data.type === 'complete') {
+      this.handleCompleteForProvider(provider)
+    } else if (data.type === 'error') {
+      this.handleErrorForProvider(provider, data.message)
+    }
   }
 
   // Called when user clicks "Generate" button
@@ -91,108 +164,150 @@ export default class extends BaseChannelController {
     this.originalTranscript = inputText
 
     // Start generation process
-    this.startGrokResponse()
+    this.startAllModelsResponse()
   }
 
-  // Called when voice recording is completed (legacy support)
-  onVoiceCompleted(event: CustomEvent): void {
-    const transcript = event.detail.transcript
-    
-    if (!transcript || transcript.trim().length === 0) {
-      console.error("Empty transcript")
-      return
+  private startAllModelsResponse(): void {
+    // Reset state
+    this.responseContents = {
+      grok: "",
+      qwen: "",
+      deepseek: "",
+      gemini: "",
+      zhipu: ""
     }
+    this.completedModels.clear()
 
-    this.originalTranscript = transcript
+    // Show responses container
+    this.responsesContainerTarget.style.display = "block"
 
-    // Start Grok's response
-    this.startGrokResponse()
+    // Reset all response areas to loading state
+    this.resetResponseArea("grok", "Grok 思考中...")
+    this.resetResponseArea("qwen", "千问思考中...")
+    this.resetResponseArea("deepseek", "DeepSeek 思考中...")
+    this.resetResponseArea("gemini", "Gemini 思考中...")
+    this.resetResponseArea("zhipu", "智谱思考中...")
+
+    // Hide all copy buttons
+    this.copyButtonGrokTarget.style.display = "none"
+    this.copyButtonQwenTarget.style.display = "none"
+    this.copyButtonDeepseekTarget.style.display = "none"
+    this.copyButtonGeminiTarget.style.display = "none"
+    this.copyButtonZhipuTarget.style.display = "none"
+
+    // Trigger backend job (which will start all 5 models)
+    // We only need to call this once - the backend will handle all providers
+    if (this.commandSubscription) {
+      this.commandSubscription.perform("generate_response", {
+        transcript: this.originalTranscript
+      })
+    }
   }
 
-  private startGrokResponse(): void {
-    this.currentStep = "responding"
+  private resetResponseArea(provider: string, loadingText: string): void {
+    const target = this.getResponseTarget(provider)
+    if (target) {
+      target.innerHTML = `
+        <div class="flex items-center gap-2 text-muted">
+          <div class="loading-spinner w-4 h-4"></div>
+          <span>${loadingText}</span>
+        </div>
+      `
+    }
+  }
+
+  private getResponseTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return this.responseGrokTarget
+      case 'qwen': return this.responseQwenTarget
+      case 'deepseek': return this.responseDeepseekTarget
+      case 'gemini': return this.responseGeminiTarget
+      case 'zhipu': return this.responseZhipuTarget
+      default: return null
+    }
+  }
+
+  private getCopyButtonTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return this.copyButtonGrokTarget
+      case 'qwen': return this.copyButtonQwenTarget
+      case 'deepseek': return this.copyButtonDeepseekTarget
+      case 'gemini': return this.copyButtonGeminiTarget
+      case 'zhipu': return this.copyButtonZhipuTarget
+      default: return null
+    }
+  }
+
+  // Handle streaming chunks for a specific provider
+  private handleChunkForProvider(provider: string, chunk: string): void {
+    this.responseContents[provider] += chunk
+    const target = this.getResponseTarget(provider)
     
-    // Get selected LLM provider
-    const selectedProvider = this.providerRadioTargets.find((radio) => radio.checked)?.value || 'grok'
-    const providerName = selectedProvider === 'qwen' ? '千问' : 
-                         selectedProvider === 'deepseek' ? 'DeepSeek' : 
-                         'Grok'
-
-    // Show response section
-    this.responseSectionTarget.style.display = "block"
-    this.responseTextTarget.innerHTML = `
-      <div class="flex items-center gap-2 text-muted">
-        <div class="loading-spinner w-5 h-5"></div>
-        <span>${providerName} 思考中...</span>
-      </div>
-    `
-
-    this.responseContent = ""
-
-    // Trigger backend job with selected provider
-    this.perform("generate_response", {
-      transcript: this.originalTranscript,
-      llm_provider: selectedProvider
-    })
-  }
-
-  // WebSocket handler: Handle streaming chunks
-  protected handleChunk(data: any): void {
-    const chunk = data.chunk
-
-    if (this.currentStep === "responding") {
-      this.responseContent += chunk
-      this.responseTextTarget.textContent = this.responseContent
-      
+    if (target) {
+      target.textContent = this.responseContents[provider]
       // Auto-scroll to bottom
-      this.responseTextTarget.scrollTop = this.responseTextTarget.scrollHeight
+      target.scrollTop = target.scrollHeight
     }
   }
 
-  // WebSocket handler: Handle generation complete
-  protected handleComplete(data: any): void {
-    if (this.currentStep === "responding") {
-      // Response complete, show action buttons
-      console.log("Grok response complete")
-      this.currentStep = "idle"
-      this.copyButtonTarget.style.display = "inline-flex"
+  // Handle completion for a specific provider
+  private handleCompleteForProvider(provider: string): void {
+    console.log(`${provider} response complete`)
+    this.completedModels.add(provider)
+    
+    // Show copy button for this provider
+    const copyButton = this.getCopyButtonTarget(provider)
+    if (copyButton) {
+      copyButton.style.display = "inline-flex"
+    }
+
+    // If all models are complete, show action buttons
+    if (this.completedModels.size === 5) {
       this.actionButtonsTarget.style.display = "block"
     }
   }
 
-  // WebSocket handler: Handle errors
-  protected handleError(data: any): void {
-    console.error("Generation error:", data.message)
+  // Handle errors for a specific provider
+  private handleErrorForProvider(provider: string, message: string): void {
+    console.error(`${provider} generation error:`, message)
     
-    const errorMessage = `生成失败: ${data.message || "未知错误"}`
+    const errorMessage = `生成失败: ${message || "未知错误"}`
+    const target = this.getResponseTarget(provider)
     
-    if (this.currentStep === "responding") {
-      this.responseTextTarget.innerHTML = `
+    if (target) {
+      target.innerHTML = `
         <div class="text-danger">${errorMessage}</div>
       `
     }
     
-    this.currentStep = "idle"
-    this.actionButtonsTarget.style.display = "block"
+    this.completedModels.add(provider)
+    
+    // If all models are complete (including errors), show action buttons
+    if (this.completedModels.size === 5) {
+      this.actionButtonsTarget.style.display = "block"
+    }
   }
 
-  // Copy Grok's response to clipboard
-  copyArticle(): void {
-    if (!this.responseContent) {
+  // Copy a specific provider's response to clipboard
+  copyResponse(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider || !this.responseContents[provider]) {
       return
     }
 
-    navigator.clipboard.writeText(this.responseContent).then(() => {
+    navigator.clipboard.writeText(this.responseContents[provider]).then(() => {
       // Show success feedback
-      const originalText = this.copyButtonTarget.textContent
-      this.copyButtonTarget.textContent = "✓ 已复制"
-      this.copyButtonTarget.classList.add("btn-success")
-      this.copyButtonTarget.classList.remove("btn-primary")
+      const originalText = button.textContent
+      button.textContent = "✓ 已复制"
+      button.classList.add("btn-success")
+      button.classList.remove("btn-primary")
       
       setTimeout(() => {
-        this.copyButtonTarget.textContent = originalText
-        this.copyButtonTarget.classList.remove("btn-success")
-        this.copyButtonTarget.classList.add("btn-primary")
+        button.textContent = originalText
+        button.classList.remove("btn-success")
+        button.classList.add("btn-primary")
       }, 2000)
     }).catch(err => {
       console.error("Failed to copy:", err)
@@ -204,8 +319,14 @@ export default class extends BaseChannelController {
   reset(): void {
     // Clear all content
     this.originalTranscript = ""
-    this.responseContent = ""
-    this.currentStep = "idle"
+    this.responseContents = {
+      grok: "",
+      qwen: "",
+      deepseek: "",
+      gemini: "",
+      zhipu: ""
+    }
+    this.completedModels.clear()
 
     // Clear input text
     if (this.hasInputTextTarget) {
@@ -213,12 +334,22 @@ export default class extends BaseChannelController {
     }
 
     // Hide all sections
-    this.responseSectionTarget.style.display = "none"
+    this.responsesContainerTarget.style.display = "none"
     this.actionButtonsTarget.style.display = "none"
-    this.copyButtonTarget.style.display = "none"
+    
+    // Hide all copy buttons
+    this.copyButtonGrokTarget.style.display = "none"
+    this.copyButtonQwenTarget.style.display = "none"
+    this.copyButtonDeepseekTarget.style.display = "none"
+    this.copyButtonGeminiTarget.style.display = "none"
+    this.copyButtonZhipuTarget.style.display = "none"
 
-    // Reset text
-    this.responseTextTarget.innerHTML = ""
+    // Reset all response texts
+    this.responseGrokTarget.innerHTML = ""
+    this.responseQwenTarget.innerHTML = ""
+    this.responseDeepseekTarget.innerHTML = ""
+    this.responseGeminiTarget.innerHTML = ""
+    this.responseZhipuTarget.innerHTML = ""
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" })

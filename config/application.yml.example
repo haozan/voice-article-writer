@@ -37,13 +37,43 @@ STORAGE_BUCKET_NAME: '<%= ENV.fetch("CLACKY_STORAGE_BUCKET_NAME", '') %>'
 # XXX_OPTIONAL: ''
 
 # LLM Service Configuration (shared with ImageGenerationService)
-LLM_BASE_URL: '<%= ENV.fetch("CLACKY_LLM_BASE_URL", '') %>'
-LLM_API_KEY: '<%= ENV.fetch("CLACKY_LLM_API_KEY", '') %>'
+LLM_BASE_URL: '<%= ENV.fetch("CLACKY_LLM_BASE_URL", "https://api.openai.com/v1") %>'
+LLM_API_KEY: '<%= ENV.fetch("CLACKY_LLM_API_KEY", "") %>'
 # LLM Service Configuration end
 
 # LLM Service Specific Configuration
-LLM_MODEL: '<%= ENV.fetch("CLACKY_LLM_MODEL", 'gemini-2.5-flash') %>'
+LLM_MODEL: '<%= ENV.fetch("CLACKY_LLM_MODEL", "gpt-4o-mini") %>'
 # LLM Service Specific Configuration end
+
+# Qwen (Alibaba Cloud) Configuration
+QWEN_BASE_URL_OPTIONAL: '<%= ENV.fetch("QWEN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1") %>'
+QWEN_API_KEY_OPTIONAL: '<%= ENV.fetch("QWEN_API_KEY", "") %>'
+QWEN_MODEL_OPTIONAL: '<%= ENV.fetch("QWEN_MODEL", "qwen3-max") %>'
+# Qwen Configuration end
+
+# DeepSeek Configuration
+DEEPSEEK_BASE_URL_OPTIONAL: '<%= ENV.fetch("DEEPSEEK_BASE_URL", "https://api.deepseek.com") %>'
+DEEPSEEK_API_KEY_OPTIONAL: '<%= ENV.fetch("DEEPSEEK_API_KEY", "") %>'
+DEEPSEEK_MODEL_OPTIONAL: '<%= ENV.fetch("DEEPSEEK_MODEL", "deepseek-reasoner") %>'
+# DeepSeek Configuration end
+
+# Gemini (Google) Configuration
+GEMINI_BASE_URL_OPTIONAL: '<%= ENV.fetch("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta") %>'
+GEMINI_API_KEY_OPTIONAL: '<%= ENV.fetch("GEMINI_API_KEY", "") %>'
+GEMINI_MODEL_OPTIONAL: '<%= ENV.fetch("GEMINI_MODEL", "models/gemini-3-flash-preview") %>'
+# Gemini Configuration end
+
+# Zhipu GLM Configuration
+ZHIPU_BASE_URL_OPTIONAL: '<%= ENV.fetch("ZHIPU_BASE_URL", "https://open.bigmodel.cn/api/paas/v4") %>'
+ZHIPU_API_KEY_OPTIONAL: '<%= ENV.fetch("ZHIPU_API_KEY", "") %>'
+ZHIPU_MODEL_OPTIONAL: '<%= ENV.fetch("ZHIPU_MODEL", "glm-4-flash") %>'
+# Zhipu Configuration end
+
+# ChatGPT (OpenAI) Configuration
+CHATGPT_BASE_URL_OPTIONAL: '<%= ENV.fetch("CHATGPT_BASE_URL", "https://api.openai.com/v1") %>'
+CHATGPT_API_KEY_OPTIONAL: '<%= ENV.fetch("CHATGPT_API_KEY", "") %>'
+CHATGPT_MODEL_OPTIONAL: '<%= ENV.fetch("CHATGPT_MODEL", "gpt-5.2") %>'
+# ChatGPT Configuration end
 
 # Image Generation Service Configuration (uses LLM_BASE_URL and LLM_API_KEY)
 IMAGE_GEN_MODEL: '<%= ENV.fetch("CLACKY_IMAGE_GEN_MODEL", "gemini-2.5-flash-image") %>'

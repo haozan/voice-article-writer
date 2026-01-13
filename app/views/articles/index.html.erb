@@ -4,88 +4,21 @@
     <div class="text-center mb-8">
       <h1 class="text-4xl lg:text-5xl font-bold text-primary mb-3">
         <%= lucide_icon "pen-line", class: "w-10 h-10 inline-block mr-2" %>
-        AI 文章写作助手
+        AI 多模型对话助手
       </h1>
       <p class="text-lg text-secondary">
-        选择 Grok AI、阿里云千问或 DeepSeek 与你聊聊思路
+        同时体验 5 个 AI 模型的不同风格与见解
       </p>
     </div>
 
     <!-- Main Content Wrapper -->
     <div 
-      data-controller="voice-recorder articles" 
+      data-controller="articles" 
       data-articles-stream-name-value="<%= @stream_name %>"
-      data-action="voice-recorder:completed->articles#onVoiceCompleted"
     >
       
       <!-- Input Section -->
       <div class="card card-elevated p-6 mb-6">
-        <!-- LLM Provider Selection -->
-        <div class="mb-6 pb-4 border-b border-border">
-          <label class="block text-lg font-semibold text-primary mb-3">
-            <%= lucide_icon "brain", class: "w-5 h-5 inline-block mr-2" %>
-            选择 AI 模型
-          </label>
-          <div class="flex gap-4">
-            <label class="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="radio" 
-                name="llm_provider" 
-                value="grok" 
-                checked
-                data-articles-target="providerRadio"
-                class="w-5 h-5 text-primary border-border focus:ring-2 focus:ring-primary/20"
-              >
-              <div class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <%= lucide_icon "zap", class: "w-5 h-5 text-primary" %>
-                </div>
-                <div>
-                  <div class="font-semibold text-primary">Grok AI</div>
-                  <div class="text-sm text-muted">来自 xAI</div>
-                </div>
-              </div>
-            </label>
-            
-            <label class="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="radio" 
-                name="llm_provider" 
-                value="qwen"
-                data-articles-target="providerRadio"
-                class="w-5 h-5 text-secondary border-border focus:ring-2 focus:ring-secondary/20"
-              >
-              <div class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
-                  <%= lucide_icon "sparkles", class: "w-5 h-5 text-secondary" %>
-                </div>
-                <div>
-                  <div class="font-semibold text-primary">阿里云千问</div>
-                  <div class="text-sm text-muted">Qwen3-Max</div>
-                </div>
-              </div>
-            </label>
-            
-            <label class="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="radio" 
-                name="llm_provider" 
-                value="deepseek"
-                data-articles-target="providerRadio"
-                class="w-5 h-5 text-accent border-border focus:ring-2 focus:ring-accent/20"
-              >
-              <div class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                  <%= lucide_icon "brain", class: "w-5 h-5 text-accent" %>
-                </div>
-                <div>
-                  <div class="font-semibold text-primary">DeepSeek</div>
-                  <div class="text-sm text-muted">深度思考</div>
-                </div>
-              </div>
-            </label>
-          </div>
-        </div>
         
         <div class="mb-4">
           <label class="block text-lg font-semibold text-primary mb-3">
@@ -116,33 +49,174 @@
         </p>
       </div>
 
-      <!-- Grok Response Section -->
-      <div class="card card-elevated mb-6 bg-gradient-to-br from-primary/5 to-secondary/5" data-articles-target="responseSection" style="display: none;">
-        <div class="card-header border-b border-border flex items-center justify-between">
-          <h2 class="text-xl font-bold text-primary flex items-center gap-2">
-            <%= lucide_icon "message-circle", class: "w-5 h-5" %>
-            Grok 的回应
-            <span class="text-sm font-normal text-muted">(来自 xAI 的真实思考)</span>
-          </h2>
-          <button
-            type="button"
-            data-action="click->articles#copyArticle"
-            data-articles-target="copyButton"
-            class="btn-primary btn-sm"
-            style="display: none;"
-          >
-            <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
-            复制内容
-          </button>
+      <!-- Multi-Model Response Section -->
+      <div data-articles-target="responsesContainer" style="display: none;">
+        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+          <%= lucide_icon "brain-circuit", class: "w-6 h-6" %>
+          AI 模型回应
+        </h2>
+        
+        <!-- Grok Response -->
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+          <div class="card-header border-b border-border flex items-center justify-between">
+            <h3 class="text-lg font-bold text-primary flex items-center gap-2">
+              <%= lucide_icon "zap", class: "w-5 h-5" %>
+              Grok
+              <span class="text-sm font-normal text-muted">grok-4-1-fast-reasoning</span>
+            </h3>
+            <button
+              type="button"
+              data-action="click->articles#copyResponse"
+              data-provider="grok"
+              data-articles-target="copyButtonGrok"
+              class="btn-primary btn-sm"
+              style="display: none;"
+            >
+              <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+              复制
+            </button>
+          </div>
+          <div class="card-body">
+            <div 
+              data-articles-target="responseGrok"
+              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+            >
+              <div class="flex items-center gap-2 text-muted">
+                <div class="loading-spinner w-4 h-4"></div>
+                <span>Grok 思考中...</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
-          <div 
-            data-articles-target="responseText"
-            class="text-secondary text-lg leading-relaxed whitespace-pre-wrap min-h-[200px] max-h-[600px] overflow-y-auto"
-          >
-            <div class="flex items-center gap-2 text-muted">
-              <div class="loading-spinner w-5 h-5"></div>
-              <span>Grok 思考中...</span>
+
+        <!-- Qwen Response -->
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-secondary/5 to-accent/5">
+          <div class="card-header border-b border-border flex items-center justify-between">
+            <h3 class="text-lg font-bold text-primary flex items-center gap-2">
+              <%= lucide_icon "sparkles", class: "w-5 h-5" %>
+              千问
+              <span class="text-sm font-normal text-muted">qwen3-max</span>
+            </h3>
+            <button
+              type="button"
+              data-action="click->articles#copyResponse"
+              data-provider="qwen"
+              data-articles-target="copyButtonQwen"
+              class="btn-primary btn-sm"
+              style="display: none;"
+            >
+              <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+              复制
+            </button>
+          </div>
+          <div class="card-body">
+            <div 
+              data-articles-target="responseQwen"
+              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+            >
+              <div class="flex items-center gap-2 text-muted">
+                <div class="loading-spinner w-4 h-4"></div>
+                <span>千问思考中...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DeepSeek Response -->
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-accent/5 to-primary/5">
+          <div class="card-header border-b border-border flex items-center justify-between">
+            <h3 class="text-lg font-bold text-primary flex items-center gap-2">
+              <%= lucide_icon "brain", class: "w-5 h-5" %>
+              DeepSeek
+              <span class="text-sm font-normal text-muted">deepseek-reasoner</span>
+            </h3>
+            <button
+              type="button"
+              data-action="click->articles#copyResponse"
+              data-provider="deepseek"
+              data-articles-target="copyButtonDeepseek"
+              class="btn-primary btn-sm"
+              style="display: none;"
+            >
+              <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+              复制
+            </button>
+          </div>
+          <div class="card-body">
+            <div 
+              data-articles-target="responseDeepseek"
+              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+            >
+              <div class="flex items-center gap-2 text-muted">
+                <div class="loading-spinner w-4 h-4"></div>
+                <span>DeepSeek 思考中...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gemini Response -->
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-blue-500/5 to-purple-500/5">
+          <div class="card-header border-b border-border flex items-center justify-between">
+            <h3 class="text-lg font-bold text-primary flex items-center gap-2">
+              <%= lucide_icon "gem", class: "w-5 h-5 text-blue-600" %>
+              Gemini
+              <span class="text-sm font-normal text-muted">gemini-3-flash-preview</span>
+            </h3>
+            <button
+              type="button"
+              data-action="click->articles#copyResponse"
+              data-provider="gemini"
+              data-articles-target="copyButtonGemini"
+              class="btn-primary btn-sm"
+              style="display: none;"
+            >
+              <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+              复制
+            </button>
+          </div>
+          <div class="card-body">
+            <div 
+              data-articles-target="responseGemini"
+              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+            >
+              <div class="flex items-center gap-2 text-muted">
+                <div class="loading-spinner w-4 h-4"></div>
+                <span>Gemini 思考中...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zhipu Response -->
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+          <div class="card-header border-b border-border flex items-center justify-between">
+            <h3 class="text-lg font-bold text-primary flex items-center gap-2">
+              <%= lucide_icon "zap-off", class: "w-5 h-5 text-purple-600" %>
+              智谱
+              <span class="text-sm font-normal text-muted">glm-4-flash</span>
+            </h3>
+            <button
+              type="button"
+              data-action="click->articles#copyResponse"
+              data-provider="zhipu"
+              data-articles-target="copyButtonZhipu"
+              class="btn-primary btn-sm"
+              style="display: none;"
+            >
+              <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+              复制
+            </button>
+          </div>
+          <div class="card-body">
+            <div 
+              data-articles-target="responseZhipu"
+              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+            >
+              <div class="flex items-center gap-2 text-muted">
+                <div class="loading-spinner w-4 h-4"></div>
+                <span>智谱思考中...</span>
+              </div>
             </div>
           </div>
         </div>
@@ -184,7 +258,7 @@
           </li>
           <li class="flex items-start gap-2">
             <%= lucide_icon "check", class: "w-4 h-4 text-success mt-1 flex-shrink-0" %>
-            <span>选择 Grok AI、阿里云千问或 DeepSeek，体验不同的 AI 风格</span>
+            <span>5 个 AI 模型将同时回应，对比不同的 AI 风格与见解</span>
           </li>
         </ul>
       </div>

@@ -21,15 +21,8 @@ class LlmStreamJob < ApplicationJob
     provider_name = llm_config ? detect_provider(llm_config) : 'Grok'
     system_prompt = build_system_prompt(provider_name)
     
-    # Debug logging
-    Rails.logger.info "[LlmStreamJob] Provider: #{provider_name}"
-    Rails.logger.info "[LlmStreamJob] llm_config: #{llm_config.inspect}"
-    Rails.logger.info "[LlmStreamJob] options before merge: #{options.inspect}"
-    
     # Merge llm_config into options if provided
     options = options.merge(llm_config) if llm_config
-    
-    Rails.logger.info "[LlmStreamJob] options after merge: #{options.inspect}"
     
     generate_and_stream(stream_name, prompt, system_prompt, **options)
   end
@@ -40,6 +33,9 @@ class LlmStreamJob < ApplicationJob
     base_url = llm_config[:base_url] || llm_config['base_url']
     return 'Qwen' if base_url&.include?('dashscope')
     return 'DeepSeek' if base_url&.include?('deepseek')
+    return 'Gemini' if base_url&.include?('generativelanguage')
+    return 'Zhipu' if base_url&.include?('bigmodel')
+    return 'ChatGPT' if base_url&.include?('openai')
     'Grok'
   end
   
@@ -66,6 +62,45 @@ class LlmStreamJob < ApplicationJob
         1. 原汁原味地理解用户的表达
         2. 分享你的真实想法、思路、观点、建议
         3. 保持深刻、理性、有洞见的风格
+        4. 不要扩写、不要改写、不要帮用户写文章
+        5. 就像朋友之间的思想交流，说出你真实的思考
+        
+        直接输出你的回应，不要加任何解释或套话。
+      PROMPT
+    when 'Gemini'
+      <<~PROMPT.strip
+        你是 Gemini，来自 Google。用户会分享他的想法、观点或内容。
+        
+        请你：
+        1. 原汁原味地理解用户的表达
+        2. 分享你的真实想法、思路、观点、建议
+        3. 保持 Gemini 的风格：智能、准确、富有创造力
+        4. 不要扩写、不要改写、不要帮用户写文章
+        5. 就像朋友之间的思想交流，说出你真实的思考
+        
+        直接输出你的回应，不要加任何解释或套话。
+      PROMPT
+    when 'Zhipu'
+      <<~PROMPT.strip
+        你是智谱 GLM，来自智谱 AI。用户会分享他的想法、观点或内容。
+        
+        请你：
+        1. 原汁原味地理解用户的表达
+        2. 分享你的真实想法、思路、观点、建议
+        3. 保持智谱的风格：精准、高效、实用
+        4. 不要扩写、不要改写、不要帮用户写文章
+        5. 就像朋友之间的思想交流，说出你真实的思考
+        
+        直接输出你的回应，不要加任何解释或套话。
+      PROMPT
+    when 'ChatGPT'
+      <<~PROMPT.strip
+        你是 ChatGPT，来自 OpenAI。用户会分享他的想法、观点或内容。
+        
+        请你：
+        1. 原汁原味地理解用户的表达
+        2. 分享你的真实想法、思路、观点、建议
+        3. 保持 ChatGPT 的风格：专业、全面、有条理
         4. 不要扩写、不要改写、不要帮用户写文章
         5. 就像朋友之间的思想交流，说出你真实的思考
         

@@ -45,19 +45,23 @@ class ArticlesChannel < ApplicationCable::Channel
   #     }
   #   )
   # end
-  # Generate response with selected LLM provider
+  # Generate response with ALL available LLM providers concurrently
   def generate_response(data)
     transcript = data['transcript']
-    llm_provider = data['llm_provider'] || 'grok' # Default to grok
     
-    # Get LLM config based on provider
-    llm_config = get_llm_config(llm_provider)
+    # List of all available providers
+    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
     
-    LlmStreamJob.perform_later(
-      stream_name: @stream_name,
-      prompt: transcript,
-      llm_config: llm_config
-    )
+    # Trigger jobs for all providers concurrently
+    providers.each do |provider|
+      llm_config = get_llm_config(provider)
+      
+      LlmStreamJob.perform_later(
+        stream_name: "#{@stream_name}_#{provider}",
+        prompt: transcript,
+        llm_config: llm_config
+      )
+    end
   end
 
   private
@@ -66,15 +70,33 @@ class ArticlesChannel < ApplicationCable::Channel
     case provider.to_s
     when 'qwen'
       {
-        base_url: ENV.fetch('QWEN_BASE_URL'),
-        api_key: ENV.fetch('QWEN_API_KEY'),
-        model: ENV.fetch('QWEN_MODEL')
+        base_url: ENV.fetch('QWEN_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('QWEN_API_KEY_OPTIONAL'),
+        model: ENV.fetch('QWEN_MODEL_OPTIONAL')
       }
     when 'deepseek'
       {
-        base_url: ENV.fetch('DEEPSEEK_BASE_URL'),
-        api_key: ENV.fetch('DEEPSEEK_API_KEY'),
-        model: ENV.fetch('DEEPSEEK_MODEL')
+        base_url: ENV.fetch('DEEPSEEK_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('DEEPSEEK_API_KEY_OPTIONAL'),
+        model: ENV.fetch('DEEPSEEK_MODEL_OPTIONAL')
+      }
+    when 'gemini'
+      {
+        base_url: ENV.fetch('GEMINI_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('GEMINI_API_KEY_OPTIONAL'),
+        model: ENV.fetch('GEMINI_MODEL_OPTIONAL')
+      }
+    when 'zhipu'
+      {
+        base_url: ENV.fetch('ZHIPU_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('ZHIPU_API_KEY_OPTIONAL'),
+        model: ENV.fetch('ZHIPU_MODEL_OPTIONAL')
+      }
+    when 'chatgpt'
+      {
+        base_url: ENV.fetch('CHATGPT_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('CHATGPT_API_KEY_OPTIONAL'),
+        model: ENV.fetch('CHATGPT_MODEL_OPTIONAL')
       }
     when 'grok'
       {
