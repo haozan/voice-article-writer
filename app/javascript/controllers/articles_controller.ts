@@ -24,7 +24,8 @@ export default class extends BaseChannelController {
     "responseSection",
     "responseText",
     "copyButton",
-    "actionButtons"
+    "actionButtons",
+    "providerRadio"
   ]
 
   static values = {
@@ -36,6 +37,7 @@ export default class extends BaseChannelController {
   declare readonly responseTextTarget: HTMLElement
   declare readonly copyButtonTarget: HTMLElement
   declare readonly actionButtonsTarget: HTMLElement
+  declare readonly providerRadioTargets: HTMLInputElement[]
   declare readonly streamNameValue: string
   declare readonly hasInputTextTarget: boolean
 
@@ -109,21 +111,26 @@ export default class extends BaseChannelController {
 
   private startGrokResponse(): void {
     this.currentStep = "responding"
+    
+    // Get selected LLM provider
+    const selectedProvider = this.providerRadioTargets.find((radio) => radio.checked)?.value || 'grok'
+    const providerName = selectedProvider === 'qwen' ? '千问' : 'Grok'
 
     // Show response section
     this.responseSectionTarget.style.display = "block"
     this.responseTextTarget.innerHTML = `
       <div class="flex items-center gap-2 text-muted">
         <div class="loading-spinner w-5 h-5"></div>
-        <span>Grok 思考中...</span>
+        <span>${providerName} 思考中...</span>
       </div>
     `
 
     this.responseContent = ""
 
-    // Trigger backend job
+    // Trigger backend job with selected provider
     this.perform("generate_response", {
-      transcript: this.originalTranscript
+      transcript: this.originalTranscript,
+      llm_provider: selectedProvider
     })
   }
 

@@ -20,6 +20,54 @@
       
       <!-- Input Section -->
       <div class="card card-elevated p-6 mb-6">
+        <!-- LLM Provider Selection -->
+        <div class="mb-6 pb-4 border-b border-border">
+          <label class="block text-lg font-semibold text-primary mb-3">
+            <%= lucide_icon "brain", class: "w-5 h-5 inline-block mr-2" %>
+            选择 AI 模型
+          </label>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input 
+                type="radio" 
+                name="llm_provider" 
+                value="grok" 
+                checked
+                data-articles-target="providerRadio"
+                class="w-5 h-5 text-primary border-border focus:ring-2 focus:ring-primary/20"
+              >
+              <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <%= lucide_icon "zap", class: "w-5 h-5 text-primary" %>
+                </div>
+                <div>
+                  <div class="font-semibold text-primary">Grok AI</div>
+                  <div class="text-sm text-muted">来自 xAI</div>
+                </div>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input 
+                type="radio" 
+                name="llm_provider" 
+                value="qwen"
+                data-articles-target="providerRadio"
+                class="w-5 h-5 text-secondary border-border focus:ring-2 focus:ring-secondary/20"
+              >
+              <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
+                  <%= lucide_icon "sparkles", class: "w-5 h-5 text-secondary" %>
+                </div>
+                <div>
+                  <div class="font-semibold text-primary">阿里云千问</div>
+                  <div class="text-sm text-muted">Qwen3-Max</div>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+        
         <div class="mb-4">
           <label class="block text-lg font-semibold text-primary mb-3">
             <%= lucide_icon "message-square", class: "w-5 h-5 inline-block mr-2" %>

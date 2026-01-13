@@ -45,17 +45,46 @@ class ArticlesChannel < ApplicationCable::Channel
   #     }
   #   )
   # end
-  # Generate Grok's response (single step)
+  # Generate response with selected LLM provider
   def generate_response(data)
     transcript = data['transcript']
+    llm_provider = data['llm_provider'] || 'grok' # Default to grok
+    
+    # Get LLM config based on provider
+    llm_config = get_llm_config(llm_provider)
     
     LlmStreamJob.perform_later(
       stream_name: @stream_name,
-      prompt: transcript
+      prompt: transcript,
+      llm_config: llm_config
     )
   end
 
   private
+  
+  def get_llm_config(provider)
+    case provider.to_s
+    when 'qwen'
+      {
+        base_url: ENV.fetch('QWEN_BASE_URL'),
+        api_key: ENV.fetch('QWEN_API_KEY'),
+        model: ENV.fetch('QWEN_MODEL')
+      }
+    when 'grok'
+      {
+        base_url: ENV.fetch('LLM_BASE_URL'),
+        api_key: ENV.fetch('LLM_API_KEY'),
+        model: ENV.fetch('LLM_MODEL')
+      }
+    else
+      # Default to Grok
+      {
+        base_url: ENV.fetch('LLM_BASE_URL'),
+        api_key: ENV.fetch('LLM_API_KEY'),
+        model: ENV.fetch('LLM_MODEL')
+      }
+    end
+  end
 
   # def current_user
   #   @current_user ||= connection.current_user
