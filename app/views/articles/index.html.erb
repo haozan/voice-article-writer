@@ -7,39 +7,19 @@
         AI 文章写作助手
       </h1>
       <p class="text-lg text-secondary">
-        输入你的想法，AI 帮你写成好文章
+        输入你的想法，Grok 跟你聊聊他的思路
       </p>
     </div>
 
     <!-- Main Content Wrapper -->
     <div 
-      data-controller="articles" 
+      data-controller="voice-recorder articles" 
       data-articles-stream-name-value="<%= @stream_name %>"
+      data-action="voice-recorder:completed->articles#onVoiceCompleted"
     >
       
       <!-- Input Section -->
       <div class="card card-elevated p-6 mb-6">
-        <!-- Model Selection -->
-        <div class="mb-6">
-          <label class="block text-lg font-semibold text-primary mb-3">
-            <%= lucide_icon "brain", class: "w-5 h-5 inline-block mr-2" %>
-            选择 AI 模型
-          </label>
-          <select
-            data-articles-target="modelSelect"
-            class="w-full px-4 py-3 text-lg border-2 border-border rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-foreground bg-surface cursor-pointer"
-          >
-            <% @available_models.each do |model| %>
-              <option value="<%= model[:value] %>" data-provider="<%= model[:provider] %>">
-                <%= model[:label] %>
-              </option>
-            <% end %>
-          </select>
-          <p class="text-sm text-muted mt-2">
-            不同模型有不同的风格和速度，可以尝试对比效果
-          </p>
-        </div>
-
         <div class="mb-4">
           <label class="block text-lg font-semibold text-primary mb-3">
             <%= lucide_icon "message-square", class: "w-5 h-5 inline-block mr-2" %>
@@ -60,7 +40,7 @@
             class="btn-primary btn-lg px-12"
           >
             <%= lucide_icon "sparkles", class: "w-5 h-5 inline-block mr-2" %>
-            开始生成文章
+            开始对话
           </button>
         </div>
         
@@ -69,35 +49,13 @@
         </p>
       </div>
 
-      <!-- Grok Thinking Section -->
-      <div class="card card-elevated mb-6 bg-surface-elevated/50" data-articles-target="thinkingSection" style="display: none;">
-        <div class="card-header border-b border-border">
-          <h2 class="text-xl font-bold text-secondary flex items-center gap-2">
-            <%= lucide_icon "brain", class: "w-5 h-5" %>
-            <span data-articles-target="thinkingTitle">AI 的思考</span>
-            <span class="text-sm font-normal text-muted">(供我参考与激发)</span>
-          </h2>
-        </div>
-        <div class="card-body">
-          <div 
-            data-articles-target="thinkingText"
-            class="text-secondary leading-relaxed whitespace-pre-wrap min-h-[120px]"
-          >
-            <div class="flex items-center gap-2 text-muted">
-              <div class="loading-spinner w-5 h-5"></div>
-              <span>思考中...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Final Article Section -->
-      <div class="card card-elevated bg-gradient-to-br from-primary/5 to-secondary/5" data-articles-target="articleSection" style="display: none;">
+      <!-- Grok Response Section -->
+      <div class="card card-elevated mb-6 bg-gradient-to-br from-primary/5 to-secondary/5" data-articles-target="responseSection" style="display: none;">
         <div class="card-header border-b border-border flex items-center justify-between">
           <h2 class="text-xl font-bold text-primary flex items-center gap-2">
-            <%= lucide_icon "file-text", class: "w-5 h-5" %>
-            最终文章
-            <span class="text-sm font-normal text-muted">(可直接发布或分享)</span>
+            <%= lucide_icon "message-circle", class: "w-5 h-5" %>
+            Grok 的回应
+            <span class="text-sm font-normal text-muted">(来自 xAI 的真实思考)</span>
           </h2>
           <button
             type="button"
@@ -107,17 +65,17 @@
             style="display: none;"
           >
             <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
-            复制全文
+            复制内容
           </button>
         </div>
         <div class="card-body">
           <div 
-            data-articles-target="articleText"
+            data-articles-target="responseText"
             class="text-secondary text-lg leading-relaxed whitespace-pre-wrap min-h-[200px] max-h-[600px] overflow-y-auto"
           >
             <div class="flex items-center gap-2 text-muted">
               <div class="loading-spinner w-5 h-5"></div>
-              <span>生成中...</span>
+              <span>Grok 思考中...</span>
             </div>
           </div>
         </div>
@@ -131,7 +89,7 @@
           class="btn-secondary btn-lg px-8"
         >
           <%= lucide_icon "refresh-cw", class: "w-5 h-5 inline-block mr-2" %>
-          重新创作
+          重新对话
         </button>
       </div>
 
@@ -159,7 +117,7 @@
           </li>
           <li class="flex items-start gap-2">
             <%= lucide_icon "check", class: "w-4 h-4 text-success mt-1 flex-shrink-0" %>
-            <span>AI 会先思考，然后生成完整文章</span>
+            <span>Grok 会跟你分享他的真实想法和思路，不会扩写文章</span>
           </li>
         </ul>
       </div>

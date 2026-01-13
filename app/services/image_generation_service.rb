@@ -1,4 +1,4 @@
-# Image Generation Service - Uses OpenRouter for unified multi-model support
+# Image Generation Service
 class ImageGenerationService < ApplicationService
   class ImageGenerationError < StandardError; end
   class TimeoutError < ImageGenerationError; end
@@ -7,14 +7,11 @@ class ImageGenerationService < ApplicationService
   def initialize(prompt:, **options)
     @prompt = prompt
     @options = options
+    @base_url = options[:base_url] || ENV.fetch('LLM_BASE_URL')
     @model = options[:model] || ENV.fetch('IMAGE_GEN_MODEL')
     @size = options[:size] || ENV.fetch('IMAGE_GEN_SIZE', '1024x1024')
-    @timeout = options[:timeout] || 60
+    @timeout = options[:timeout] || 60 # Image generation may take longer
     @images = normalize_images(options[:images])
-    
-    # OpenRouter specific headers
-    @site_url = options[:site_url] || ENV.fetch('OPENROUTER_SITE_URL', '')
-    @app_name = options[:app_name] || ENV.fetch('OPENROUTER_APP_NAME', 'Rails App')
   end
 
   # Generate image(s) and return result
@@ -47,10 +44,7 @@ class ImageGenerationService < ApplicationService
     require 'uri'
     require 'json'
 
-    base_url = ENV.fetch('LLM_BASE_URL', 'https://openrouter.ai/api/v1')
-    api_key = ENV.fetch('LLM_API_KEY')
-    
-    uri = URI.parse("#{base_url}/chat/completions")
+    uri = URI.parse("#{@base_url}/chat/completions")
 
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = (uri.scheme == 'https')
@@ -60,10 +54,6 @@ class ImageGenerationService < ApplicationService
     request = Net::HTTP::Post.new(uri.path)
     request["Content-Type"] = "application/json"
     request["Authorization"] = "Bearer #{api_key}"
-    
-    # OpenRouter specific headers
-    request["HTTP-Referer"] = @site_url if @site_url.present?
-    request["X-Title"] = @app_name if @app_name.present?
 
     messages = []
     if @images.present?
@@ -79,9 +69,9 @@ class ImageGenerationService < ApplicationService
     body = {
       model: @model,
       messages: messages,
-      size: @size,
-      modalities: ["text", "image"]
+      size: @size
     }
+    body[:modalities] = ["text", "image"]
 
     request.body = body.to_json
 
@@ -104,17 +94,28 @@ class ImageGenerationService < ApplicationService
   end
 
   def extract_images(response)
+    # response format supported:
+    # 1. { choices: [{ message: { images: [{ image_url: { url: "..." } }] } }] }
+    # 2. { choices: [{ message: { content: "..." } }] }
     message = response.dig("choices", 0, "message")
     return [] unless message
 
     if message["images"] && message["images"].is_a?(Array)
+      # 1. directly extract images array URLs
       message["images"]
         .map { |img| img.dig("image_url", "url") }
         .compact
     elsif message["content"].is_a?(String)
+      # 2. try to extract possible image URLs from content (supports Markdown and plain URLs)
       message["content"].scan(%r{data:image/[a-zA-Z]+;base64,[A-Za-z0-9+/=]+}) rescue []
     else
       []
+    end
+  end
+
+  def api_key
+    ENV.fetch('LLM_API_KEY') do
+      raise ImageGenerationError, "LLM_API_KEY not configured"
     end
   end
 

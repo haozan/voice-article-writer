@@ -45,35 +45,13 @@ class ArticlesChannel < ApplicationCable::Channel
   #     }
   #   )
   # end
-  # Generate Grok's thinking (step 1)
-  def generate_thinking(data)
+  # Generate Grok's response (single step)
+  def generate_response(data)
     transcript = data['transcript']
-    model = data['model']
-    provider = data['provider']
     
     LlmStreamJob.perform_later(
       stream_name: @stream_name,
-      step: 'thinking',
-      prompt: transcript,
-      model: model,
-      provider: provider
-    )
-  end
-
-  # Generate final article (step 2)
-  def generate_article(data)
-    transcript = data['transcript']
-    thinking = data['thinking']
-    model = data['model']
-    provider = data['provider']
-    
-    LlmStreamJob.perform_later(
-      stream_name: @stream_name,
-      step: 'article',
-      prompt: transcript,
-      grok_thinking: thinking,
-      model: model,
-      provider: provider
+      prompt: transcript
     )
   end
 

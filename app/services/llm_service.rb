@@ -26,10 +26,6 @@ class LlmService < ApplicationService
     @timeout = options[:timeout] || 30
     @images = normalize_images(options[:images])
 
-    # OpenRouter specific headers
-    @site_url = options[:site_url] || ENV.fetch('OPENROUTER_SITE_URL', '')
-    @app_name = options[:app_name] || ENV.fetch('OPENROUTER_APP_NAME', 'Rails App')
-
     # Tool call support
     @tools = options[:tools] || []
     @tool_choice = options[:tool_choice] # 'auto', 'required', 'none', or {type: 'function', function: {name: 'foo'}}
@@ -254,14 +250,10 @@ class LlmService < ApplicationService
     end
   rescue Net::ReadTimeout
     raise TimeoutError, "Request timed out after #{@timeout}s"
-  rescue JSON::ParserError => e
-    raise ApiError, "Invalid JSON response: #{e.message}"
   end
 
   def prepare_http_request(stream)
-    base_url = ENV.fetch('LLM_BASE_URL', 'https://openrouter.ai/api/v1')
-    api_key = ENV.fetch('LLM_API_KEY')
-    
+    base_url = ENV.fetch('LLM_BASE_URL')
     uri = URI.parse("#{base_url}/chat/completions")
 
     http = Net::HTTP.new(uri.host, uri.port)
@@ -272,92 +264,23 @@ class LlmService < ApplicationService
     request = Net::HTTP::Post.new(uri.path)
     request["Content-Type"] = "application/json"
     request["Authorization"] = "Bearer #{api_key}"
-    
-    # OpenRouter specific headers
-    request["HTTP-Referer"] = @site_url if @site_url.present?
-    request["X-Title"] = @app_name if @app_name.present?
 
-    body = build_request_body(stream)
+    body = build_request_body
+    if stream
+      request["Accept"] = "text/event-stream"
+      body[:stream] = true
+    end
     request.body = body.to_json
 
     [http, request]
   end
 
-  def build_request_body(stream)
-    body = {
-      model: @model,
-      messages: @messages,
-      temperature: @temperature,
-      max_tokens: @max_tokens,
-      stream: stream
-    }
-
-    # Add tools if present
-    if @tools.present?
-      body[:tools] = @tools
-      body[:tool_choice] = @tool_choice if @tool_choice.present?
-    end
-
-    body
-  end
-
-  def handle_stream_response(http, request, &block)
-    buffer = ""
-
-    http.request(request) do |response|
-      unless response.code.to_i == 200
-        handle_error_response(response)
-      end
-
-      response.read_body do |chunk|
-        buffer += chunk
-        lines = buffer.split("\n")
-        buffer = lines.pop || ""
-
-        lines.each do |line|
-          next if line.strip.empty?
-          next unless line.start_with?("data: ")
-
-          data = line.sub("data: ", "").strip
-          next if data == "[DONE]"
-
-          begin
-            json = JSON.parse(data)
-            delta = json.dig("choices", 0, "delta")
-            next unless delta
-
-            # Build chunk_data with both content and tool_calls
-            chunk_data = {}
-            
-            if delta["content"]
-              chunk_data[:content] = delta["content"]
-            end
-
-            if delta["tool_calls"]
-              chunk_data[:tool_calls] = delta["tool_calls"]
-            end
-
-            block.call(chunk_data) if chunk_data.present?
-          rescue JSON::ParserError => e
-            Rails.logger.warn("Skipping invalid JSON chunk: #{e.message}")
-          end
-        end
-      end
-    end
-  end
-
   def handle_blocking_response(http, request)
     response = http.request(request)
 
-    unless response.code.to_i == 200
-      handle_error_response(response)
-    end
-
-    JSON.parse(response.body)
-  end
-
-  def handle_error_response(response)
     case response.code.to_i
+    when 200
+      JSON.parse(response.body)
     when 429
       raise ApiError, "Rate limit exceeded"
     when 500..599
@@ -365,85 +288,213 @@ class LlmService < ApplicationService
     else
       raise ApiError, "API error: #{response.code} - #{response.body}"
     end
+  rescue JSON::ParserError => e
+    raise ApiError, "Invalid JSON response: #{e.message}"
   end
 
+  def handle_stream_response(http, request, &block)
+    http.request(request) do |response|
+      unless response.code.to_i == 200
+        raise ApiError, "API error: #{response.code} - #{response.body}"
+      end
+
+      buffer = ""
+      response.read_body do |chunk|
+        buffer += chunk
+
+        while (line_end = buffer.index("\n"))
+          line = buffer[0...line_end].strip
+          buffer = buffer[(line_end + 1)..-1]
+
+          next if line.empty?
+          next unless line.start_with?("data: ")
+
+          data = line[6..-1]
+          next if data == "[DONE]"
+
+          begin
+            json = JSON.parse(data)
+            delta = json.dig("choices", 0, "delta")
+
+            next unless delta
+
+            # Build chunk data with content and tool_calls
+            chunk_data = {}
+
+            if content = delta["content"]
+              chunk_data[:content] = content
+            end
+
+            if tool_calls = delta["tool_calls"]
+              chunk_data[:tool_calls] = tool_calls
+            end
+
+            block.call(chunk_data) if chunk_data.present?
+          rescue JSON::ParserError => e
+            Rails.logger.warn("Failed to parse SSE chunk: #{e.message}")
+          end
+        end
+      end
+    end
+  end
+
+  def build_request_body
+    body = {
+      model: @model,
+      messages: @messages,
+      temperature: @temperature,
+      max_tokens: @max_tokens
+    }
+
+    # Add tools if available
+    if @tools.present?
+      body[:tools] = @tools
+      body[:tool_choice] = @tool_choice if @tool_choice.present?
+    end
+
+    # Some providers require modalities when sending images
+    body[:modalities] = ["text", "image"] if @images.present?
+
+    body
+  end
+
+  # Build initial messages from prompt, system, and images
   def build_initial_messages
-    @messages = []
+    return if @messages.present? # Already built
+
     @messages << { role: "system", content: @system } if @system.present?
 
     if @images.present?
-      content = [{ type: "text", text: @prompt.to_s }]
+      user_content = []
+      user_content << { type: "text", text: @prompt.to_s }
       @images.each do |img|
-        content << { type: "image_url", image_url: { url: img } }
+        user_content << { type: "image_url", image_url: { url: img } }
       end
-      @messages << { role: "user", content: content }
+      @messages << { role: "user", content: user_content }
     else
       @messages << { role: "user", content: @prompt }
     end
   end
 
+  # Handle tool calls by executing them and adding results to messages
   def handle_tool_calls(tool_calls)
-    raise ToolExecutionError, "No tool handler provided" unless @tool_handler
+    raise ToolExecutionError, "No tool_handler provided" unless @tool_handler
 
     tool_calls.each do |tool_call|
-      tool_name = tool_call.dig("function", "name")
-      args_json = tool_call.dig("function", "arguments")
+      tool_id = tool_call["id"]
+      function_name = tool_call.dig("function", "name")
+      arguments_json = tool_call.dig("function", "arguments")
 
       begin
-        args = JSON.parse(args_json)
-        result = @tool_handler.call(tool_name, args)
+        # Parse arguments
+        arguments = JSON.parse(arguments_json)
 
+        # Execute tool via handler
+        result = @tool_handler.call(function_name, arguments)
+
+        # Add tool result to messages
         @messages << {
           role: "tool",
-          tool_call_id: tool_call["id"],
+          tool_call_id: tool_id,
+          name: function_name,
           content: result.to_json
         }
       rescue => e
-        Rails.logger.error("Tool execution failed: #{e.message}")
+        # Add error as tool result
         @messages << {
           role: "tool",
-          tool_call_id: tool_call["id"],
+          tool_call_id: tool_id,
+          name: function_name,
           content: { error: e.message }.to_json
         }
+        Rails.logger.error("Tool execution error: #{e.class} - #{e.message}")
       end
     end
   end
 
+  # Load tools from MCP server
   def load_mcp_tools
-    # Load tools from MCP server
-    require 'net/http'
-    require 'uri'
-    require 'json'
+    return unless @mcp_server_url.present?
 
-    uri = URI.parse("#{@mcp_server_url}/tools/list")
-    response = Net::HTTP.get_response(uri)
-
-    if response.code.to_i == 200
-      tools_data = JSON.parse(response.body)
-      @tools = tools_data["tools"] || []
-    else
-      Rails.logger.error("Failed to load MCP tools: #{response.code}")
-    end
-  rescue => e
-    Rails.logger.error("MCP tools loading error: #{e.message}")
-  end
-
-  def build_mcp_tool_handler
-    ->(tool_name, args) do
+    begin
       require 'net/http'
       require 'uri'
-      require 'json'
 
-      uri = URI.parse("#{@mcp_server_url}/tools/call")
+      uri = URI.parse("#{@mcp_server_url}/tools")
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = (uri.scheme == 'https')
+      http.read_timeout = 10
+
+      request = Net::HTTP::Get.new(uri.path)
+      request["Content-Type"] = "application/json"
+
+      response = http.request(request)
+
+      if response.code.to_i == 200
+        mcp_tools = JSON.parse(response.body)
+        # Convert MCP tools to OpenAI function format
+        @tools = convert_mcp_tools_to_openai_format(mcp_tools)
+        Rails.logger.info("Loaded #{@tools.length} tools from MCP server")
+      else
+        Rails.logger.warn("Failed to load MCP tools: #{response.code}")
+      end
+    rescue => e
+      Rails.logger.warn("MCP tools loading error: #{e.message}")
+    end
+  end
+
+  # Convert MCP tool format to OpenAI function calling format
+  def convert_mcp_tools_to_openai_format(mcp_tools)
+    return [] unless mcp_tools.is_a?(Array)
+
+    mcp_tools.map do |tool|
+      {
+        type: "function",
+        function: {
+          name: tool["name"],
+          description: tool["description"],
+          parameters: tool["inputSchema"] || tool["parameters"] || {
+            type: "object",
+            properties: {},
+            required: []
+          }
+        }
+      }
+    end
+  end
+
+  # Build default tool handler for MCP server
+  def build_mcp_tool_handler
+    ->(tool_name, arguments) do
+      require 'net/http'
+      require 'uri'
+
+      uri = URI.parse("#{@mcp_server_url}/tools/execute")
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
+      http.read_timeout = 30
 
       request = Net::HTTP::Post.new(uri.path)
       request["Content-Type"] = "application/json"
-      request.body = { name: tool_name, arguments: args }.to_json
+      request.body = {
+        name: tool_name,
+        arguments: arguments
+      }.to_json
 
       response = http.request(request)
-      JSON.parse(response.body)
+
+      if response.code.to_i == 200
+        result = JSON.parse(response.body)
+        result["result"] || result
+      else
+        raise ToolExecutionError, "MCP tool execution failed: #{response.code} - #{response.body}"
+      end
+    end
+  end
+
+  def api_key
+    ENV.fetch('LLM_API_KEY') do
+      raise LlmError, "LLM_API_KEY not configured"
     end
   end
 
@@ -453,25 +504,59 @@ class LlmService < ApplicationService
     list.map(&:to_s).reject(&:blank?)
   end
 
+  # Mock HTTP response for test environment
   def mock_http_response(stream: false, &block)
-    mock_content = "Mock LLM response for testing"
-
-    if stream && block_given?
-      mock_content.split(" ").each do |word|
-        block.call({ content: word + " " })
-      end
-      mock_content
+    if stream
+      mock_stream_response(&block)
     else
-      {
-        "choices" => [
-          {
-            "message" => {
-              "role" => "assistant",
-              "content" => mock_content
-            }
-          }
-        ]
-      }
+      mock_blocking_response
     end
+  end
+
+  def mock_blocking_response
+    # Return OpenAI-compatible response format
+    mock_content = generate_mock_content
+
+    {
+      "id" => "mock-#{SecureRandom.hex(8)}",
+      "object" => "chat.completion",
+      "created" => Time.now.to_i,
+      "model" => @model,
+      "choices" => [
+        {
+          "index" => 0,
+          "message" => {
+            "role" => "assistant",
+            "content" => mock_content
+          },
+          "finish_reason" => "stop"
+        }
+      ],
+      "usage" => {
+        "prompt_tokens" => 10,
+        "completion_tokens" => 20,
+        "total_tokens" => 30
+      }
+    }
+  end
+
+  def mock_stream_response(&block)
+    # Simulate streaming chunks
+    chunks = generate_mock_content.chars.each_slice(5).map(&:join)
+
+    chunks.each do |chunk|
+      block.call({ content: chunk })
+    end
+
+    nil
+  end
+
+  def generate_mock_content
+    # Generate contextual mock content based on prompt
+    return "Fortune reading: Great success awaits you!" if @prompt.to_s.downcase.include?("fortune")
+    return "Weather forecast: Sunny with a chance of clouds" if @prompt.to_s.downcase.include?("weather")
+
+    # Default mock response
+    "This is a mocked LLM response for testing purposes. Prompt: #{@prompt&.truncate(50)}"
   end
 end
