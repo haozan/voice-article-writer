@@ -114,7 +114,9 @@ export default class extends BaseChannelController {
     
     // Get selected LLM provider
     const selectedProvider = this.providerRadioTargets.find((radio) => radio.checked)?.value || 'grok'
-    const providerName = selectedProvider === 'qwen' ? '千问' : 'Grok'
+    const providerName = selectedProvider === 'qwen' ? '千问' : 
+                         selectedProvider === 'deepseek' ? 'DeepSeek' : 
+                         'Grok'
 
     // Show response section
     this.responseSectionTarget.style.display = "block"

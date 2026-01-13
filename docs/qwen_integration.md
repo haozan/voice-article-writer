@@ -1,173 +1,244 @@
-# 阿里云千问模型集成说明
+# 多模型 LLM 集成文档
 
 ## 概述
 
-本应用已成功集成阿里云千问（Qwen3-Max）模型，用户现在可以在 Grok AI 和阿里云千问之间自由选择。
+本应用已集成三个 LLM 提供商：
 
-## 配置信息
+1. **Grok AI** (xAI) - 默认模型
+2. **阿里云千问 (Qwen)** - 专业友好的中文模型
+3. **DeepSeek** - 专注深度思考的推理模型
 
-### 环境变量配置 (`config/application.yml`)
+用户可以在文章生成页面自由选择使用哪个模型。
+
+## 配置文件
+
+### config/application.yml
+
+所有 LLM 提供商的配置都集中在此文件中：
 
 ```yaml
-# Qwen (Alibaba Cloud) Configuration
+# Grok AI (默认)
+LLM_BASE_URL: 'https://api.x.ai/v1'
+LLM_API_KEY: 'xai-...'
+LLM_MODEL: 'grok-4-1-fast-reasoning'
+
+# 阿里云千问
 QWEN_BASE_URL: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1'
-QWEN_API_KEY: 'sk-432c950dfafe4824a011eeda98bcd377'
+QWEN_API_KEY: 'sk-...'
 QWEN_MODEL: 'qwen3-max'
-# Qwen Configuration end
+
+# DeepSeek
+DEEPSEEK_BASE_URL: 'https://api.deepseek.com/v1'
+DEEPSEEK_API_KEY: 'sk-...'
+DEEPSEEK_MODEL: 'deepseek-reasoner'
 ```
-
-### 数据库变更
-
-添加了 `llm_provider` 字段到 `personas` 表：
-
-```ruby
-# Migration: 20260113061248_add_llm_provider_to_personas.rb
-add_column :personas, :llm_provider, :string, default: "grok"
-```
-
-支持的值：
-- `grok` - Grok AI (xAI)
-- `qwen` - 阿里云千问
 
 ## 架构设计
 
-### 1. Persona 模型 (`app/models/persona.rb`)
+### 1. 数据模型层 (Persona)
 
 ```ruby
-class Persona < ApplicationRecord
-  validates :llm_provider, inclusion: { in: %w[grok qwen] }
-  
-  # 获取 LLM 配置
-  def llm_config
-    case llm_provider
-    when 'qwen'
-      { base_url: ENV.fetch('QWEN_BASE_URL'), ... }
-    when 'grok'
-      { base_url: ENV.fetch('LLM_BASE_URL'), ... }
-    end
-  end
-  
-  # 获取提供商显示名称
-  def llm_provider_name
-    case llm_provider
-    when 'qwen' then '阿里云千问'
-    when 'grok' then 'Grok AI'
-    end
+# app/models/persona.rb
+validates :llm_provider, inclusion: { in: %w[grok qwen deepseek] }
+
+def llm_config
+  case llm_provider
+  when 'qwen' then { base_url: ENV['QWEN_BASE_URL'], ... }
+  when 'deepseek' then { base_url: ENV['DEEPSEEK_BASE_URL'], ... }
+  when 'grok' then { base_url: ENV['LLM_BASE_URL'], ... }
   end
 end
 ```
 
-### 2. LLM Stream Job (`app/jobs/llm_stream_job.rb`)
-
-支持动态配置 LLM provider：
+### 2. WebSocket 通道层 (ArticlesChannel)
 
 ```ruby
+# app/channels/articles_channel.rb
+def generate_response(data)
+  llm_provider = data['llm_provider'] || 'grok'
+  llm_config = get_llm_config(llm_provider)
+  LlmStreamJob.perform_later(...)
+end
+
+def get_llm_config(provider)
+  case provider.to_s
+  when 'qwen' then { base_url: ENV['QWEN_BASE_URL'], ... }
+  when 'deepseek' then { base_url: ENV['DEEPSEEK_BASE_URL'], ... }
+  when 'grok' then { base_url: ENV['LLM_BASE_URL'], ... }
+  end
+end
+```
+
+### 3. 后台任务层 (LlmStreamJob)
+
+```ruby
+# app/jobs/llm_stream_job.rb
 def perform(stream_name:, prompt:, llm_config: nil, **options)
   provider_name = llm_config ? detect_provider(llm_config) : 'Grok'
   system_prompt = build_system_prompt(provider_name)
   options = options.merge(llm_config) if llm_config
-  generate_and_stream(stream_name, prompt, system_prompt, **options)
+  generate_and_stream(...)
+end
+
+def detect_provider(llm_config)
+  base_url = llm_config[:base_url]
+  return 'Qwen' if base_url&.include?('dashscope')
+  return 'DeepSeek' if base_url&.include?('deepseek')
+  'Grok'
+end
+
+def build_system_prompt(provider_name)
+  case provider_name
+  when 'Qwen' then "你是千问，来自阿里云..."
+  when 'DeepSeek' then "你是 DeepSeek，专注深度思考..."
+  when 'Grok' then "你是 Grok，来自 xAI..."
+  end
 end
 ```
 
-### 3. Articles Channel (`app/channels/articles_channel.rb`)
+### 4. 前端层
 
-接收前端传来的 `llm_provider` 参数并获取相应配置：
-
-```ruby
-def generate_response(data)
-  llm_provider = data['llm_provider'] || 'grok'
-  llm_config = get_llm_config(llm_provider)
-  
-  LlmStreamJob.perform_later(
-    stream_name: @stream_name,
-    prompt: transcript,
-    llm_config: llm_config
-  )
-end
-```
-
-### 4. 前端 UI (`app/views/articles/index.html.erb`)
-
-提供 radio 按钮供用户选择：
-
+**视图 (app/views/articles/index.html.erb)**:
 ```erb
-<label>
-  <input type="radio" name="llm_provider" value="grok" checked 
-         data-articles-target="providerRadio">
-  Grok AI
-</label>
-
-<label>
-  <input type="radio" name="llm_provider" value="qwen"
-         data-articles-target="providerRadio">
-  阿里云千问
-</label>
+<input type="radio" name="llm_provider" value="grok" checked>
+<input type="radio" name="llm_provider" value="qwen">
+<input type="radio" name="llm_provider" value="deepseek">
 ```
 
-### 5. Stimulus Controller (`app/javascript/controllers/articles_controller.ts`)
-
-读取用户选择并传递给后端：
-
+**控制器 (app/javascript/controllers/articles_controller.ts)**:
 ```typescript
 const selectedProvider = this.providerRadioTargets
-  .find((radio) => radio.checked)?.value || 'grok'
-  
+  .find(radio => radio.checked)?.value || 'grok'
+
+const providerName = selectedProvider === 'qwen' ? '千问' : 
+                     selectedProvider === 'deepseek' ? 'DeepSeek' : 
+                     'Grok'
+
 this.perform("generate_response", {
   transcript: this.originalTranscript,
   llm_provider: selectedProvider
 })
 ```
 
-## 使用流程
+## 数据流
 
-1. 用户访问 `/articles` 页面
-2. 选择 AI 模型（Grok AI 或阿里云千问）
-3. 输入内容并点击"开始对话"
-4. 系统根据选择的模型调用对应的 API
-5. 实时流式显示 AI 响应
-
-## API 兼容性
-
-阿里云千问使用 OpenAI 兼容模式 API：
-- Endpoint: `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`
-- 完全兼容 OpenAI 的 Chat Completions API
-- 支持流式响应 (streaming)
+```
+用户选择 LLM Provider (前端)
+    ↓
+ArticlesController 读取选择 (Stimulus)
+    ↓
+发送到 ArticlesChannel via WebSocket
+    ↓
+ArticlesChannel.generate_response 获取 llm_config
+    ↓
+LlmStreamJob.perform_later 后台任务
+    ↓
+detect_provider 识别提供商
+    ↓
+build_system_prompt 构建系统提示词
+    ↓
+LlmService.call 调用对应 API
+    ↓
+实时流式返回到前端 (ActionCable broadcast)
+```
 
 ## 系统提示词差异
 
 ### Grok AI
-```
-你是 Grok，来自 xAI。用户会分享他的想法、观点或内容。
-保持 Grok 的风格：直接、深刻、有洞见、不废话
-```
+- 风格：直接、深刻、有洞见、不废话
+- 来源：xAI
 
 ### 阿里云千问
+- 风格：专业、友好、有洞见
+- 来源：阿里云
+
+### DeepSeek
+- 风格：深刻、理性、有洞见
+- 特点：专注深度思考
+
+## 添加新 LLM 提供商
+
+遵循以下步骤可轻松添加新提供商：
+
+### 1. 添加配置 (config/application.yml)
+```yaml
+NEW_PROVIDER_BASE_URL: 'https://api.example.com/v1'
+NEW_PROVIDER_API_KEY: 'your-key'
+NEW_PROVIDER_MODEL: 'model-name'
 ```
-你是千问，来自阿里云。用户会分享他的想法、观点或内容。
-保持专业、友好、有洞见的风格
+
+### 2. 更新 Persona 模型
+```ruby
+validates :llm_provider, inclusion: { in: %w[grok qwen deepseek newprovider] }
+
+def llm_config
+  case llm_provider
+  when 'newprovider'
+    { base_url: ENV['NEW_PROVIDER_BASE_URL'], ... }
+  end
+end
 ```
+
+### 3. 更新 ArticlesChannel
+```ruby
+def get_llm_config(provider)
+  when 'newprovider'
+    { base_url: ENV['NEW_PROVIDER_BASE_URL'], ... }
+end
+```
+
+### 4. 更新 LlmStreamJob
+```ruby
+def detect_provider(llm_config)
+  return 'NewProvider' if base_url&.include?('example')
+end
+
+def build_system_prompt(provider_name)
+  when 'NewProvider'
+    "你是 NewProvider..."
+end
+```
+
+### 5. 更新前端视图和控制器
+- 在 `app/views/articles/index.html.erb` 添加 radio 按钮
+- 在 `app/javascript/controllers/articles_controller.ts` 添加显示名称映射
 
 ## 测试
 
-运行测试确保功能正常：
-
 ```bash
+# 运行单元测试
 bundle exec rspec spec/requests/articles_spec.rb
+
+# 验证页面渲染
+curl -s http://localhost:3000/ | grep -c 'name="llm_provider"'  # 应返回 3
 ```
-
-## 未来扩展
-
-如需添加更多 LLM 提供商：
-
-1. 在 `config/application.yml` 添加配置
-2. 更新 `Persona` 模型的 `llm_config` 方法
-3. 更新 `LlmStreamJob` 的 `build_system_prompt` 方法
-4. 在前端添加新的 radio 选项
-5. 更新数据库验证规则
 
 ## 注意事项
 
-- API Key 应该存储在环境变量中，不要硬编码
-- 生产环境建议使用 `CLACKY_*` 前缀的环境变量
-- 千问国际版和国内版的 endpoint 不同，请注意区分
+1. **OpenAI 兼容性**: 所有提供商都必须兼容 OpenAI API 格式
+2. **流式响应**: 所有提供商都支持 SSE 流式响应
+3. **系统提示词**: 每个提供商应有独特的系统提示词以体现其特色
+4. **错误处理**: LlmService 统一处理所有提供商的错误
+5. **默认值**: 当用户未选择时，默认使用 Grok AI
+
+## 配置管理
+
+- **开发环境**: 直接在 `config/application.yml` 配置
+- **生产环境**: 通过环境变量 `CLACKY_*` 注入配置
+- **API 密钥安全**: 生产环境中不要将密钥提交到代码库
+
+## 维护
+
+### 更换 API 密钥
+1. 更新 `config/application.yml`
+2. 重启应用 (使用 `bin/dev`)
+
+### 监控使用情况
+- 查看 GoodJob 后台任务队列
+- 检查 LlmService 调用日志
+
+### 调试
+```ruby
+# Rails console
+rails runner "puts ArticlesChannel.new.send(:get_llm_config, 'deepseek')"
+```

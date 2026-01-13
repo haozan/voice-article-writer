@@ -20,11 +20,23 @@ class LlmService < ApplicationService
     @prompt = prompt
     @system = system
     @options = options
-    @model = options[:model] || ENV.fetch('LLM_MODEL')
-    @temperature = options[:temperature]&.to_f || 0.7
-    @max_tokens = options[:max_tokens] || 4000
-    @timeout = options[:timeout] || 30
-    @images = normalize_images(options[:images])
+    
+    # Support both symbol and string keys (ActiveJob serialization converts symbols to strings)
+    @model = options[:model] || options['model'] || ENV.fetch('LLM_MODEL')
+    @temperature = (options[:temperature] || options['temperature'])&.to_f || 0.7
+    @max_tokens = options[:max_tokens] || options['max_tokens'] || 4000
+    @timeout = options[:timeout] || options['timeout'] || 30
+    @images = normalize_images(options[:images] || options['images'])
+    
+    # Support custom base_url and api_key (both symbol and string keys)
+    @base_url = options[:base_url] || options['base_url']
+    @api_key = options[:api_key] || options['api_key']
+    
+    # Debug logging
+    Rails.logger.info "[LlmService#initialize] options: #{options.inspect}"
+    Rails.logger.info "[LlmService#initialize] @base_url: #{@base_url}"
+    Rails.logger.info "[LlmService#initialize] @api_key: #{@api_key&.slice(0, 15)}..."
+    Rails.logger.info "[LlmService#initialize] @model: #{@model}"
 
     # Tool call support
     @tools = options[:tools] || []
@@ -253,8 +265,13 @@ class LlmService < ApplicationService
   end
 
   def prepare_http_request(stream)
-    base_url = ENV.fetch('LLM_BASE_URL')
+    base_url = @base_url || ENV.fetch('LLM_BASE_URL')
     uri = URI.parse("#{base_url}/chat/completions")
+    
+    # Debug logging
+    Rails.logger.info "[LlmService#prepare_http_request] base_url: #{base_url}"
+    Rails.logger.info "[LlmService#prepare_http_request] full URL: #{uri}"
+    Rails.logger.info "[LlmService#prepare_http_request] api_key: #{api_key&.slice(0, 15)}..."
 
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = (uri.scheme == 'https')
@@ -493,7 +510,7 @@ class LlmService < ApplicationService
   end
 
   def api_key
-    ENV.fetch('LLM_API_KEY') do
+    @api_key || ENV.fetch('LLM_API_KEY') do
       raise LlmError, "LLM_API_KEY not configured"
     end
   end

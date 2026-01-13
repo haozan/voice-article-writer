@@ -70,6 +70,12 @@ class ArticlesChannel < ApplicationCable::Channel
         api_key: ENV.fetch('QWEN_API_KEY'),
         model: ENV.fetch('QWEN_MODEL')
       }
+    when 'deepseek'
+      {
+        base_url: ENV.fetch('DEEPSEEK_BASE_URL'),
+        api_key: ENV.fetch('DEEPSEEK_API_KEY'),
+        model: ENV.fetch('DEEPSEEK_MODEL')
+      }
     when 'grok'
       {
         base_url: ENV.fetch('LLM_BASE_URL'),
