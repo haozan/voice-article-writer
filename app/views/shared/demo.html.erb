@@ -1,0 +1,425 @@
+<!-- Hero Section -->
+<div class="relative overflow-hidden bg-gradient-to-br from-primary/10 via-surface to-secondary/10">
+  <div class="container-xl mx-auto px-6 py-20 lg:py-28">
+    <div class="text-center max-w-4xl mx-auto">
+      <h1 class="text-4xl lg:text-6xl font-bold text-primary mb-6 animate-fade-in">
+        语音文章写作达人
+      </h1>
+      <p class="text-xl lg:text-2xl text-secondary mb-4">
+        说出来，就写成好文章
+      </p>
+      <p class="text-lg text-secondary max-w-2xl mx-auto mb-12 leading-relaxed">
+        按住麦克风说出你的思路和想法 → 先看 Grok AI 的专业思考 → 自动生成一篇有人味的好文章，可直接发布
+      </p>
+      
+      <!-- CTA Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+        <a href="#how-it-works" class="btn-primary btn-lg px-8 py-4 text-lg">
+          <%= lucide_icon "mic", class: "w-6 h-6 inline-block mr-2" %>
+          开始创作
+        </a>
+        <a href="#features" class="btn-outline btn-lg px-8 py-4 text-lg">
+          <%= lucide_icon "sparkles", class: "w-6 h-6 inline-block mr-2" %>
+          了解更多
+        </a>
+      </div>
+
+      <!-- Product Demo Image -->
+      <div class="relative max-w-5xl mx-auto">
+        <div class="rounded-xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-500">
+          <img 
+            src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&h=700&fit=crop" 
+            alt="语音写作演示界面"
+            class="w-full h-auto"
+          />
+        </div>
+        <!-- Floating decoration elements -->
+        <div class="absolute -top-6 -left-6 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-6 -right-6 w-40 h-40 bg-secondary/20 rounded-full blur-3xl"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features Section -->
+<section id="features" class="py-20 bg-surface">
+  <div class="container-xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl lg:text-5xl font-bold text-primary mb-4">
+        为什么选择语音文章写作达人
+      </h2>
+      <p class="text-lg text-secondary max-w-2xl mx-auto">
+        结合语音输入的便捷性和 AI 深度思考的智能，让每个人都能轻松创作高质量文章
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Feature 1 -->
+      <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
+        <div class="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+          <%= lucide_icon "mic", class: "w-8 h-8 text-primary" %>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">极简语音输入</h3>
+        <p class="text-secondary leading-relaxed">
+          长按麦克风，自由表达你的想法。支持连续长段落录音，就像和朋友聊天一样自然。
+        </p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
+        <div class="w-16 h-16 bg-secondary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-secondary/20 transition-colors">
+          <%= lucide_icon "brain", class: "w-8 h-8 text-secondary" %>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">AI 深度思考</h3>
+        <p class="text-secondary leading-relaxed">
+          Grok AI 先帮你分析、扩展和优化思路，提供专业建议，激发你的灵感和创意。
+        </p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
+        <div class="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+          <%= lucide_icon "sparkles", class: "w-8 h-8 text-primary" %>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">有人味的文章</h3>
+        <p class="text-secondary leading-relaxed">
+          自动融合你的原意和 AI 建议，生成自然流畅、有温度、有个性的完整文章。
+        </p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
+        <div class="w-16 h-16 bg-secondary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-secondary/20 transition-colors">
+          <%= lucide_icon "zap", class: "w-8 h-8 text-secondary" %>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">快速高效</h3>
+        <p class="text-secondary leading-relaxed">
+          从语音输入到最终文章，全程自动化。几分钟完成过去需要几小时的写作任务。
+        </p>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
+        <div class="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+          <%= lucide_icon "copy", class: "w-8 h-8 text-primary" %>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">一键复制发布</h3>
+        <p class="text-secondary leading-relaxed">
+          生成的文章可直接复制，马上发布到博客、公众号、社交媒体，省时省力。
+        </p>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
+        <div class="w-16 h-16 bg-secondary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-secondary/20 transition-colors">
+          <%= lucide_icon "shield-check", class: "w-8 h-8 text-secondary" %>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">隐私安全</h3>
+        <p class="text-secondary leading-relaxed">
+          语音在浏览器本地识别，无需上传音频。不保存任何内容，无需登录，保护你的隐私。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section id="how-it-works" class="py-20 bg-gradient-to-br from-surface-elevated/50 to-surface">
+  <div class="container-xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl lg:text-5xl font-bold text-primary mb-4">
+        三步创作，简单高效
+      </h2>
+      <p class="text-lg text-secondary max-w-2xl mx-auto">
+        从想法到成稿，只需三步，让创作变得轻松愉快
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <!-- Step 1 -->
+      <div class="relative group">
+        <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+          <div class="flex items-center justify-center w-16 h-16 bg-primary text-surface rounded-full text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">
+            1
+          </div>
+          <h3 class="text-2xl font-bold text-primary mb-4">说出想法</h3>
+          <p class="text-secondary leading-relaxed mb-6">
+            长按麦克风按钮，像和朋友聊天一样说出你的思路、观点、经历或想写的主题。可以连续说几分钟。
+          </p>
+          <div class="rounded-lg overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=600&h=400&fit=crop" 
+              alt="语音输入"
+              class="w-full h-48 object-cover"
+            />
+          </div>
+        </div>
+        <!-- Arrow decoration -->
+        <div class="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+          <%= lucide_icon "arrow-right", class: "w-8 h-8 text-primary" %>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="relative group">
+        <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+          <div class="flex items-center justify-center w-16 h-16 bg-secondary text-surface rounded-full text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">
+            2
+          </div>
+          <h3 class="text-2xl font-bold text-primary mb-4">AI 深度思考</h3>
+          <p class="text-secondary leading-relaxed mb-6">
+            Grok AI 实时分析你的内容，提供深度思考、扩展建议和结构优化，激发你的创作灵感。
+          </p>
+          <div class="rounded-lg overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop" 
+              alt="AI 思考"
+              class="w-full h-48 object-cover"
+            />
+          </div>
+        </div>
+        <!-- Arrow decoration -->
+        <div class="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+          <%= lucide_icon "arrow-right", class: "w-8 h-8 text-secondary" %>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="relative group">
+        <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+          <div class="flex items-center justify-center w-16 h-16 bg-primary text-surface rounded-full text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">
+            3
+          </div>
+          <h3 class="text-2xl font-bold text-primary mb-4">生成好文章</h3>
+          <p class="text-secondary leading-relaxed mb-6">
+            自动融合你的原意和 AI 建议，生成一篇完整、流畅、有人味的文章。一键复制，直接发布。
+          </p>
+          <div class="rounded-lg overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&h=400&fit=crop" 
+              alt="文章生成"
+              class="w-full h-48 object-cover"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-12">
+      <a href="#" class="btn-primary btn-xl px-10 py-5 text-xl">
+        <%= lucide_icon "rocket", class: "w-6 h-6 inline-block mr-2" %>
+        立即开始创作
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Use Cases Section -->
+<section class="py-20 bg-surface">
+  <div class="container-xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl lg:text-5xl font-bold text-primary mb-4">
+        适用场景
+      </h2>
+      <p class="text-lg text-secondary max-w-2xl mx-auto">
+        无论你是创作者、职场人士还是思想分享者，都能找到用武之地
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+      <!-- Use Case 1 -->
+      <div class="card card-elevated p-8 bg-gradient-to-br from-primary/5 to-surface-elevated">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <%= lucide_icon "pen-tool", class: "w-6 h-6 text-primary" %>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-primary mb-3">内容创作者</h3>
+            <p class="text-secondary leading-relaxed">
+              自媒体、博客作者、公众号写手，快速产出高质量原创文章，保持稳定更新频率。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Use Case 2 -->
+      <div class="card card-elevated p-8 bg-gradient-to-br from-secondary/5 to-surface-elevated">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <%= lucide_icon "briefcase", class: "w-6 h-6 text-secondary" %>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-primary mb-3">职场人士</h3>
+            <p class="text-secondary leading-relaxed">
+              轻松完成工作报告、周报、总结、项目分享，提升工作效率，展现专业水平。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Use Case 3 -->
+      <div class="card card-elevated p-8 bg-gradient-to-br from-primary/5 to-surface-elevated">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <%= lucide_icon "message-circle", class: "w-6 h-6 text-primary" %>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-primary mb-3">思想分享者</h3>
+            <p class="text-secondary leading-relaxed">
+              记录心得、感悟、观点，将口头表达转化为精彩文字，让思想传播更远。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Use Case 4 -->
+      <div class="card card-elevated p-8 bg-gradient-to-br from-secondary/5 to-surface-elevated">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <%= lucide_icon "users", class: "w-6 h-6 text-secondary" %>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-primary mb-3">写作困难者</h3>
+            <p class="text-secondary leading-relaxed">
+              有想法但写不出好文章？让 AI 帮你把口头表达转化为优质文字，人人都能成为作者。
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ Section -->
+<section id="faq" class="py-20 bg-gradient-to-br from-surface to-surface-elevated/50">
+  <div class="container-xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl lg:text-5xl font-bold text-primary mb-4">
+        常见问题
+      </h2>
+      <p class="text-lg text-secondary max-w-2xl mx-auto">
+        解答你关心的问题
+      </p>
+    </div>
+
+    <div class="max-w-3xl mx-auto space-y-4">
+      <!-- FAQ Item 1 -->
+      <div class="card card-elevated p-6">
+        <h3 class="text-xl font-bold text-primary mb-3">生成的文章质量如何？</h3>
+        <p class="text-secondary leading-relaxed">
+          文章质量取决于你的输入内容。系统会深度融合你的原意和 AI 的专业建议，生成自然流畅、有温度的文章。通常 400-800 字，适合直接发布。
+        </p>
+      </div>
+
+      <!-- FAQ Item 2 -->
+      <div class="card card-elevated p-6">
+        <h3 class="text-xl font-bold text-primary mb-3">语音识别准确度高吗？</h3>
+        <p class="text-secondary leading-relaxed">
+          我们使用浏览器原生的 Web Speech API，支持中文普通话识别，准确度较高。建议在安静环境下使用，吐字清晰效果更好。
+        </p>
+      </div>
+
+      <!-- FAQ Item 3 -->
+      <div class="card card-elevated p-6">
+        <h3 class="text-xl font-bold text-primary mb-3">我的语音和内容会被保存吗？</h3>
+        <p class="text-secondary leading-relaxed">
+          不会。语音识别在你的浏览器本地完成，音频不会上传到服务器。生成的文章也不会保存，完全保护你的隐私。
+        </p>
+      </div>
+
+      <!-- FAQ Item 4 -->
+      <div class="card card-elevated p-6">
+        <h3 class="text-xl font-bold text-primary mb-3">需要注册登录吗？</h3>
+        <p class="text-secondary leading-relaxed">
+          完全不需要。打开网页就能直接使用，无需注册、登录或提供任何个人信息。
+        </p>
+      </div>
+
+      <!-- FAQ Item 5 -->
+      <div class="card card-elevated p-6">
+        <h3 class="text-xl font-bold text-primary mb-3">可以用手机使用吗？</h3>
+        <p class="text-secondary leading-relaxed">
+          当然可以！我们的界面专为移动设备优化，手机浏览器访问体验更好。随时随地，想写就写。
+        </p>
+      </div>
+
+      <!-- FAQ Item 6 -->
+      <div class="card card-elevated p-6">
+        <h3 class="text-xl font-bold text-primary mb-3">生成一篇文章需要多久？</h3>
+        <p class="text-secondary leading-relaxed">
+          通常 30-60 秒即可完成。系统会先展示 AI 的思考过程（约 15-30 秒），然后自动生成最终文章（约 15-30 秒）。全程实时流式显示，体验流畅。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 bg-gradient-to-br from-primary/10 via-secondary/5 to-surface">
+  <div class="container-xl mx-auto px-6">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl lg:text-5xl font-bold text-primary mb-6">
+        准备好开始创作了吗？
+      </h2>
+      <p class="text-xl text-secondary mb-10 leading-relaxed">
+        让 AI 成为你的写作助手，将想法转化为优质文章。<br/>
+        无需注册，无需下载，打开就用。
+      </p>
+      <a href="#" class="btn-primary btn-xl px-12 py-6 text-2xl inline-flex items-center gap-3 shadow-xl hover:shadow-2xl transition-all">
+        <%= lucide_icon "mic", class: "w-8 h-8" %>
+        立即开始创作
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-surface-elevated py-12 border-t border-border">
+  <div class="container-xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      <!-- Brand Column -->
+      <div class="col-span-1 md:col-span-2">
+        <h3 class="text-2xl font-bold text-primary mb-4">语音文章写作达人</h3>
+        <p class="text-secondary leading-relaxed mb-4">
+          结合语音输入和 AI 智能，让每个人都能轻松创作高质量文章。
+        </p>
+        <p class="text-muted text-sm">
+          © 2024 语音文章写作达人. All rights reserved.
+        </p>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <h4 class="text-lg font-bold text-primary mb-4">快速链接</h4>
+        <ul class="space-y-2">
+          <li><a href="#features" class="text-secondary hover:text-primary transition-colors">功能特点</a></li>
+          <li><a href="#how-it-works" class="text-secondary hover:text-primary transition-colors">使用方法</a></li>
+          <li><a href="#faq" class="text-secondary hover:text-primary transition-colors">常见问题</a></li>
+        </ul>
+      </div>
+
+      <!-- Support -->
+      <div>
+        <h4 class="text-lg font-bold text-primary mb-4">支持</h4>
+        <ul class="space-y-2">
+          <li><a href="#" class="text-secondary hover:text-primary transition-colors">使用帮助</a></li>
+          <li><a href="#" class="text-secondary hover:text-primary transition-colors">隐私政策</a></li>
+          <li><a href="#" class="text-secondary hover:text-primary transition-colors">服务条款</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Social Links -->
+    <div class="flex justify-center gap-6 pt-8 border-t border-border">
+      <a href="#" class="w-10 h-10 bg-surface rounded-full flex items-center justify-center hover:bg-primary/10 transition-colors">
+        <%= lucide_icon "twitter", class: "w-5 h-5 text-primary" %>
+      </a>
+      <a href="#" class="w-10 h-10 bg-surface rounded-full flex items-center justify-center hover:bg-primary/10 transition-colors">
+        <%= lucide_icon "facebook", class: "w-5 h-5 text-primary" %>
+      </a>
+      <a href="#" class="w-10 h-10 bg-surface rounded-full flex items-center justify-center hover:bg-primary/10 transition-colors">
+        <%= lucide_icon "linkedin", class: "w-5 h-5 text-primary" %>
+      </a>
+    </div>
+  </div>
+</footer>

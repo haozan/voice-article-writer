@@ -1,0 +1,199 @@
+<div class="min-h-screen bg-gradient-to-br from-primary/5 via-surface to-secondary/5 py-8 px-4">
+  <div class="container-lg mx-auto max-w-4xl">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl lg:text-5xl font-bold text-primary mb-3">
+        <%= lucide_icon "pen-line", class: "w-10 h-10 inline-block mr-2" %>
+        AI 文章写作助手
+      </h1>
+      <p class="text-lg text-secondary">
+        输入你的想法，AI 帮你写成好文章
+      </p>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div 
+      data-controller="articles" 
+      data-articles-stream-name-value="<%= @stream_name %>"
+    >
+      
+      <!-- Input Section -->
+      <div class="card card-elevated p-6 mb-6">
+        <!-- Model Selection -->
+        <div class="mb-6">
+          <label class="block text-lg font-semibold text-primary mb-3">
+            <%= lucide_icon "brain", class: "w-5 h-5 inline-block mr-2" %>
+            选择 AI 模型
+          </label>
+          <select
+            data-articles-target="modelSelect"
+            class="w-full px-4 py-3 text-lg border-2 border-border rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-foreground bg-surface cursor-pointer"
+          >
+            <% @available_models.each do |model| %>
+              <option value="<%= model[:value] %>" data-provider="<%= model[:provider] %>">
+                <%= model[:label] %>
+              </option>
+            <% end %>
+          </select>
+          <p class="text-sm text-muted mt-2">
+            不同模型有不同的风格和速度，可以尝试对比效果
+          </p>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-lg font-semibold text-primary mb-3">
+            <%= lucide_icon "message-square", class: "w-5 h-5 inline-block mr-2" %>
+            输入你的想法
+          </label>
+          <textarea
+            data-articles-target="inputText"
+            class="w-full px-4 py-3 text-lg border-2 border-border rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
+            rows="8"
+            placeholder="请输入你的想法、观点或要表达的内容...\n\n你可以：\n• 使用手机输入法直接输入文字\n• 使用手机语音输入功能（系统自带）\n• 随意表达，不必太正式"
+          ></textarea>
+        </div>
+        
+        <div class="text-center">
+          <button
+            type="button"
+            data-action="click->articles#generateArticle"
+            class="btn-primary btn-lg px-12"
+          >
+            <%= lucide_icon "sparkles", class: "w-5 h-5 inline-block mr-2" %>
+            开始生成文章
+          </button>
+        </div>
+        
+        <p class="text-sm text-muted text-center mt-3">
+          提示：在手机上可以使用系统自带的语音输入功能
+        </p>
+      </div>
+
+      <!-- Grok Thinking Section -->
+      <div class="card card-elevated mb-6 bg-surface-elevated/50" data-articles-target="thinkingSection" style="display: none;">
+        <div class="card-header border-b border-border">
+          <h2 class="text-xl font-bold text-secondary flex items-center gap-2">
+            <%= lucide_icon "brain", class: "w-5 h-5" %>
+            <span data-articles-target="thinkingTitle">AI 的思考</span>
+            <span class="text-sm font-normal text-muted">(供我参考与激发)</span>
+          </h2>
+        </div>
+        <div class="card-body">
+          <div 
+            data-articles-target="thinkingText"
+            class="text-secondary leading-relaxed whitespace-pre-wrap min-h-[120px]"
+          >
+            <div class="flex items-center gap-2 text-muted">
+              <div class="loading-spinner w-5 h-5"></div>
+              <span>思考中...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Final Article Section -->
+      <div class="card card-elevated bg-gradient-to-br from-primary/5 to-secondary/5" data-articles-target="articleSection" style="display: none;">
+        <div class="card-header border-b border-border flex items-center justify-between">
+          <h2 class="text-xl font-bold text-primary flex items-center gap-2">
+            <%= lucide_icon "file-text", class: "w-5 h-5" %>
+            最终文章
+            <span class="text-sm font-normal text-muted">(可直接发布或分享)</span>
+          </h2>
+          <button
+            type="button"
+            data-action="click->articles#copyArticle"
+            data-articles-target="copyButton"
+            class="btn-primary btn-sm"
+            style="display: none;"
+          >
+            <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+            复制全文
+          </button>
+        </div>
+        <div class="card-body">
+          <div 
+            data-articles-target="articleText"
+            class="text-secondary text-lg leading-relaxed whitespace-pre-wrap min-h-[200px] max-h-[600px] overflow-y-auto"
+          >
+            <div class="flex items-center gap-2 text-muted">
+              <div class="loading-spinner w-5 h-5"></div>
+              <span>生成中...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="text-center mt-8" data-articles-target="actionButtons" style="display: none;">
+        <button
+          type="button"
+          data-action="click->articles#reset"
+          class="btn-secondary btn-lg px-8"
+        >
+          <%= lucide_icon "refresh-cw", class: "w-5 h-5 inline-block mr-2" %>
+          重新创作
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Tips Section -->
+    <div class="mt-12 text-center">
+      <div class="inline-block bg-surface-elevated rounded-xl p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-primary mb-4 flex items-center justify-center gap-2">
+          <%= lucide_icon "lightbulb", class: "w-5 h-5" %>
+          使用提示
+        </h3>
+        <ul class="text-secondary text-left space-y-2">
+          <li class="flex items-start gap-2">
+            <%= lucide_icon "check", class: "w-4 h-4 text-success mt-1 flex-shrink-0" %>
+            <span>直接在文本框输入你的想法或观点</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <%= lucide_icon "check", class: "w-4 h-4 text-success mt-1 flex-shrink-0" %>
+            <span>手机用户可以使用系统自带的语音输入</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <%= lucide_icon "check", class: "w-4 h-4 text-success mt-1 flex-shrink-0" %>
+            <span>不用太正式，随意表达即可</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <%= lucide_icon "check", class: "w-4 h-4 text-success mt-1 flex-shrink-0" %>
+            <span>AI 会先思考，然后生成完整文章</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Recording animation */
+  [data-voice-recorder-target="micButton"].recording {
+    animation: pulse 1.5s ease-in-out infinite;
+    background: hsl(var(--color-danger));
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 hsl(var(--color-danger) / 0.7);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 0 0 20px hsl(var(--color-danger) / 0);
+    }
+  }
+
+  /* Loading spinner */
+  .loading-spinner {
+    border: 2px solid hsl(var(--color-border));
+    border-top-color: hsl(var(--color-primary));
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
