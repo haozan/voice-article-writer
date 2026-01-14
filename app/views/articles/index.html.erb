@@ -24,13 +24,17 @@
             返回主页
           <% end %>
         <% end %>
+        <%= link_to my_books_path, class: "btn-primary shadow-lg hover:shadow-xl transition-all" do %>
+          <%= lucide_icon "book", class: "w-5 h-5 inline-block mr-2" %>
+          我的书籍
+        <% end %>
         <button
           type="button"
           data-action="click->articles#openHistory"
           class="btn-secondary shadow-lg hover:shadow-xl transition-all"
         >
           <%= lucide_icon "history", class: "w-5 h-5 inline-block mr-2" %>
-          历史记录
+          历史文章
         </button>
       </div>
       
@@ -467,7 +471,7 @@
         <div class="flex items-center justify-between p-6 border-b border-border">
           <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
             <%= lucide_icon "history", class: "w-6 h-6" %>
-            历史记录
+            历史文章
           </h2>
           <button
             type="button"
@@ -479,7 +483,7 @@
         </div>
         
         <!-- Sidebar Content -->
-        <div class="overflow-y-auto h-[calc(100%-80px)]">
+        <div class="overflow-y-auto h-[calc(100%-160px)]">
           <div data-articles-target="historyList" class="p-4">
             <div class="flex items-center justify-center py-12 text-muted">
               <div class="loading-spinner w-6 h-6 mr-2"></div>
@@ -487,6 +491,7 @@
             </div>
           </div>
         </div>
+
       </div>
     </div>
 

@@ -15,7 +15,10 @@ class ArticlesController < ApplicationController
         created_at: article.created_at.strftime('%Y-%m-%d %H:%M'),
         transcript_preview: article.transcript&.truncate(100, omission: '...') || '无内容',
         status: article.status_label,
-        status_class: article.status_badge_class
+        status_class: article.status_badge_class,
+        archived: article.archived,
+        archive_info: article.archive_info,
+        can_archive: article.can_archive?
       }
     }
   end
@@ -48,6 +51,19 @@ class ArticlesController < ApplicationController
       format.html { redirect_to articles_path, alert: '文章不存在' }
       format.json { render json: { error: 'Article not found' }, status: :not_found }
     end
+  end
+  
+  def archive
+    @article = Article.find(params[:id])
+    chapter = Chapter.find(params[:chapter_id])
+    
+    if @article.archive_to(chapter)
+      render json: { success: true, message: '文章已成功归档' }
+    else
+      render json: { success: false, message: '归档失败，请确保文章已定稿' }, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound => e
+    render json: { success: false, message: e.message }, status: :not_found
   end
 
   private

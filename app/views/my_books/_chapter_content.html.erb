@@ -1,0 +1,144 @@
+<div id="chapter-<%= chapter.id %>" class="card bg-white dark:bg-gray-800 shadow-lg mb-6 scroll-mt-8">
+  <div class="card-body p-8">
+    
+    <!-- Chapter Header -->
+    <div class="border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mb-2">
+        <%= chapter.full_title %>
+      </h2>
+      <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+        <%= lucide_icon "file-text", class: "w-4 h-4 mr-1" %>
+        <span><%= chapter.articles.count %> 篇文章</span>
+      </div>
+    </div>
+    
+    <!-- Articles in this chapter -->
+    <% if chapter.articles.any? %>
+      <div class="space-y-8">
+        <% chapter.articles.each_with_index do |article, index| %>
+          <article class="<%= 'border-t border-gray-200 dark:border-gray-700 pt-8' if index > 0 %>" 
+                   data-controller="article-move article-edit"
+                   data-article-move-article-id-value="<%= article.id %>"
+                   data-article-move-book-id-value="<%= chapter.book.id %>"
+                   data-article-edit-article-id-value="<%= article.id %>">
+            
+            <!-- View Mode: Display content -->
+            <div class="prose dark:prose-invert max-w-none text-justify" 
+                 data-article-edit-target="content"
+                 id="article-content-<%= article.id %>">
+              <%= markdown(article.final_content) %>
+            </div>
+            
+            <!-- Edit Mode: Textarea editor (hidden by default) -->
+            <textarea data-article-edit-target="editor" 
+                      id="article-editor-<%= article.id %>"
+                      class="hidden form-input w-full min-h-[400px] font-mono text-sm"
+                      placeholder="输入 Markdown 内容..."><%= article.final_content %></textarea>
+            
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+              <!-- Article Metadata and Actions -->
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-2">
+                <div class="text-sm text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-3 gap-y-1">
+                  <span>创建于 <%= article.created_at.strftime('%Y-%m-%d %H:%M') %></span>
+                  <% if article.updated_at != article.created_at %>
+                    <span>更新于 <%= article.updated_at.strftime('%Y-%m-%d %H:%M') %></span>
+                  <% end %>
+                  <span class="flex items-center gap-1">
+                    <%= lucide_icon "type", class: "w-4 h-4" %>
+                    <%= number_with_delimiter(article.word_count) %> 字
+                  </span>
+                </div>
+                
+                <div class="flex flex-wrap gap-2">
+                  <!-- Edit Mode Buttons (hidden by default) -->
+                  <button type="button" 
+                          data-article-edit-target="saveButton"
+                          data-action="click->article-edit#save"
+                          class="hidden btn-primary btn-sm">
+                    <%= lucide_icon "save", class: "w-4 h-4 mr-1" %>
+                    <span class="hidden sm:inline">保存</span>
+                  </button>
+                  
+                  <button type="button" 
+                          data-article-edit-target="cancelButton"
+                          data-action="click->article-edit#cancel"
+                          class="hidden btn-ghost btn-sm">
+                    <%= lucide_icon "x", class: "w-4 h-4 mr-1" %>
+                    <span class="hidden sm:inline">取消</span>
+                  </button>
+                  
+                  <!-- View Mode Buttons -->
+                  <button type="button" 
+                          data-action="click->article-edit#copyMarkdown"
+                          class="btn-ghost btn-sm">
+                    <%= lucide_icon "file-code", class: "w-4 h-4 mr-1" %>
+                    <span class="hidden sm:inline">复制 Markdown</span>
+                  </button>
+                  
+                  <button type="button" 
+                          data-action="click->article-edit#copyHtml"
+                          class="btn-ghost btn-sm">
+                    <%= lucide_icon "copy", class: "w-4 h-4 mr-1" %>
+                    <span class="hidden sm:inline">复制</span>
+                  </button>
+                  
+                  <button type="button" 
+                          data-article-edit-target="editButton"
+                          data-action="click->article-edit#toggleEdit"
+                          class="btn-ghost btn-sm">
+                    <%= lucide_icon "edit", class: "w-4 h-4 mr-1" %>
+                    <span class="hidden sm:inline">编辑</span>
+                  </button>
+                  
+                  <button type="button" 
+                          data-action="click->article-move#toggleMovePanel"
+                          class="btn-ghost btn-sm">
+                    <%= lucide_icon "move", class: "w-4 h-4 mr-1" %>
+                    <span class="hidden sm:inline">移动</span>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Move Panel (Hidden by default) -->
+              <div data-article-move-target="movePanel" class="hidden mt-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  移动到：
+                </label>
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <select data-article-move-target="chapterSelect" 
+                          class="form-select flex-1 text-sm">
+                    <option value="">请选择目标章节...</option>
+                  </select>
+                  <div class="flex gap-2">
+                    <button type="button" 
+                            data-action="click->article-move#move"
+                            class="btn-primary btn-sm flex-1 sm:flex-none">
+                      确认移动
+                    </button>
+                    <button type="button" 
+                            data-action="click->article-move#toggleMovePanel"
+                            class="btn-ghost btn-sm flex-1 sm:flex-none">
+                      取消
+                    </button>
+                  </div>
+                </div>
+                <div data-article-move-target="message" class="hidden mt-2 text-sm"></div>
+              </div>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+        <%= lucide_icon "file-plus", class: "w-12 h-12 mx-auto mb-3 opacity-50" %>
+        <p class="text-sm">该章节暂无文章</p>
+      </div>
+    <% end %>
+    
+  </div>
+</div>
+
+<!-- Render sub-chapters recursively -->
+<% if chapter.sub_chapters.any? %>
+  <%= render partial: 'my_books/chapter_content', collection: chapter.sub_chapters, as: :chapter %>
+<% end %>

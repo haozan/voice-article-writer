@@ -1,0 +1,90 @@
+<% content_for :title, "编辑章节 - #{@chapter.title}" %>
+
+<div class="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 py-8">
+  <div class="container-lg mx-auto px-4">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 flex items-center gap-3 mb-2">
+            <%= lucide_icon "folder", class: "w-8 h-8" %>
+            编辑章节
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400">
+            <%= link_to @book.title, edit_my_book_path(@book), class: "hover:text-primary" %>
+            <span class="mx-2">›</span>
+            <%= @chapter.title %>
+          </p>
+        </div>
+        
+        <%= link_to edit_my_book_path(@book), class: "btn-ghost" do %>
+          <%= lucide_icon "arrow-left", class: "w-5 h-5 mr-2" %>
+          返回书籍
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="card bg-white dark:bg-gray-800 shadow-lg max-w-2xl mx-auto">
+      <div class="card-body p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-50 mb-4">章节信息</h2>
+        
+        <%= form_with model: @chapter, url: my_book_chapter_path(@book, @chapter), method: :patch, class: "space-y-5" do |f| %>
+          
+          <!-- Title -->
+          <div>
+            <%= f.label :title, "章节标题", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+            <%= f.text_field :title, 
+                class: "form-input w-full #{'border-red-500' if @chapter.errors[:title].any?}",
+                placeholder: "例如：第一章 基础知识",
+                required: true %>
+            <% if @chapter.errors[:title].any? %>
+              <p class="text-red-500 text-sm mt-1"><%= @chapter.errors[:title].first %></p>
+            <% end %>
+          </div>
+
+          <!-- Parent Selection -->
+          <div>
+            <%= f.label :parent_id, "父章节（可选）", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+            <%= f.select :parent_id, 
+                options_for_select(
+                  [['无（作为顶级章节）', '']] + 
+                  @book.chapters.where.not(id: @chapter.id).map { |c| [c.full_title, c.id] },
+                  @chapter.parent_id
+                ),
+                {},
+                class: "form-select w-full" %>
+            <p class="text-xs text-gray-500 mt-1">选择父章节可以创建子章节。注意：不能选择自己作为父章节。</p>
+          </div>
+
+          <!-- Chapter Info -->
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+            <h3 class="text-sm font-medium text-gray-900 dark:text-gray-50 mb-3">章节统计</h3>
+            <div class="grid grid-cols-2 gap-4 text-center">
+              <div>
+                <div class="text-2xl font-bold text-primary"><%= @chapter.articles.count %></div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">文章数</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-primary"><%= @chapter.sub_chapters.count %></div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">子章节数</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-3 pt-4">
+            <%= link_to edit_my_book_path(@book), class: "btn-ghost flex-1" do %>
+              <%= lucide_icon "x", class: "w-5 h-5 mr-2" %>
+              取消
+            <% end %>
+            <%= f.submit "保存更改", class: "btn-primary flex-1" %>
+          </div>
+
+        <% end %>
+      </div>
+    </div>
+
+  </div>
+</div>

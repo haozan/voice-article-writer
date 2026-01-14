@@ -10,6 +10,10 @@ import SystemMonitorController from "./system_monitor_controller"
 import FlashController from "./flash_controller"
 import ArticlesController from "./articles_controller"
 import VoiceRecorderController from "./voice_recorder_controller"
+import BookReaderController from "./book_reader_controller"
+import ArticleMoveController from "./article_move_controller"
+import BookChaptersController from "./book_chapters_controller"
+import ArticleEditController from "./article_edit_controller"
 
 const application = Application.start()
 
@@ -23,5 +27,9 @@ application.register("system-monitor", SystemMonitorController)
 application.register("flash", FlashController)
 application.register("articles", ArticlesController)
 application.register("voice-recorder", VoiceRecorderController)
+application.register("book-reader", BookReaderController)
+application.register("article-move", ArticleMoveController)
+application.register("book-chapters", BookChaptersController)
+application.register("article-edit", ArticleEditController)
 
 window.Stimulus = application

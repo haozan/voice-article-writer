@@ -1,0 +1,90 @@
+<% content_for :title, "New Book" %>
+
+<div class="container-md">
+  <div class="flex items-center space-x-4">
+    <%= link_to admin_books_path, class: "btn-ghost text-sm py-1 px-3" do %>
+      <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+      Back to Books
+    <% end %>
+  </div>
+
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mt-4 mb-8">创建新书籍</h1>
+
+  <!-- Form -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <%= form_with model: [:admin, @book], local: true, class: "space-y-6" do |form| %>
+        <!-- Title -->
+        <div class="form-group">
+          <%= form.label :title, "书名" %>
+          <%= form.text_field :title, placeholder: "输入书名..." %>
+        </div>
+
+        <!-- Subtitle -->
+        <div class="form-group">
+          <%= form.label :subtitle, "副标题" %>
+          <%= form.text_field :subtitle, placeholder: "输入副标题（可选）..." %>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <%= form.label :description, "简介" %>
+          <%= form.text_area :description, rows: 5, placeholder: "输入书籍简介..." %>
+        </div>
+
+        <!-- Author -->
+        <div class="form-group">
+          <%= form.label :author, "作者" %>
+          <%= form.text_field :author, placeholder: "输入作者名称..." %>
+        </div>
+
+        <!-- Status -->
+        <div class="form-group">
+          <%= form.label :status, "状态" %>
+          <%= form.select :status, 
+                options_for_select([['草稿', 'draft'], ['已发布', 'published']], @book.status),
+                {}, 
+                class: "form-select" %>
+        </div>
+
+        <!-- Published at -->
+        <div class="form-group">
+          <%= form.label :published_at, "发布时间" %>
+          <%= form.datetime_field :published_at, placeholder: "选择发布时间..." %>
+        </div>
+
+        <!-- Pinned -->
+        <div class="mb-4">
+          <label class="flex items-center cursor-pointer">
+            <%= form.check_box :pinned, 
+                  class: "mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700" %>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">置顶显示</span>
+          </label>
+        </div>
+
+        <!-- Cover style -->
+        <div class="form-group">
+          <%= form.label :cover_style, "封面风格" %>
+          <%= form.select :cover_style,
+                options_for_select([
+                  ['极简风格', 'minimal'],
+                  ['渐变风格', 'gradient'],
+                  ['文艺风格', 'literary'],
+                  ['现代风格', 'modern'],
+                  ['学术风格', 'academic']
+                ], @book.cover_style),
+                {},
+                class: "form-select" %>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3">
+          <%= link_to admin_books_path, class: "btn-ghost" do %>
+            Cancel
+          <% end %>
+          <%= form.submit "创建书籍", class: "btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

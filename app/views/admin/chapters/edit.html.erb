@@ -1,0 +1,59 @@
+<% content_for :title, "Edit Chapter" %>
+
+<div class="container-md">
+  <div class="flex items-center space-x-4">
+    <%= link_to admin_chapters_path, class: "btn-ghost text-sm py-1 px-3" do %>
+      <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+      Back to Chapters
+    <% end %>
+  </div>
+
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mt-4 mb-8">编辑章节</h1>
+
+  <!-- Form -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <%= form_with model: [:admin, @chapter], local: true, class: "space-y-6" do |form| %>
+        <!-- Book -->
+        <div class="form-group">
+          <%= form.label :book_id, "所属书籍" %>
+          <%= form.select :book_id,
+              options_for_select([['请选择书籍', '']] + Book.order(:title).map { |book| [book.title, book.id] }, @chapter.book_id),
+              {},
+              class: "form-select" %>
+        </div>
+
+        <!-- Parent -->
+        <div class="form-group">
+          <%= form.label :parent_id, "父章节" %>
+          <%= form.select :parent_id,
+              options_for_select([['无（作为一级章节）', '']] + Chapter.where.not(id: @chapter.id).order(:position).map { |chapter| [chapter.full_title, chapter.id] }, @chapter.parent_id),
+              {},
+              class: "form-select" %>
+          <p class="text-sm text-gray-500 mt-1">选择父章节后，层级将自动设置</p>
+        </div>
+
+        <!-- Title -->
+        <div class="form-group">
+          <%= form.label :title, "章节标题" %>
+          <%= form.text_field :title, placeholder: "输入章节标题..." %>
+        </div>
+
+        <!-- Position -->
+        <div class="form-group">
+          <%= form.label :position, "排序位置" %>
+          <%= form.number_field :position, placeholder: "输入排序位置（越小越靠前）..." %>
+          <p class="text-sm text-gray-500 mt-1">数字越小，显示越靠前</p>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3">
+          <%= link_to admin_chapter_path(@chapter.id), class: "btn-ghost" do %>
+            Cancel
+          <% end %>
+          <%= form.submit "更新章节", class: "btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -667,7 +667,7 @@ export default class extends BaseChannelController {
       this.loadHistory()
     } catch (error) {
       console.error('History feature error:', error)
-      showToast("历史记录功能暂时不可用，请刷新页面", "danger")
+      showToast("历史文章功能暂时不可用，请刷新页面", "danger")
     }
   }
   
@@ -695,7 +695,7 @@ export default class extends BaseChannelController {
       if (articles.length === 0) {
         this.historyListTarget.innerHTML = `
           <div class="text-center py-12 text-muted">
-            <p>暂无历史记录</p>
+            <p>暂无历史文章</p>
           </div>
         `
         return
@@ -703,17 +703,39 @@ export default class extends BaseChannelController {
       
       // Render article list
       this.historyListTarget.innerHTML = articles.map((article: any) => `
-        <a href="/articles/${article.id}" class="block card card-elevated p-4 mb-3 hover:shadow-lg transition-all">
-          <div class="flex items-start justify-between mb-2">
-            <div class="flex-1">
-              <div class="text-xs text-muted mb-1">${article.created_at}</div>
-              <div class="text-sm text-secondary line-clamp-3">${article.transcript_preview}</div>
+        <div class="card card-elevated p-4 mb-3">
+          <a href="/articles/${article.id}" class="block hover:opacity-80 transition-all">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex-1">
+                <div class="text-xs text-muted mb-1">${article.created_at}</div>
+                <div class="text-sm text-secondary line-clamp-3">${article.transcript_preview}</div>
+              </div>
             </div>
-          </div>
-          <div class="flex items-center gap-2 mt-2">
-            <span class="badge ${article.status_class} text-xs">${article.status}</span>
-          </div>
-        </a>
+            <div class="flex flex-wrap items-center gap-2 mt-2">
+              <span class="badge ${article.status_class} text-xs">${article.status}</span>
+              ${article.archived && article.archive_info ? `
+                <span class="badge badge-info text-xs flex items-center gap-1">
+                  <span>📚</span>
+                  <span>已归档</span>
+                </span>
+              ` : ''}
+            </div>
+            ${article.archived && article.archive_info ? `
+              <div class="text-xs text-muted mt-1 line-clamp-1">
+                《${article.archive_info.book_title}》→ ${article.archive_info.chapter_title}
+              </div>
+            ` : ''}
+          </a>
+          ${article.can_archive && !article.archived ? `
+            <button 
+              class="btn-primary btn-sm mt-3 w-full"
+              data-action="click->articles#showArchiveModal"
+              data-article-id="${article.id}"
+            >
+              📚 归档到书籍
+            </button>
+          ` : ''}
+        </div>
       `).join('')
       
     } catch (error) {
@@ -824,6 +846,185 @@ export default class extends BaseChannelController {
     } catch (error) {
       console.error('Error restoring article:', error)
       showToast("加载文章失败", "danger")
+    }
+  }
+
+  // Archive article to book
+  async showArchiveModal(event: Event): Promise<void> {
+    const button = event.currentTarget as HTMLElement
+    const articleId = button.dataset.articleId
+    
+    if (!articleId) {
+      showToast("文章ID缺失", "danger")
+      return
+    }
+
+    try {
+      // Fetch available books
+      const booksResponse = await fetch('/api/books')
+      if (!booksResponse.ok) throw new Error('Failed to fetch books')
+      const books = await booksResponse.json()
+
+      if (books.length === 0) {
+        showToast("请先创建书籍，点击右上角「我的书架」按钮", "warning")
+        return
+      }
+
+      // Create modal HTML
+      const modalHtml = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" id="archiveModal">
+          <div class="card bg-white dark:bg-gray-800 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div class="card-body p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-50">归档到书籍</h3>
+                <button class="btn-ghost p-2" onclick="document.getElementById('archiveModal').remove()">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="space-y-4">
+                <!-- Book Selection -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">选择书籍</label>
+                  <select id="archiveBookSelect" class="form-select w-full">
+                    <option value="">请选择...</option>
+                    ${books.map((book: any) => `<option value="${book.id}">${book.title}</option>`).join('')}
+                  </select>
+                </div>
+
+                <!-- Chapter Selection (hidden initially) -->
+                <div id="archiveChapterContainer" class="hidden">
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">选择章节</label>
+                  <select id="archiveChapterSelect" class="form-select w-full">
+                    <option value="">请选择...</option>
+                  </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end gap-3 mt-6">
+                  <button class="btn-ghost" onclick="document.getElementById('archiveModal').remove()">取消</button>
+                  <button id="archiveConfirmBtn" class="btn-primary" disabled>确认归档</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+
+      // Insert modal into DOM
+      document.body.insertAdjacentHTML('beforeend', modalHtml)
+
+      // Setup event listeners
+      const bookSelect = document.getElementById('archiveBookSelect') as HTMLSelectElement
+      const chapterContainer = document.getElementById('archiveChapterContainer') as HTMLElement
+      const chapterSelect = document.getElementById('archiveChapterSelect') as HTMLSelectElement
+      const confirmBtn = document.getElementById('archiveConfirmBtn') as HTMLButtonElement
+
+      // Book selection change handler
+      bookSelect.addEventListener('change', async () => {
+        const bookId = bookSelect.value
+        
+        if (!bookId) {
+          chapterContainer.classList.add('hidden')
+          confirmBtn.disabled = true
+          return
+        }
+
+        try {
+          // Fetch chapters for selected book
+          const chaptersResponse = await fetch(`/api/books/${bookId}/chapters`)
+          if (!chaptersResponse.ok) throw new Error('Failed to fetch chapters')
+          const chapters = await chaptersResponse.json()
+
+          if (chapters.length === 0) {
+            showToast("该书籍暂无章节，请先创建章节", "warning")
+            chapterContainer.classList.add('hidden')
+            confirmBtn.disabled = true
+            return
+          }
+
+          // Flatten chapter tree to show all levels
+          const flattenChapters = (chapters: any[], result: any[] = []): any[] => {
+            chapters.forEach(chapter => {
+              result.push({ id: chapter.id, full_title: chapter.full_title, level: chapter.level })
+              if (chapter.children && chapter.children.length > 0) {
+                flattenChapters(chapter.children, result)
+              }
+            })
+            return result
+          }
+
+          const flatChapters = flattenChapters(chapters)
+
+          // Populate chapter dropdown with indentation
+          chapterSelect.innerHTML = `<option value="">请选择...</option>${
+            flatChapters.map((chapter: any) => {
+              const indent = '　'.repeat(chapter.level) // Use full-width space for indentation
+              return `<option value="${chapter.id}">${indent}${chapter.full_title}</option>`
+            }).join('')
+          }`
+          
+          chapterContainer.classList.remove('hidden')
+          confirmBtn.disabled = true
+        } catch (error) {
+          console.error('Error loading chapters:', error)
+          showToast("加载章节失败", "danger")
+        }
+      })
+
+      // Chapter selection change handler
+      chapterSelect.addEventListener('change', () => {
+        confirmBtn.disabled = !chapterSelect.value
+      })
+
+      // Confirm button handler
+      confirmBtn.addEventListener('click', async () => {
+        const chapterId = chapterSelect.value
+        
+        if (!chapterId) {
+          showToast("请选择章节", "warning")
+          return
+        }
+
+        try {
+          confirmBtn.disabled = true
+          confirmBtn.textContent = '归档中...'
+
+          const response = await fetch(`/articles/${articleId}/archive`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({ chapter_id: chapterId })
+          })
+
+          const result = await response.json()
+
+          if (result.success) {
+            showToast(result.message, "success")
+            document.getElementById('archiveModal')?.remove()
+            
+            // Refresh history list
+            this.loadHistory()
+          } else {
+            showToast(result.message, "danger")
+            confirmBtn.disabled = false
+            confirmBtn.textContent = '确认归档'
+          }
+        } catch (error) {
+          console.error('Error archiving article:', error)
+          showToast("归档失败", "danger")
+          confirmBtn.disabled = false
+          confirmBtn.textContent = '确认归档'
+        }
+      })
+
+    } catch (error) {
+      console.error('Error showing archive modal:', error)
+      showToast("显示归档窗口失败", "danger")
     }
   }
 }
