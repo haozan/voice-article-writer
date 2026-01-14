@@ -140,6 +140,37 @@
 
   /* Add your custom components here */
 
+  /* Override button border-radius to be sharp corners */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-warning,
+  .btn-danger,
+  .btn-error,
+  .btn-info,
+  .btn-neutral,
+  .btn-accent,
+  .btn-ghost,
+  .btn-default,
+  .btn-light,
+  .btn-outline,
+  .btn-outline-primary {
+    border-radius: 0 !important;
+  }
+
+  /* Override badge border-radius to be sharp corners */
+  .badge,
+  .badge-primary,
+  .badge-secondary,
+  .badge-success,
+  .badge-warning,
+  .badge-danger,
+  .badge-neutral,
+  .badge-info {
+    border-radius: 0 !important;
+  }
+
 } /* End of @layer components */
 
 @tailwind utilities;

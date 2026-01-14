@@ -721,7 +721,7 @@ export default class extends BaseChannelController {
       
       // Render article list
       this.historyListTarget.innerHTML = articles.map((article: any) => `
-        <div class="card card-elevated p-4 mb-3">
+        <div class="card card-elevated p-4 mb-3 rounded-none">
           <a href="/articles/${article.id}" class="block hover:opacity-80 transition-all">
             <div class="flex items-start justify-between mb-2">
               <div class="flex-1">
@@ -891,7 +891,7 @@ export default class extends BaseChannelController {
       // Create modal HTML
       const modalHtml = `
         <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" id="archiveModal">
-          <div class="card bg-white dark:bg-gray-800 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+          <div class="card bg-white dark:bg-gray-800 max-w-2xl w-full max-h-[80vh] overflow-y-auto rounded-none">
             <div class="card-body p-6">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-gray-900 dark:text-gray-50">归档到书籍</h3>

@@ -22,7 +22,7 @@
     </div>
 
     <!-- Original Input -->
-    <div class="card card-elevated p-6 mb-6">
+    <div class="card card-elevated p-6 mb-6 rounded-none">
       <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2">
         <%= lucide_icon "mic", class: "w-5 h-5" %>
         原始输入
@@ -41,7 +41,7 @@
         </h2>
         <div class="grid md:grid-cols-2 gap-4">
           <% if @article.brainstorm_grok.present? %>
-            <div class="card card-elevated p-5">
+            <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
                 <%= lucide_icon "zap", class: "w-5 h-5" %>
                 Grok
@@ -56,7 +56,7 @@
           <% end %>
 
           <% if @article.brainstorm_qwen.present? %>
-            <div class="card card-elevated p-5">
+            <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
                 <%= lucide_icon "zap", class: "w-5 h-5" %>
                 千问
@@ -71,7 +71,7 @@
           <% end %>
 
           <% if @article.brainstorm_deepseek.present? %>
-            <div class="card card-elevated p-5">
+            <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
                 <%= lucide_icon "zap", class: "w-5 h-5" %>
                 DeepSeek
@@ -86,7 +86,7 @@
           <% end %>
 
           <% if @article.brainstorm_gemini.present? %>
-            <div class="card card-elevated p-5">
+            <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
                 <%= lucide_icon "zap", class: "w-5 h-5" %>
                 Gemini
@@ -101,7 +101,7 @@
           <% end %>
 
           <% if @article.brainstorm_zhipu.present? %>
-            <div class="card card-elevated p-5">
+            <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
                 <%= lucide_icon "zap", class: "w-5 h-5" %>
                 智谱
@@ -120,7 +120,7 @@
 
     <!-- Draft -->
     <% if @article.draft.present? %>
-      <div class="card card-elevated p-6 mb-6">
+      <div class="card card-elevated p-6 mb-6 rounded-none">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
           <%= lucide_icon "file-edit", class: "w-6 h-6" %>
           初稿
@@ -133,7 +133,7 @@
 
     <!-- Final Content -->
     <% if @article.final_content.present? %>
-      <div class="card card-elevated p-6 mb-6">
+      <div class="card card-elevated p-6 mb-6 rounded-none">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
           <%= lucide_icon "check-circle", class: "w-6 h-6" %>
           最终定稿

@@ -13,7 +13,7 @@
     </div>
 
     <!-- Form Card -->
-    <div class="card bg-white dark:bg-gray-800 shadow-lg">
+    <div class="card bg-white dark:bg-gray-800 shadow-lg rounded-none">
       <div class="card-body p-6">
         <%= form_with model: @book, url: my_books_path, class: "space-y-6" do |f| %>
           
@@ -93,7 +93,7 @@
     </div>
 
     <!-- Tips -->
-    <div class="card bg-blue-50 dark:bg-blue-900/20 shadow-lg mt-6">
+    <div class="card bg-blue-50 dark:bg-blue-900/20 shadow-lg mt-6 rounded-none">
       <div class="card-body p-4">
         <div class="flex items-start gap-3">
           <%= lucide_icon "info", class: "w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" %>

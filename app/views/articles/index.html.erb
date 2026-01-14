@@ -3,7 +3,6 @@
     <!-- Header -->
     <div class="text-center mb-8">
       <h1 class="text-4xl lg:text-5xl font-bold text-primary mb-3">
-        <%= lucide_icon "pen-line", class: "w-10 h-10 inline-block mr-2" %>
         镐赞写作系统 1.0
       </h1>
       <p class="text-lg text-secondary">
@@ -17,7 +16,7 @@
       data-articles-stream-name-value="<%= @stream_name %>"
     >
       <!-- Top Action Buttons (Fixed Position) -->
-      <div class="fixed top-6 right-6 z-40 flex gap-3">
+      <div class="fixed top-20 right-6 z-40 flex gap-3">
         <% if params[:article_id].present? %>
           <%= link_to articles_path, class: "btn-secondary shadow-lg hover:shadow-xl transition-all" do %>
             <%= lucide_icon "arrow-left", class: "w-5 h-5 inline-block mr-2" %>
@@ -35,7 +34,7 @@
       </div>
       
       <!-- Input Section -->
-      <div class="card card-elevated p-6 mb-6">
+      <div class="card card-elevated p-6 mb-6 rounded-none">
         
         <div class="mb-4">
           <label class="block text-lg font-semibold text-primary mb-3">
@@ -44,7 +43,7 @@
           </label>
           <textarea
             data-articles-target="inputText"
-            class="w-full px-4 py-3 text-lg border-2 border-border rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
+            class="w-full px-4 py-3 text-lg border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
             rows="8"
             placeholder="请输入你的想法、观点或要表达的内容...\n\n你可以：\n• 使用手机输入法直接输入文字\n• 使用手机语音输入功能（系统自带）\n• 随意表达，不必太正式"
           ></textarea>
@@ -67,7 +66,7 @@
                 class="peer sr-only"
                 checked
               />
-              <div class="px-4 py-2.5 border-2 rounded-lg transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
+              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
                 <span class="text-base font-medium text-foreground">原汁原味</span>
               </div>
             </label>
@@ -81,9 +80,9 @@
                 disabled
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-lg border-border bg-surface">
+              <div class="px-4 py-2.5 border-2 rounded-none border-border bg-surface">
                 <span class="text-base text-muted">见感思行</span>
-                <span class="ml-2 text-xs px-2 py-0.5 bg-muted/20 text-muted rounded">即将推出</span>
+                <span class="ml-2 text-xs px-2 py-0.5 bg-muted/20 text-muted rounded-none">即将推出</span>
               </div>
             </label>
 
@@ -96,9 +95,9 @@
                 disabled
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-lg border-border bg-surface">
+              <div class="px-4 py-2.5 border-2 rounded-none border-border bg-surface">
                 <span class="text-base text-muted">黄金圈</span>
-                <span class="ml-2 text-xs px-2 py-0.5 bg-muted/20 text-muted rounded">即将推出</span>
+                <span class="ml-2 text-xs px-2 py-0.5 bg-muted/20 text-muted rounded-none">即将推出</span>
               </div>
             </label>
 
@@ -111,9 +110,9 @@
                 disabled
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-lg border-border bg-surface">
+              <div class="px-4 py-2.5 border-2 rounded-none border-border bg-surface">
                 <span class="text-base text-muted">口语化写作</span>
-                <span class="ml-2 text-xs px-2 py-0.5 bg-muted/20 text-muted rounded">即将推出</span>
+                <span class="ml-2 text-xs px-2 py-0.5 bg-muted/20 text-muted rounded-none">即将推出</span>
               </div>
             </label>
           </div>
@@ -143,7 +142,7 @@
         </h2>
         
         <!-- Grok Response -->
-        <div class="card card-elevated mb-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-none">
           <div class="card-header border-b border-border flex items-center justify-between">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "zap", class: "w-5 h-5" %>
@@ -189,7 +188,7 @@
         </div>
 
         <!-- Qwen Response -->
-        <div class="card card-elevated mb-4 bg-gradient-to-br from-secondary/5 to-accent/5">
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-secondary/5 to-accent/5 rounded-none">
           <div class="card-header border-b border-border flex items-center justify-between">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "sparkles", class: "w-5 h-5" %>
@@ -235,7 +234,7 @@
         </div>
 
         <!-- DeepSeek Response -->
-        <div class="card card-elevated mb-4 bg-gradient-to-br from-accent/5 to-primary/5">
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-accent/5 to-primary/5 rounded-none">
           <div class="card-header border-b border-border flex items-center justify-between">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "brain", class: "w-5 h-5" %>
@@ -281,7 +280,7 @@
         </div>
 
         <!-- Gemini Response -->
-        <div class="card card-elevated mb-4 bg-gradient-to-br from-blue-500/5 to-purple-500/5">
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-none">
           <div class="card-header border-b border-border flex items-center justify-between">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "gem", class: "w-5 h-5 text-blue-600" %>
@@ -327,7 +326,7 @@
         </div>
 
         <!-- Zhipu Response -->
-        <div class="card card-elevated mb-4 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-none">
           <div class="card-header border-b border-border flex items-center justify-between">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "zap-off", class: "w-5 h-5 text-purple-600" %>
@@ -380,7 +379,7 @@
           Step 3: 草稿（可编辑）
         </h2>
         
-        <div class="card card-elevated p-6">
+        <div class="card card-elevated p-6 rounded-none">
           <div class="mb-4">
             <div class="flex items-center justify-between mb-3">
               <label class="text-lg font-semibold text-primary">
@@ -399,7 +398,7 @@
             </div>
             <textarea
               data-articles-target="draftContent"
-              class="w-full px-4 py-3 text-base border-2 border-border rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
+              class="w-full px-4 py-3 text-base border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
               rows="20"
               placeholder="草稿生成中..."
             ></textarea>
@@ -432,7 +431,7 @@
             type="button"
             data-action="click->articles#generateFinal"
             data-style="pinker"
-            class="card card-elevated p-6 hover:shadow-lg transition-all text-left group"
+            class="card card-elevated p-6 hover:shadow-lg transition-all text-left group rounded-none"
           >
             <div class="flex items-center gap-3 mb-3">
               <%= lucide_icon "brain", class: "w-8 h-8 text-primary" %>
@@ -448,7 +447,7 @@
             type="button"
             data-action="click->articles#generateFinal"
             data-style="luozhenyu"
-            class="card card-elevated p-6 hover:shadow-lg transition-all text-left group"
+            class="card card-elevated p-6 hover:shadow-lg transition-all text-left group rounded-none"
           >
             <div class="flex items-center gap-3 mb-3">
               <%= lucide_icon "message-circle", class: "w-8 h-8 text-primary" %>
@@ -464,7 +463,7 @@
             type="button"
             data-action="click->articles#generateFinal"
             data-style="wangxiaobo"
-            class="card card-elevated p-6 hover:shadow-lg transition-all text-left group"
+            class="card card-elevated p-6 hover:shadow-lg transition-all text-left group rounded-none"
           >
             <div class="flex items-center gap-3 mb-3">
               <%= lucide_icon "smile", class: "w-8 h-8 text-primary" %>
@@ -478,7 +477,7 @@
         
         <!-- Final Article Display -->
         <div data-articles-target="finalArticleContainer" style="display: none;">
-          <div class="card card-elevated p-6">
+          <div class="card card-elevated p-6 rounded-none">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-xl font-bold text-primary flex items-center gap-2">
                 <%= lucide_icon "file-check", class: "w-5 h-5" %>
@@ -496,7 +495,7 @@
             </div>
             <div 
               data-articles-target="finalArticle"
-              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[300px] max-h-[600px] overflow-y-auto p-4 bg-surface-elevated rounded-lg"
+              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[300px] max-h-[600px] overflow-y-auto p-4 bg-surface-elevated rounded-none"
             >
               <div class="flex items-center gap-2 text-muted">
                 <div class="loading-spinner w-4 h-4"></div>
@@ -570,7 +569,7 @@
 
     <!-- Tips Section -->
     <div class="mt-12 text-center">
-      <div class="inline-block bg-surface-elevated rounded-xl p-6 shadow-sm">
+      <div class="inline-block bg-surface-elevated rounded-none p-6 shadow-sm">
         <h3 class="text-lg font-bold text-primary mb-4 flex items-center justify-center gap-2">
           <%= lucide_icon "lightbulb", class: "w-5 h-5" %>
           使用提示
