@@ -16,15 +16,21 @@ class LlmStreamJob < ApplicationJob
   #     stream_name: 'article_123',
   #     prompt: "user's original text"
   #   )
-  def perform(stream_name:, prompt:, llm_config: nil, **options)
+  def perform(stream_name:, prompt:, llm_config: nil, article_id: nil, provider: nil, **options)
     # Detect provider and build appropriate system prompt
     provider_name = llm_config ? detect_provider(llm_config) : 'Grok'
-    system_prompt = build_system_prompt(provider_name)
+    
+    # For draft and final, don't wrap with system prompt
+    system_prompt = if provider == 'draft' || provider == 'final'
+                      nil
+                    else
+                      build_system_prompt(provider_name)
+                    end
     
     # Merge llm_config into options if provided
     options = options.merge(llm_config) if llm_config
     
-    generate_and_stream(stream_name, prompt, system_prompt, **options)
+    generate_and_stream(stream_name, prompt, system_prompt, article_id, provider, **options)
   end
   
   private
@@ -122,7 +128,7 @@ class LlmStreamJob < ApplicationJob
     end
   end
   
-  def generate_and_stream(stream_name, prompt, system, **options)
+  def generate_and_stream(stream_name, prompt, system, article_id, provider, **options)
     full_content = ""
     
     LlmService.call(prompt: prompt, system: system, **options) do |chunk|
@@ -131,6 +137,29 @@ class LlmStreamJob < ApplicationJob
         type: 'chunk',
         chunk: chunk
       })
+    end
+    
+    # Save to database based on provider
+    if article_id && provider
+      article = Article.find_by(id: article_id)
+      if article
+        case provider
+        when 'grok'
+          article.update!(brainstorm_grok: full_content)
+        when 'qwen'
+          article.update!(brainstorm_qwen: full_content)
+        when 'deepseek'
+          article.update!(brainstorm_deepseek: full_content)
+        when 'gemini'
+          article.update!(brainstorm_gemini: full_content)
+        when 'zhipu'
+          article.update!(brainstorm_zhipu: full_content)
+        when 'draft'
+          article.update!(draft: full_content)
+        when 'final'
+          article.update!(final_content: full_content)
+        end
+      end
     end
     
     ActionCable.server.broadcast(stream_name, {

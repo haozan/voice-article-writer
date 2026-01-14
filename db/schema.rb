@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_13_061248) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_13_123513) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -67,6 +67,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_13_061248) do
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_administrators_on_name", unique: true
     t.index ["role"], name: "index_administrators_on_role"
+  end
+
+  create_table "articles", force: :cascade do |t|
+    t.text "transcript"
+    t.text "brainstorm_grok"
+    t.text "brainstorm_qwen"
+    t.text "brainstorm_deepseek"
+    t.text "brainstorm_gemini"
+    t.text "brainstorm_zhipu"
+    t.string "selected_model"
+    t.text "draft"
+    t.string "final_style"
+    t.text "final_content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "friendly_id_slugs", force: :cascade do |t|
