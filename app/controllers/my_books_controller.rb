@@ -4,6 +4,18 @@ class MyBooksController < ApplicationController
     @book = Book.friendly.find(params[:id])
   end
 
+  def change_cover
+    @book = Book.friendly.find(params[:id])
+    current_index = @book.cover_scheme_index || (@book.id % 30)
+    next_index = (current_index + 1) % 30
+    @book.update!(cover_scheme_index: next_index)
+    
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to my_books_path, notice: "封皮已更换为：#{BookCoverService::COLOR_SCHEMES[next_index][:name]}" }
+    end
+  end
+
   def move_article
     @book = Book.friendly.find(params[:id])
     @article = Article.find(params[:article_id])
@@ -83,6 +95,6 @@ class MyBooksController < ApplicationController
   private
   
   def book_params
-    params.require(:book).permit(:title, :subtitle, :description, :author, :status, :published_at, :pinned, :cover_style)
+    params.require(:book).permit(:title, :subtitle, :description, :author, :status, :published_at, :pinned)
   end
 end

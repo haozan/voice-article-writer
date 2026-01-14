@@ -1,0 +1,7 @@
+<turbo-stream action="replace" target="book-cover-<%= @book.id %>">
+  <template>
+    <div id="book-cover-<%= @book.id %>" class="absolute inset-0 w-full h-full">
+      <%= book_cover_svg(@book).html_safe %>
+    </div>
+  </template>
+</turbo-stream>

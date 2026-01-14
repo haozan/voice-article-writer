@@ -62,21 +62,6 @@
           </label>
         </div>
 
-        <!-- Cover style -->
-        <div class="form-group">
-          <%= form.label :cover_style, "封面风格" %>
-          <%= form.select :cover_style,
-                options_for_select([
-                  ['极简风格', 'minimal'],
-                  ['渐变风格', 'gradient'],
-                  ['文艺风格', 'literary'],
-                  ['现代风格', 'modern'],
-                  ['学术风格', 'academic']
-                ], @book.cover_style),
-                {},
-                class: "form-select" %>
-        </div>
-
         <!-- Form Actions -->
         <div class="flex justify-end space-x-3">
           <%= link_to admin_book_path(@book.id), class: "btn-ghost" do %>

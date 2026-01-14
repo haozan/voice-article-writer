@@ -4,10 +4,10 @@
     <div class="text-center mb-8">
       <h1 class="text-4xl lg:text-5xl font-bold text-primary mb-3">
         <%= lucide_icon "pen-line", class: "w-10 h-10 inline-block mr-2" %>
-        AI 多模型对话助手
+        懒人写作术
       </h1>
       <p class="text-lg text-secondary">
-        同时体验 5 个 AI 模型的不同风格与见解
+        让普通人，也能长期、稳定、低痛苦地写作
       </p>
     </div>
 
@@ -23,10 +23,6 @@
             <%= lucide_icon "arrow-left", class: "w-5 h-5 inline-block mr-2" %>
             返回主页
           <% end %>
-        <% end %>
-        <%= link_to my_books_path, class: "btn-primary shadow-lg hover:shadow-xl transition-all" do %>
-          <%= lucide_icon "book", class: "w-5 h-5 inline-block mr-2" %>
-          我的书籍
         <% end %>
         <button
           type="button"
@@ -490,6 +486,14 @@
               加载中...
             </div>
           </div>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-surface">
+          <%= link_to my_books_path, class: "btn-primary w-full" do %>
+            <%= lucide_icon "book", class: "w-5 h-5 inline-block mr-2" %>
+            我的书籍
+          <% end %>
         </div>
 
       </div>

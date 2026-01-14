@@ -7,6 +7,6 @@ FactoryBot.define do
     status { "published" }
     published_at { Time.current }
     pinned { false }
-    cover_style { "minimal" }
+
   end
 end

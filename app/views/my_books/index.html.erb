@@ -31,9 +31,19 @@
         <% @books.each do |book| %>
           <div class="card bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all overflow-hidden">
             <!-- Book Cover -->
-            <div class="relative aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
-              <div class="absolute inset-0 w-full h-full">
+            <div class="relative aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden group">
+              <div id="book-cover-<%= book.id %>" class="absolute inset-0 w-full h-full">
                 <%= book_cover_svg(book).html_safe %>
+              </div>
+              
+              <!-- Change Cover Button (appears on hover) -->
+              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
+                <%= button_to change_cover_my_book_path(book), method: :patch, 
+                    class: "btn-secondary btn-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+                    data: { turbo_method: :patch } do %>
+                  <%= lucide_icon "shuffle", class: "w-4 h-4 mr-1" %>
+                  更换封皮
+                <% end %>
               </div>
               
               <!-- Pinned Badge -->

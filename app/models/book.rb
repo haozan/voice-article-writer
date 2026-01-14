@@ -2,20 +2,12 @@ class Book < ApplicationRecord
   extend FriendlyId
   friendly_id :title, use: :slugged
   
-  COVER_STYLES = {
-    'minimal' => '简约',
-    'gradient' => '渐变',
-    'literary' => '文艺',
-    'modern' => '现代',
-    'academic' => '学术'
-  }.freeze
-  
   has_many :chapters, dependent: :destroy
   has_many :articles, through: :chapters
   
   validates :title, presence: true
   validates :status, inclusion: { in: %w[draft published] }
-  validates :cover_style, inclusion: { in: %w[minimal gradient literary modern academic] }
+  validates :cover_scheme_index, numericality: { only_integer: true, greater_than_or_equal_to: 0, less_than: 30 }, allow_nil: true
   
   scope :pinned, -> { where(pinned: true) }
   scope :published, -> { where(status: 'published') }

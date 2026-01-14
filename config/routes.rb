@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   resources :my_books, only: [:index, :show, :new, :edit, :create, :update, :destroy] do
     member do
       patch :move_article
+      patch :change_cover
     end
     resources :chapters, only: [:create, :edit, :update, :destroy], controller: 'my_books/chapters'
   end
