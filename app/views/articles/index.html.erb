@@ -1,37 +1,55 @@
 <div class="min-h-screen bg-gradient-to-br from-primary/5 via-surface to-secondary/5 py-8 px-4">
-  <div class="container-lg mx-auto max-w-4xl">
+  <div 
+    class="container-lg mx-auto max-w-4xl"
+    data-controller="articles" 
+    data-articles-stream-name-value="<%= @stream_name %>"
+  >
     <!-- Header -->
-    <div class="text-center mb-8">
-      <h1 class="text-4xl lg:text-5xl font-bold text-primary mb-3">
-        镐赞写作系统 1.0
-      </h1>
-      <p class="text-lg text-secondary">
-        让普通人，也能长期、稳定、低痛苦地写作
+    <div class="mb-8">
+      <div class="text-center mb-3 lg:relative">
+        <h1 class="text-4xl lg:text-5xl font-bold text-primary mb-4 lg:mb-0">
+          最小阻力写作
+        </h1>
+        <!-- Desktop: button on title row -->
+        <div class="hidden lg:flex lg:absolute lg:right-0 lg:top-0">
+          <button
+            type="button"
+            data-action="click->articles#openHistory"
+            class="btn-secondary"
+          >
+            <%= lucide_icon "history", class: "w-5 h-5 inline-block mr-2" %>
+            历史文章
+          </button>
+        </div>
+      </div>
+      <p class="text-lg text-secondary text-center mb-4">
+        助你稳定输出影响力
       </p>
-    </div>
-
-    <!-- Main Content Wrapper -->
-    <div 
-      data-controller="articles" 
-      data-articles-stream-name-value="<%= @stream_name %>"
-    >
-      <!-- Top Action Buttons (Fixed Position) -->
-      <div class="fixed top-20 right-6 z-40 flex gap-3">
-        <% if params[:article_id].present? %>
-          <%= link_to articles_path, class: "btn-secondary shadow-lg hover:shadow-xl transition-all" do %>
-            <%= lucide_icon "arrow-left", class: "w-5 h-5 inline-block mr-2" %>
-            返回主页
-          <% end %>
-        <% end %>
+      <!-- Mobile: button below subtitle -->
+      <div class="flex justify-center lg:hidden">
         <button
           type="button"
           data-action="click->articles#openHistory"
-          class="btn-secondary shadow-lg hover:shadow-xl transition-all"
+          class="btn-secondary"
         >
           <%= lucide_icon "history", class: "w-5 h-5 inline-block mr-2" %>
           历史文章
         </button>
       </div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div
+    >
+      <!-- Top Action Buttons (Fixed Position) -->
+      <% if params[:article_id].present? %>
+        <div class="fixed top-20 right-6 z-40">
+          <%= link_to articles_path, class: "btn-secondary shadow-lg hover:shadow-xl transition-all" do %>
+            <%= lucide_icon "arrow-left", class: "w-5 h-5 inline-block mr-2" %>
+            返回主页
+          <% end %>
+        </div>
+      <% end %>
       
       <!-- Input Section -->
       <div class="card card-elevated p-6 mb-6 rounded-none">
