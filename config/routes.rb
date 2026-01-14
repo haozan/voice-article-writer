@@ -9,7 +9,11 @@ end
 
 Rails.application.routes.draw do
   # Routes for articles
-  resources :articles, only: [:index]
+  resources :articles, only: [:index, :show] do
+    collection do
+      get :history
+    end
+  end
 
   root 'articles#index'
 

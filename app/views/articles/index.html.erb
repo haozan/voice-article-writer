@@ -16,6 +16,23 @@
       data-controller="articles" 
       data-articles-stream-name-value="<%= @stream_name %>"
     >
+      <!-- Top Action Buttons (Fixed Position) -->
+      <div class="fixed top-6 right-6 z-40 flex gap-3">
+        <% if params[:article_id].present? %>
+          <%= link_to articles_path, class: "btn-secondary shadow-lg hover:shadow-xl transition-all" do %>
+            <%= lucide_icon "arrow-left", class: "w-5 h-5 inline-block mr-2" %>
+            返回主页
+          <% end %>
+        <% end %>
+        <button
+          type="button"
+          data-action="click->articles#openHistory"
+          class="btn-secondary shadow-lg hover:shadow-xl transition-all"
+        >
+          <%= lucide_icon "history", class: "w-5 h-5 inline-block mr-2" %>
+          历史记录
+        </button>
+      </div>
       
       <!-- Input Section -->
       <div class="card card-elevated p-6 mb-6">
@@ -433,6 +450,44 @@
         </button>
       </div>
 
+      <!-- History Sidebar -->
+      <div 
+        data-articles-target="historyOverlay"
+        class="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
+        style="display: none; opacity: 0;"
+        data-action="click->articles#closeHistory"
+      ></div>
+
+      <div 
+        data-articles-target="historySidebar"
+        class="fixed top-0 right-0 h-full w-full md:w-96 bg-surface shadow-2xl z-50 transform transition-transform duration-300"
+        style="display: none; transform: translateX(100%);"
+      >
+        <!-- Sidebar Header -->
+        <div class="flex items-center justify-between p-6 border-b border-border">
+          <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
+            <%= lucide_icon "history", class: "w-6 h-6" %>
+            历史记录
+          </h2>
+          <button
+            type="button"
+            data-action="click->articles#closeHistory"
+            class="btn-secondary btn-sm"
+          >
+            <%= lucide_icon "x", class: "w-5 h-5" %>
+          </button>
+        </div>
+        
+        <!-- Sidebar Content -->
+        <div class="overflow-y-auto h-[calc(100%-80px)]">
+          <div data-articles-target="historyList" class="p-4">
+            <div class="flex items-center justify-center py-12 text-muted">
+              <div class="loading-spinner w-6 h-6 mr-2"></div>
+              加载中...
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Tips Section -->

@@ -1,0 +1,165 @@
+<div class="min-h-screen bg-background">
+  <div class="container mx-auto px-4 py-8 max-w-5xl">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-primary mb-2">文章详情</h1>
+        <div class="flex items-center gap-4 text-sm text-muted">
+          <span><%= lucide_icon "calendar", class: "w-4 h-4 inline-block mr-1" %><%= @article.created_at.strftime('%Y-%m-%d %H:%M') %></span>
+          <span class="badge <%= @article.status_badge_class %>"><%= @article.status_label %></span>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <%= link_to articles_path(article_id: @article.id), class: "btn-primary" do %>
+          <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-2" %>
+          继续编辑
+        <% end %>
+        <%= link_to articles_path, class: "btn-secondary" do %>
+          <%= lucide_icon "arrow-left", class: "w-4 h-4 inline-block mr-2" %>
+          返回主页
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Original Input -->
+    <div class="card card-elevated p-6 mb-6">
+      <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+        <%= lucide_icon "mic", class: "w-5 h-5" %>
+        原始输入
+      </h2>
+      <div class="prose prose-lg max-w-none text-secondary whitespace-pre-wrap">
+        <%= @article.transcript || '无内容' %>
+      </div>
+    </div>
+
+    <!-- Brainstorm Results -->
+    <% if @article.has_brainstorm? %>
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+          <%= lucide_icon "lightbulb", class: "w-6 h-6" %>
+          AI 脑爆结果
+        </h2>
+        <div class="grid md:grid-cols-2 gap-4">
+          <% if @article.brainstorm_grok.present? %>
+            <div class="card card-elevated p-5">
+              <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
+                <%= lucide_icon "zap", class: "w-5 h-5" %>
+                Grok
+                <% if @article.selected_model == 'grok' %>
+                  <span class="badge badge-success text-xs">已选择</span>
+                <% end %>
+              </h3>
+              <div class="text-secondary text-sm whitespace-pre-wrap max-h-60 overflow-y-auto">
+                <%= @article.brainstorm_grok %>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @article.brainstorm_qwen.present? %>
+            <div class="card card-elevated p-5">
+              <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
+                <%= lucide_icon "zap", class: "w-5 h-5" %>
+                千问
+                <% if @article.selected_model == 'qwen' %>
+                  <span class="badge badge-success text-xs">已选择</span>
+                <% end %>
+              </h3>
+              <div class="text-secondary text-sm whitespace-pre-wrap max-h-60 overflow-y-auto">
+                <%= @article.brainstorm_qwen %>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @article.brainstorm_deepseek.present? %>
+            <div class="card card-elevated p-5">
+              <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
+                <%= lucide_icon "zap", class: "w-5 h-5" %>
+                DeepSeek
+                <% if @article.selected_model == 'deepseek' %>
+                  <span class="badge badge-success text-xs">已选择</span>
+                <% end %>
+              </h3>
+              <div class="text-secondary text-sm whitespace-pre-wrap max-h-60 overflow-y-auto">
+                <%= @article.brainstorm_deepseek %>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @article.brainstorm_gemini.present? %>
+            <div class="card card-elevated p-5">
+              <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
+                <%= lucide_icon "zap", class: "w-5 h-5" %>
+                Gemini
+                <% if @article.selected_model == 'gemini' %>
+                  <span class="badge badge-success text-xs">已选择</span>
+                <% end %>
+              </h3>
+              <div class="text-secondary text-sm whitespace-pre-wrap max-h-60 overflow-y-auto">
+                <%= @article.brainstorm_gemini %>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @article.brainstorm_zhipu.present? %>
+            <div class="card card-elevated p-5">
+              <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
+                <%= lucide_icon "zap", class: "w-5 h-5" %>
+                智谱
+                <% if @article.selected_model == 'zhipu' %>
+                  <span class="badge badge-success text-xs">已选择</span>
+                <% end %>
+              </h3>
+              <div class="text-secondary text-sm whitespace-pre-wrap max-h-60 overflow-y-auto">
+                <%= @article.brainstorm_zhipu %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Draft -->
+    <% if @article.draft.present? %>
+      <div class="card card-elevated p-6 mb-6">
+        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+          <%= lucide_icon "file-edit", class: "w-6 h-6" %>
+          初稿
+        </h2>
+        <div class="prose prose-lg max-w-none text-secondary whitespace-pre-wrap">
+          <%= @article.draft %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Final Content -->
+    <% if @article.final_content.present? %>
+      <div class="card card-elevated p-6 mb-6">
+        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+          <%= lucide_icon "check-circle", class: "w-6 h-6" %>
+          最终定稿
+          <% if @article.final_style.present? %>
+            <span class="badge badge-success">
+              <%= case @article.final_style
+                  when 'pinker' then '史蒂芬·平克风格'
+                  when 'luozhenyu' then '罗振宇风格'
+                  when 'wangxiaobo' then '王小波风格'
+                  else @article.final_style
+                  end %>
+            </span>
+          <% end %>
+        </h2>
+        <div class="prose prose-lg max-w-none text-secondary whitespace-pre-wrap">
+          <%= @article.final_content %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Back to Top Button -->
+    <div class="text-center mt-8">
+      <%= link_to articles_path(article_id: @article.id), class: "btn-primary btn-lg px-12" do %>
+        <%= lucide_icon "edit", class: "w-5 h-5 inline-block mr-2" %>
+        继续编辑此文章
+      <% end %>
+    </div>
+  </div>
+</div>

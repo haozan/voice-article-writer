@@ -54,7 +54,10 @@ export default class extends BaseChannelController {
     "finalArticleContainer",
     "finalArticle",
     "finalStyleLabel",
-    "actionButtons"
+    "actionButtons",
+    "historyOverlay",
+    "historySidebar",
+    "historyList"
   ]
 
   static values = {
@@ -86,6 +89,9 @@ export default class extends BaseChannelController {
   declare readonly finalArticleTarget: HTMLElement
   declare readonly finalStyleLabelTarget: HTMLElement
   declare readonly actionButtonsTarget: HTMLElement
+  declare readonly historyOverlayTarget: HTMLElement
+  declare readonly historySidebarTarget: HTMLElement
+  declare readonly historyListTarget: HTMLElement
   declare readonly streamNameValue: string
   declare readonly hasInputTextTarget: boolean
 
@@ -109,6 +115,9 @@ export default class extends BaseChannelController {
 
   connect(): void {
     console.log("Articles controller connected")
+    
+    // Check for article_id in URL params (for "Continue Editing" feature)
+    this.checkArticleIdParam()
 
     // Create a base subscription for sending commands (using base stream name)
     this.commandSubscription = consumer.subscriptions.create(
@@ -639,5 +648,182 @@ export default class extends BaseChannelController {
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+  
+  // Open history sidebar
+  openHistory(): void {
+    try {
+      // Show overlay and sidebar
+      this.historyOverlayTarget.style.display = "block"
+      this.historySidebarTarget.style.display = "block"
+      
+      // Trigger animation
+      setTimeout(() => {
+        this.historyOverlayTarget.style.opacity = "1"
+        this.historySidebarTarget.style.transform = "translateX(0)"
+      }, 10)
+      
+      // Load history
+      this.loadHistory()
+    } catch (error) {
+      console.error('History feature error:', error)
+      showToast("历史记录功能暂时不可用，请刷新页面", "danger")
+    }
+  }
+  
+  // Close history sidebar
+  closeHistory(): void {
+    this.historyOverlayTarget.style.opacity = "0"
+    this.historySidebarTarget.style.transform = "translateX(100%)"
+    
+    setTimeout(() => {
+      this.historyOverlayTarget.style.display = "none"
+      this.historySidebarTarget.style.display = "none"
+    }, 300)
+  }
+  
+  // Load history from backend
+  private async loadHistory(): Promise<void> {
+    try {
+      const response = await fetch('/articles/history')
+      if (!response.ok) {
+        throw new Error('Failed to load history')
+      }
+      
+      const articles = await response.json()
+      
+      if (articles.length === 0) {
+        this.historyListTarget.innerHTML = `
+          <div class="text-center py-12 text-muted">
+            <p>暂无历史记录</p>
+          </div>
+        `
+        return
+      }
+      
+      // Render article list
+      this.historyListTarget.innerHTML = articles.map((article: any) => `
+        <a href="/articles/${article.id}" class="block card card-elevated p-4 mb-3 hover:shadow-lg transition-all">
+          <div class="flex items-start justify-between mb-2">
+            <div class="flex-1">
+              <div class="text-xs text-muted mb-1">${article.created_at}</div>
+              <div class="text-sm text-secondary line-clamp-3">${article.transcript_preview}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="badge ${article.status_class} text-xs">${article.status}</span>
+          </div>
+        </a>
+      `).join('')
+      
+    } catch (error) {
+      console.error('Error loading history:', error)
+      this.historyListTarget.innerHTML = `
+        <div class="text-center py-12 text-danger">
+          <p>加载失败，请重试</p>
+        </div>
+      `
+    }
+  }
+  
+  // Check for article_id in URL params and restore article state
+  private async checkArticleIdParam(): Promise<void> {
+    const urlParams = new URLSearchParams(window.location.search)
+    const articleId = urlParams.get('article_id')
+    
+    if (!articleId) return
+    
+    try {
+      // Fetch article data
+      const response = await fetch(`/articles/${articleId}.json`)
+      if (!response.ok) {
+        throw new Error('Article not found')
+      }
+      
+      const article = await response.json()
+      
+      // Restore state
+      this.currentArticleId = article.id
+      this.originalTranscript = article.transcript || ""
+      
+      // Set input text
+      if (this.hasInputTextTarget && article.transcript) {
+        this.inputTextTarget.value = article.transcript
+      }
+      
+      // Show responses container if has brainstorm
+      if (article.has_brainstorm) {
+        this.responsesContainerTarget.style.display = "block"
+        
+        // Restore brainstorm results
+        const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
+        providers.forEach(provider => {
+          const content = article[`brainstorm_${provider}`]
+          if (content) {
+            this.responseContents[provider] = content
+            this.completedModels.add(provider)
+            
+            // Update UI
+            const targetName = `response${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
+            const target = this[targetName] as HTMLElement
+            if (target) {
+              target.textContent = content
+            }
+            
+            // Show buttons
+            const copyButtonName = `copyButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
+            const draftButtonName = `draftButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
+            const copyButton = this[copyButtonName] as HTMLElement
+            const draftButton = this[draftButtonName] as HTMLElement
+            if (copyButton) copyButton.style.display = "inline-block"
+            if (draftButton) draftButton.style.display = "inline-block"
+          }
+        })
+      }
+      
+      // Restore draft if exists
+      if (article.draft) {
+        this.selectedModel = article.selected_model
+        this.draftContent = article.draft
+        this.draftSectionTarget.style.display = "block"
+        this.draftContentTarget.value = article.draft
+        
+        const modelNames: { [key: string]: string } = {
+          grok: "Grok", qwen: "千问", deepseek: "DeepSeek", 
+          gemini: "Gemini", zhipu: "智谱"
+        }
+        this.selectedModelLabelTarget.textContent = modelNames[article.selected_model] || article.selected_model
+      }
+      
+      // Restore final if exists
+      if (article.final_content) {
+        this.finalContent = article.final_content
+        this.finalSectionTarget.style.display = "block"
+        this.finalArticleContainerTarget.style.display = "block"
+        this.finalArticleTarget.textContent = article.final_content
+        
+        const styleNames: { [key: string]: string } = {
+          pinker: "史蒂芬·平克",
+          luozhenyu: "罗振宇",
+          wangxiaobo: "王小波"
+        }
+        this.finalStyleLabelTarget.textContent = styleNames[article.final_style] || article.final_style
+      }
+      
+      // Scroll to appropriate section
+      if (article.final_content) {
+        this.finalSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else if (article.draft) {
+        this.draftSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else if (article.has_brainstorm) {
+        this.responsesContainerTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+      
+      showToast("已加载历史文章，可继续编辑", "success")
+      
+    } catch (error) {
+      console.error('Error restoring article:', error)
+      showToast("加载文章失败", "danger")
+    }
   }
 }
