@@ -49,12 +49,13 @@ class ArticlesChannel < ApplicationCable::Channel
   def generate_response(data)
     transcript = data['transcript']
     article_id = data['article_id']
+    thinking_framework = data['thinking_framework'] || 'original'
     
-    # Create or update article with transcript
+    # Create or update article with transcript and thinking_framework
     article = if article_id.present?
                 Article.find(article_id)
               else
-                Article.create!(transcript: transcript)
+                Article.create!(transcript: transcript, thinking_framework: thinking_framework)
               end
     
     # List of all available providers
@@ -69,7 +70,8 @@ class ArticlesChannel < ApplicationCable::Channel
         prompt: transcript,
         llm_config: llm_config,
         article_id: article.id,
-        provider: provider
+        provider: provider,
+        thinking_framework: thinking_framework
       )
     end
     

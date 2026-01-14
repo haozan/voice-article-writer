@@ -57,7 +57,8 @@ export default class extends BaseChannelController {
     "actionButtons",
     "historyOverlay",
     "historySidebar",
-    "historyList"
+    "historyList",
+    "thinkingFramework"
   ]
 
   static values = {
@@ -92,6 +93,7 @@ export default class extends BaseChannelController {
   declare readonly historyOverlayTarget: HTMLElement
   declare readonly historySidebarTarget: HTMLElement
   declare readonly historyListTarget: HTMLElement
+  declare readonly thinkingFrameworkTarget: HTMLInputElement
   declare readonly streamNameValue: string
   declare readonly hasInputTextTarget: boolean
 
@@ -258,11 +260,26 @@ export default class extends BaseChannelController {
 
     this.originalTranscript = inputText
 
+    // Get selected thinking framework
+    const thinkingFramework = this.getSelectedThinkingFramework()
+
     // Start generation process
-    this.startAllModelsResponse()
+    this.startAllModelsResponse(thinkingFramework)
   }
 
-  private startAllModelsResponse(): void {
+  private getSelectedThinkingFramework(): string {
+    // Get all radio buttons with name="thinking_framework"
+    const radios = document.querySelectorAll<HTMLInputElement>('input[name="thinking_framework"]')
+    for (const radio of radios) {
+      if (radio.checked) {
+        return radio.value
+      }
+    }
+    // Default to 'original' if nothing selected
+    return 'original'
+  }
+
+  private startAllModelsResponse(thinkingFramework: string = 'original'): void {
     // Reset state
     this.responseContents = {
       grok: "",
@@ -302,7 +319,8 @@ export default class extends BaseChannelController {
     if (this.commandSubscription) {
       this.commandSubscription.perform("generate_response", {
         transcript: this.originalTranscript,
-        article_id: this.currentArticleId
+        article_id: this.currentArticleId,
+        thinking_framework: thinkingFramework
       })
     }
   }

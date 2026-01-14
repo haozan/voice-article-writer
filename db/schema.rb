@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_14_111840) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_14_124047) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -87,6 +87,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_14_111840) do
     t.boolean "archived", default: false
     t.datetime "archived_at"
     t.integer "word_count", default: 0
+    t.string "thinking_framework", default: "original"
     t.index ["chapter_id"], name: "index_articles_on_chapter_id"
   end
 

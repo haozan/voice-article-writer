@@ -4,7 +4,7 @@
     <div class="text-center mb-8">
       <h1 class="text-4xl lg:text-5xl font-bold text-primary mb-3">
         <%= lucide_icon "pen-line", class: "w-10 h-10 inline-block mr-2" %>
-        懒人写作术
+        镐赞写作系统 1.0
       </h1>
       <p class="text-lg text-secondary">
         让普通人，也能长期、稳定、低痛苦地写作
@@ -48,6 +48,75 @@
             rows="8"
             placeholder="请输入你的想法、观点或要表达的内容...\n\n你可以：\n• 使用手机输入法直接输入文字\n• 使用手机语音输入功能（系统自带）\n• 随意表达，不必太正式"
           ></textarea>
+        </div>
+        
+        <!-- Thinking Framework Selection -->
+        <div class="mb-6">
+          <label class="block text-lg font-semibold text-primary mb-3">
+            <%= lucide_icon "brain-circuit", class: "w-5 h-5 inline-block mr-2" %>
+            思考框架
+          </label>
+          <div class="flex flex-wrap gap-3">
+            <!-- 原汁原味 (可用) -->
+            <label class="relative cursor-pointer">
+              <input
+                type="radio"
+                name="thinking_framework"
+                value="original"
+                data-articles-target="thinkingFramework"
+                class="peer sr-only"
+                checked
+              />
+              <div class="px-4 py-2.5 border-2 rounded-lg transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
+                <span class="text-base font-medium text-foreground">原汁原味</span>
+              </div>
+            </label>
+
+            <!-- 见感思行 (禁用) -->
+            <label class="relative opacity-50 cursor-not-allowed">
+              <input
+                type="radio"
+                name="thinking_framework"
+                value="experience"
+                disabled
+                class="peer sr-only"
+              />
+              <div class="px-4 py-2.5 border-2 rounded-lg border-border bg-surface">
+                <span class="text-base text-muted">见感思行</span>
+                <span class="ml-2 text-xs px-2 py-0.5 bg-muted/20 text-muted rounded">即将推出</span>
+              </div>
+            </label>
+
+            <!-- 黄金圈 (禁用) -->
+            <label class="relative opacity-50 cursor-not-allowed">
+              <input
+                type="radio"
+                name="thinking_framework"
+                value="golden_circle"
+                disabled
+                class="peer sr-only"
+              />
+              <div class="px-4 py-2.5 border-2 rounded-lg border-border bg-surface">
+                <span class="text-base text-muted">黄金圈</span>
+                <span class="ml-2 text-xs px-2 py-0.5 bg-muted/20 text-muted rounded">即将推出</span>
+              </div>
+            </label>
+
+            <!-- 口语化写作 (禁用) -->
+            <label class="relative opacity-50 cursor-not-allowed">
+              <input
+                type="radio"
+                name="thinking_framework"
+                value="colloquial"
+                disabled
+                class="peer sr-only"
+              />
+              <div class="px-4 py-2.5 border-2 rounded-lg border-border bg-surface">
+                <span class="text-base text-muted">口语化写作</span>
+                <span class="ml-2 text-xs px-2 py-0.5 bg-muted/20 text-muted rounded">即将推出</span>
+              </div>
+            </label>
+          </div>
         </div>
         
         <div class="text-center">
