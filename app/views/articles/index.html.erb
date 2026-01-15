@@ -54,13 +54,17 @@
     <div
     >
       
-      <!-- Input Section -->
+      <!-- Step 1: Input Section -->
+      <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+        <%= lucide_icon "sparkles", class: "w-6 h-6" %>
+        步骤 1：输入你的想法
+      </h2>
+      
       <div class="card card-elevated p-6 mb-6 rounded-none">
-        
         <div class="mb-4">
           <label class="block text-lg font-semibold text-primary mb-3 flex items-center gap-2">
             <%= lucide_icon "message-square", class: "w-6 h-6" %>
-            Step 1: 输入你的想法
+            想法输入
           </label>
           <textarea
             data-articles-target="inputText"
@@ -160,11 +164,11 @@
 
       </div>
 
-      <!-- Multi-Model Response Section -->
+      <!-- Step 2: Multi-Model Response Section -->
       <div data-articles-target="responsesContainer" style="display: none;">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-          <%= lucide_icon "brain-circuit", class: "w-6 h-6" %>
-          Step 2: AI 模型回应
+          <%= lucide_icon "sparkles", class: "w-6 h-6" %>
+          步骤 2：AI 模型回应
         </h2>
         
         <!-- Grok Response -->
@@ -447,8 +451,8 @@
       <!-- Step 3: Draft Section -->
       <div data-articles-target="draftSection" style="display: none;" class="mt-8">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-          <%= lucide_icon "file-edit", class: "w-6 h-6" %>
-          Step 3: 草稿（可编辑）
+          <%= lucide_icon "sparkles", class: "w-6 h-6" %>
+          步骤 3：草稿（可编辑）
         </h2>
         
         <div class="card card-elevated p-6 rounded-none">
@@ -500,8 +504,8 @@
       <!-- Step 4: Final Article with Style Selection -->
       <div data-articles-target="finalSection" style="display: none;" class="mt-8">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-          <%= lucide_icon "check-circle", class: "w-6 h-6" %>
-          Step 4: 选择风格 & 定稿
+          <%= lucide_icon "sparkles", class: "w-6 h-6" %>
+          步骤 4：选择风格 & 定稿
         </h2>
         
         <!-- Style Selection -->
@@ -546,7 +550,7 @@
             class="card card-elevated p-6 hover:shadow-lg transition-all text-left group rounded-none"
           >
             <div class="flex items-center gap-3 mb-3">
-              <%= lucide_icon "smile", class: "w-8 h-8 text-primary" %>
+              <%= image_tag "wangxiaobo-avatar.png", class: "w-8 h-8 rounded-full object-cover" %>
               <h3 class="text-xl font-bold text-primary">王小波</h3>
             </div>
             <p class="text-secondary text-sm leading-relaxed">
@@ -606,7 +610,7 @@
       <div data-articles-target="titleSection" style="display: none;" class="mt-8">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
           <%= lucide_icon "sparkles", class: "w-6 h-6" %>
-          Step 5: 选择风格 & 生成爆款标题
+          步骤 5：选择风格 & 生成爆款标题
         </h2>
         
         <!-- Title Style Selection -->
@@ -679,8 +683,8 @@
       <!-- Step 6: Generate Variant -->
       <div data-articles-target="variantSection" style="display: none;" class="mt-8">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-          <%= lucide_icon "shuffle", class: "w-6 h-6" %>
-          Step 6: 选择变体风格
+          <%= lucide_icon "sparkles", class: "w-6 h-6" %>
+          步骤 6：选择变体风格
         </h2>
         
         <!-- Variant Style Selection -->
