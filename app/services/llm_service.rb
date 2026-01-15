@@ -260,22 +260,37 @@ class LlmService < ApplicationService
 
   def prepare_http_request(stream)
     base_url = @base_url || ENV.fetch('LLM_BASE_URL')
-    uri = URI.parse("#{base_url}/chat/completions")
+    
+    # Detect if this is Gemini API
+    is_gemini = base_url.include?('generativelanguage.googleapis.com')
+    
+    # Build endpoint URL based on provider
+    if is_gemini
+      # Gemini uses /models/{model}:streamGenerateContent or :generateContent
+      action = stream ? "streamGenerateContent" : "generateContent"
+      uri = URI.parse("#{base_url}/#{@model}:#{action}")
+      uri.query = "alt=sse" if stream
+    else
+      # Standard OpenAI-compatible endpoint
+      uri = URI.parse("#{base_url}/chat/completions")
+    end
 
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = (uri.scheme == 'https')
     http.read_timeout = @timeout
     http.open_timeout = 10
 
-    request = Net::HTTP::Post.new(uri.path)
+    request = Net::HTTP::Post.new(uri.request_uri)
     request["Content-Type"] = "application/json"
-    request["Authorization"] = "Bearer #{api_key}"
-
-    body = build_request_body
-    if stream
-      request["Accept"] = "text/event-stream"
-      body[:stream] = true
+    
+    # Set authorization header based on provider
+    if is_gemini
+      request["x-goog-api-key"] = api_key
+    else
+      request["Authorization"] = "Bearer #{api_key}"
     end
+
+    body = build_request_body(is_gemini: is_gemini, stream: stream)
     request.body = body.to_json
 
     [http, request]
@@ -299,6 +314,9 @@ class LlmService < ApplicationService
   end
 
   def handle_stream_response(http, request, &block)
+    base_url = @base_url || ENV.fetch('LLM_BASE_URL')
+    is_gemini = base_url.include?('generativelanguage.googleapis.com')
+    
     http.request(request) do |response|
       unless response.code.to_i == 200
         raise ApiError, "API error: #{response.code} - #{response.body}"
@@ -320,22 +338,31 @@ class LlmService < ApplicationService
 
           begin
             json = JSON.parse(data)
-            delta = json.dig("choices", 0, "delta")
+            
+            if is_gemini
+              # Gemini format: candidates[0].content.parts[0].text
+              content = json.dig("candidates", 0, "content", "parts", 0, "text")
+              if content
+                block.call({ content: content })
+              end
+            else
+              # OpenAI format: choices[0].delta.content
+              delta = json.dig("choices", 0, "delta")
+              next unless delta
 
-            next unless delta
+              # Build chunk data with content and tool_calls
+              chunk_data = {}
 
-            # Build chunk data with content and tool_calls
-            chunk_data = {}
+              if content = delta["content"]
+                chunk_data[:content] = content
+              end
 
-            if content = delta["content"]
-              chunk_data[:content] = content
+              if tool_calls = delta["tool_calls"]
+                chunk_data[:tool_calls] = tool_calls
+              end
+
+              block.call(chunk_data) if chunk_data.present?
             end
-
-            if tool_calls = delta["tool_calls"]
-              chunk_data[:tool_calls] = tool_calls
-            end
-
-            block.call(chunk_data) if chunk_data.present?
           rescue JSON::ParserError => e
             Rails.logger.warn("Failed to parse SSE chunk: #{e.message}")
           end
@@ -344,22 +371,46 @@ class LlmService < ApplicationService
     end
   end
 
-  def build_request_body
-    body = {
-      model: @model,
-      messages: @messages,
-      temperature: @temperature,
-      max_tokens: @max_tokens
-    }
+  def build_request_body(is_gemini: false, stream: false)
+    if is_gemini
+      # Gemini API format
+      body = {
+        contents: convert_messages_to_gemini_format(@messages),
+        generationConfig: {
+          temperature: @temperature,
+          maxOutputTokens: @max_tokens
+        }
+      }
+      
+      # Add system instruction if present
+      system_message = @messages.find { |m| m[:role] == "system" }
+      if system_message
+        body[:system_instruction] = {
+          parts: [{ text: system_message[:content] }]
+        }
+      end
+    else
+      # Standard OpenAI format
+      body = {
+        model: @model,
+        messages: @messages,
+        temperature: @temperature,
+        max_tokens: @max_tokens
+      }
+      
+      if stream
+        body[:stream] = true
+      end
 
-    # Add tools if available
-    if @tools.present?
-      body[:tools] = @tools
-      body[:tool_choice] = @tool_choice if @tool_choice.present?
+      # Add tools if available
+      if @tools.present?
+        body[:tools] = @tools
+        body[:tool_choice] = @tool_choice if @tool_choice.present?
+      end
+
+      # Some providers require modalities when sending images
+      body[:modalities] = ["text", "image"] if @images.present?
     end
-
-    # Some providers require modalities when sending images
-    body[:modalities] = ["text", "image"] if @images.present?
 
     body
   end
@@ -564,5 +615,18 @@ class LlmService < ApplicationService
 
     # Default mock response
     "This is a mocked LLM response for testing purposes. Prompt: #{@prompt&.truncate(50)}"
+  end
+  
+  # Convert OpenAI messages format to Gemini contents format
+  def convert_messages_to_gemini_format(messages)
+    # Filter out system messages (handled separately in system_instruction)
+    user_messages = messages.reject { |m| m[:role] == "system" }
+    
+    user_messages.map do |msg|
+      {
+        role: msg[:role] == "assistant" ? "model" : "user",
+        parts: [{ text: msg[:content].to_s }]
+      }
+    end
   end
 end

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown 渲染测试</title>
+  <script type="module">
+    import { marked } from 'https://cdn.jsdelivr.net/npm/marked@14.1.4/+esm'
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      const testMarkdown = `## 测试标题
+
+这是一段测试文本，包含 **粗体** 和 *斜体*。
+
+- 列表项 1
+- 列表项 2
+
+\`\`\`
+代码块测试
+\`\`\`
+`
+      
+      document.getElementById('raw').textContent = testMarkdown
+      document.getElementById('rendered').innerHTML = marked.parse(testMarkdown)
+      
+      console.log('Marked version:', marked.getDefaults())
+      console.log('Parsed HTML:', marked.parse(testMarkdown))
+    })
+  </script>
+  <style>
+    body { font-family: system-ui; padding: 20px; }
+    .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+    h1 { color: #333; }
+  </style>
+</head>
+<body>
+  <h1>Markdown 渲染测试页面</h1>
+  
+  <div class="section">
+    <h2>原始 Markdown:</h2>
+    <pre id="raw"></pre>
+  </div>
+  
+  <div class="section">
+    <h2>渲染后的 HTML:</h2>
+    <div id="rendered"></div>
+  </div>
+  
+  <div class="section">
+    <h2>说明:</h2>
+    <p>如果上方"渲染后的HTML"区域显示为格式化的内容（标题、粗体、列表等），说明 marked.js 工作正常。</p>
+    <p>如果显示为原始 Markdown 文本，说明渲染失败。</p>
+  </div>
+</body>
+</html>
