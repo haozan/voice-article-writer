@@ -1,4 +1,5 @@
 class ArticlesController < ApplicationController
+  before_action :authenticate_user!, only: [:index, :history]
 
   def index
     # Main article generation page
@@ -6,8 +7,12 @@ class ArticlesController < ApplicationController
   end
   
   def history
-    # Return all articles ordered by created_at DESC
-    articles = Article.order(created_at: :desc).limit(100)
+    # Return user's articles if logged in, otherwise all articles
+    articles = if current_user
+                 current_user.articles.order(created_at: :desc).limit(100)
+               else
+                 Article.where(user_id: nil).order(created_at: :desc).limit(100)
+               end
     
     render json: articles.map { |article|
       {

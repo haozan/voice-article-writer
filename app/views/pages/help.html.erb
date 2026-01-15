@@ -1,0 +1,63 @@
+<div class="container mx-auto max-w-4xl px-4 py-16">
+  <h1 class="text-4xl font-bold text-primary mb-8">使用帮助</h1>
+  
+  <div class="space-y-8">
+    <!-- 什么是最小阻力写作 -->
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">什么是最小阻力写作？</h2>
+      <p class="text-secondary leading-relaxed">
+        最小阻力写作是一种创新的写作方法，通过语音输入和 AI 辅助，让写作变得像聊天一样轻松。您只需说出想法，AI 会帮您整理成文，让创作过程更加流畅自然。
+      </p>
+    </section>
+
+    <!-- 如何开始 -->
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">如何开始？</h2>
+      <ol class="list-decimal list-inside space-y-3 text-secondary">
+        <li>注册并登录您的账号</li>
+        <li>点击"开始创作"按钮进入写作界面</li>
+        <li>点击麦克风图标开始语音输入</li>
+        <li>说出您的想法，AI 会实时转写和优化</li>
+        <li>完成后可以保存到您的书籍中</li>
+      </ol>
+    </section>
+
+    <!-- 写作技巧 -->
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">写作技巧</h2>
+      <ul class="list-disc list-inside space-y-3 text-secondary">
+        <li>保持自然的说话节奏，不要刻意放慢或加快</li>
+        <li>可以随时暂停思考，AI 会等待您继续</li>
+        <li>说出标点符号（句号、逗号等）可以更好地控制断句</li>
+        <li>定期保存您的作品，避免意外丢失</li>
+      </ul>
+    </section>
+
+    <!-- 常见问题 -->
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">常见问题</h2>
+      <div class="space-y-4">
+        <div>
+          <h3 class="font-semibold text-primary mb-2">Q: 需要什么设备？</h3>
+          <p class="text-secondary">A: 任何带有麦克风的设备都可以使用，推荐使用电脑浏览器以获得最佳体验。</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-primary mb-2">Q: 支持哪些语言？</h3>
+          <p class="text-secondary">A: 目前主要支持中文，未来会支持更多语言。</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-primary mb-2">Q: 我的作品安全吗？</h3>
+          <p class="text-secondary">A: 您的所有作品都经过加密存储，只有您自己可以访问。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 返回首页 -->
+    <div class="text-center">
+      <%= link_to root_path, class: "btn-primary inline-flex items-center gap-2" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+        返回首页
+      <% end %>
+    </div>
+  </div>
+</div>

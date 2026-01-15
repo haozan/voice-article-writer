@@ -1,11 +1,12 @@
 class MyBooksController < ApplicationController
+  before_action :authenticate_user!
 
   def show
-    @book = Book.friendly.find(params[:id])
+    @book = current_user.books.friendly.find(params[:id])
   end
 
   def change_cover
-    @book = Book.friendly.find(params[:id])
+    @book = current_user.books.friendly.find(params[:id])
     current_index = @book.cover_scheme_index || (@book.id % 30)
     next_index = (current_index + 1) % 30
     @book.update!(cover_scheme_index: next_index)
@@ -17,7 +18,7 @@ class MyBooksController < ApplicationController
   end
 
   def move_article
-    @book = Book.friendly.find(params[:id])
+    @book = current_user.books.friendly.find(params[:id])
     @article = Article.find(params[:article_id])
     old_chapter = @article.chapter
     target_chapter = @book.chapters.find(params[:target_chapter_id])
@@ -42,7 +43,7 @@ class MyBooksController < ApplicationController
   end
 
   def index
-    @books = Book.order(pinned: :desc, updated_at: :desc).page(params[:page]).per(12)
+    @books = current_user.books.order(pinned: :desc, updated_at: :desc).page(params[:page]).per(12)
     
     if params[:search].present?
       @books = @books.where("title ILIKE ? OR author ILIKE ?", "%#{params[:search]}%", "%#{params[:search]}%")
@@ -63,11 +64,11 @@ class MyBooksController < ApplicationController
   end
 
   def edit
-    @book = Book.friendly.find(params[:id])
+    @book = current_user.books.friendly.find(params[:id])
   end
 
   def create
-    @book = Book.new(book_params)
+    @book = current_user.books.new(book_params)
     
     if @book.save
       redirect_to my_books_path, notice: '书籍创建成功'
@@ -77,7 +78,7 @@ class MyBooksController < ApplicationController
   end
 
   def update
-    @book = Book.friendly.find(params[:id])
+    @book = current_user.books.friendly.find(params[:id])
     
     if @book.update(book_params)
       redirect_to my_books_path, notice: '书籍更新成功'
@@ -87,7 +88,7 @@ class MyBooksController < ApplicationController
   end
 
   def destroy
-    @book = Book.friendly.find(params[:id])
+    @book = current_user.books.friendly.find(params[:id])
     @book.destroy
     redirect_to my_books_path, notice: '书籍已删除'
   end

@@ -2,6 +2,7 @@ class Book < ApplicationRecord
   extend FriendlyId
   friendly_id :title, use: :slugged
   
+  belongs_to :user, optional: true
   has_many :chapters, dependent: :destroy
   has_many :articles, through: :chapters
   

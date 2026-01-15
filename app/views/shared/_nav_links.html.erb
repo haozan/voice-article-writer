@@ -1,0 +1,5 @@
+<%# Navigation Links - Content only, no layout wrapper %>
+<%# This partial will be rendered in different contexts (desktop horizontal / mobile vertical) %>
+<%# The parent wrapper determines the layout %>
+
+<%= link_to "首页", root_path, class: "block px-3 py-2 md:p-0 rounded-lg md:rounded-none hover:bg-surface md:hover:bg-transparent text-secondary hover:text-primary transition-colors #{'font-semibold text-primary bg-surface/50 md:bg-transparent' if request.path == root_path}" %>

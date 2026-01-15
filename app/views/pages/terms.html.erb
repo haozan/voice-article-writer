@@ -1,0 +1,109 @@
+<div class="container mx-auto max-w-4xl px-4 py-16">
+  <h1 class="text-4xl font-bold text-primary mb-8">服务条款</h1>
+  
+  <div class="space-y-8">
+    <section class="card-base p-6">
+      <p class="text-secondary text-sm mb-4">最后更新日期：<%= Date.today.strftime('%Y年%m月%d日') %></p>
+      <p class="text-secondary leading-relaxed">
+        欢迎使用最小阻力写作服务。使用本服务即表示您同意以下服务条款。请仔细阅读。
+      </p>
+    </section>
+
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">1. 服务说明</h2>
+      <p class="text-secondary leading-relaxed">
+        最小阻力写作提供基于 AI 的语音写作辅助服务。我们致力于为用户提供高质量、稳定的服务，但不保证服务完全无中断或无错误。
+      </p>
+    </section>
+
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">2. 用户责任</h2>
+      <div class="space-y-3 text-secondary">
+        <p>使用本服务时，您同意：</p>
+        <ul class="list-disc list-inside space-y-2 ml-4">
+          <li>提供真实、准确的注册信息</li>
+          <li>妥善保管账户密码，对账户活动负责</li>
+          <li>不发布违法、侵权或不当内容</li>
+          <li>不干扰或破坏服务的正常运行</li>
+          <li>不以任何方式滥用服务</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">3. 知识产权</h2>
+      <div class="space-y-3 text-secondary">
+        <p><strong>您的内容：</strong>您创作的所有内容归您所有。我们不会声称对您的创作内容拥有所有权。</p>
+        <p><strong>我们的服务：</strong>本服务的所有技术、软件、界面设计等归我们所有，受知识产权法保护。</p>
+        <p><strong>授权许可：</strong>使用本服务时，您授予我们存储、处理和展示您的内容的必要权限。</p>
+      </div>
+    </section>
+
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">4. 内容审核</h2>
+      <p class="text-secondary leading-relaxed">
+        我们保留审核用户内容的权利。对于违反法律法规或本条款的内容，我们有权删除并采取相应措施，包括但不限于警告、限制功能或终止账户。
+      </p>
+    </section>
+
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">5. 服务变更与终止</h2>
+      <div class="space-y-3 text-secondary">
+        <p>我们保留以下权利：</p>
+        <ul class="list-disc list-inside space-y-2 ml-4">
+          <li>随时修改、暂停或终止服务的部分或全部功能</li>
+          <li>更新服务条款（重大变更会提前通知）</li>
+          <li>因违规行为暂停或终止用户账户</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">6. 免责声明</h2>
+      <div class="space-y-3 text-secondary">
+        <p>在法律允许的范围内：</p>
+        <ul class="list-disc list-inside space-y-2 ml-4">
+          <li>服务按"现状"提供，不提供任何明示或暗示的保证</li>
+          <li>我们不对服务中断、数据丢失或其他损失承担责任</li>
+          <li>我们不对 AI 生成内容的准确性、完整性负责</li>
+          <li>用户应自行备份重要内容</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">7. 责任限制</h2>
+      <p class="text-secondary leading-relaxed">
+        在任何情况下，我们对因使用或无法使用本服务而导致的任何间接、特殊、偶然或惩罚性损害不承担责任，即使我们已被告知可能发生此类损害。
+      </p>
+    </section>
+
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">8. 争议解决</h2>
+      <p class="text-secondary leading-relaxed">
+        因使用本服务产生的任何争议，双方应友好协商解决。协商不成的，应提交至服务提供方所在地有管辖权的人民法院解决。
+      </p>
+    </section>
+
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">9. 条款修改</h2>
+      <p class="text-secondary leading-relaxed">
+        我们保留随时修改本服务条款的权利。重大修改会通过网站公告或电子邮件通知用户。继续使用服务即表示您接受修改后的条款。
+      </p>
+    </section>
+
+    <section class="card-base p-6">
+      <h2 class="text-2xl font-semibold text-primary mb-4">10. 联系方式</h2>
+      <p class="text-secondary leading-relaxed">
+        如果您对本服务条款有任何疑问，请通过网站上的联系方式与我们联系。
+      </p>
+    </section>
+
+    <div class="text-center">
+      <%= link_to root_path, class: "btn-primary inline-flex items-center gap-2" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+        返回首页
+      <% end %>
+    </div>
+  </div>
+</div>

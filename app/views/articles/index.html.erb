@@ -23,7 +23,7 @@
         </div>
       </div>
       <p class="text-lg text-secondary text-center mb-4">
-        助你稳定输出影响力
+        能说就能写，写出影响力
       </p>
       <!-- Mobile: button below subtitle -->
       <div class="flex justify-center lg:hidden">
@@ -63,7 +63,15 @@
             data-articles-target="inputText"
             class="w-full px-4 py-3 text-lg border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
             rows="8"
-            placeholder="请输入你的想法、观点或要表达的内容...\n\n你可以：\n• 使用手机输入法直接输入文字\n• 使用手机语音输入功能（系统自带）\n• 随意表达，不必太正式"
+            placeholder="💡 建议使用语音输入法（推荐豆包语音输入法）
+
+在手机上说出来、讲出来：
+• 你的感受和思考
+• 你的思路和观点  
+• 读后感和心得
+• 个人经历和故事
+
+能说就能写，让表达更自然"
           ></textarea>
         </div>
         
@@ -146,10 +154,7 @@
             开始对话
           </button>
         </div>
-        
-        <p class="text-sm text-muted text-center mt-3">
-          提示：在手机上可以使用系统自带的语音输入功能
-        </p>
+
       </div>
 
       <!-- Multi-Model Response Section -->
@@ -585,33 +590,7 @@
       </div>
     </div>
 
-    <!-- Tips Section -->
-    <div class="mt-12 text-center">
-      <div class="inline-block bg-surface-elevated rounded-none p-6 shadow-sm">
-        <h3 class="text-lg font-bold text-primary mb-4 flex items-center justify-center gap-2">
-          <%= lucide_icon "lightbulb", class: "w-5 h-5" %>
-          使用提示
-        </h3>
-        <ul class="text-secondary text-left space-y-2">
-          <li class="flex items-start gap-2">
-            <%= lucide_icon "check", class: "w-4 h-4 text-success mt-1 flex-shrink-0" %>
-            <span>直接在文本框输入你的想法或观点</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <%= lucide_icon "check", class: "w-4 h-4 text-success mt-1 flex-shrink-0" %>
-            <span>手机用户可以使用系统自带的语音输入</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <%= lucide_icon "check", class: "w-4 h-4 text-success mt-1 flex-shrink-0" %>
-            <span>不用太正式，随意表达即可</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <%= lucide_icon "check", class: "w-4 h-4 text-success mt-1 flex-shrink-0" %>
-            <span>5 个 AI 模型将同时回应，对比不同的 AI 风格与见解</span>
-          </li>
-        </ul>
-      </div>
-    </div>
+
   </div>
 </div>
 

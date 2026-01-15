@@ -22,9 +22,13 @@ class StimulusValidationPipeline
   end
 
   # Get controllers from parent files (recursive) with memoization
-  def get_controllers_from_parents(partial_path)
+  def get_controllers_from_parents(partial_path, visited = Set.new)
     @parent_controllers_cache ||= {}
     return @parent_controllers_cache[partial_path] if @parent_controllers_cache.key?(partial_path)
+
+    # Prevent infinite recursion from circular references
+    return [] if visited.include?(partial_path)
+    visited = visited.dup.add(partial_path)
 
     controllers = []
 
@@ -40,7 +44,7 @@ class StimulusValidationPipeline
       end
 
       if parent_file.include?('_')
-        controllers.concat(get_controllers_from_parents(parent_file))
+        controllers.concat(get_controllers_from_parents(parent_file, visited))
       end
     end
 

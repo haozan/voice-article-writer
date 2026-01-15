@@ -14,10 +14,17 @@
       
       <!-- CTA Buttons -->
       <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-        <a href="#how-it-works" class="btn-primary btn-lg px-8 py-4 text-lg">
-          <%= lucide_icon "mic", class: "w-6 h-6 inline-block mr-2" %>
-          开始创作
-        </a>
+        <% if user_signed_in? %>
+          <%= link_to write_path, class: "btn-primary btn-lg px-8 py-4 text-lg" do %>
+            <%= lucide_icon "mic", class: "w-6 h-6 inline-block mr-2" %>
+            开始创作
+          <% end %>
+        <% else %>
+          <%= link_to sign_up_path, class: "btn-primary btn-lg px-8 py-4 text-lg" do %>
+            <%= lucide_icon "mic", class: "w-6 h-6 inline-block mr-2" %>
+            开始创作
+          <% end %>
+        <% end %>
         <a href="#features" class="btn-outline btn-lg px-8 py-4 text-lg">
           <%= lucide_icon "sparkles", class: "w-6 h-6 inline-block mr-2" %>
           了解更多
@@ -206,10 +213,17 @@
     </div>
 
     <div class="text-center mt-12">
-      <a href="#" class="btn-primary btn-xl px-10 py-5 text-xl">
-        <%= lucide_icon "rocket", class: "w-6 h-6 inline-block mr-2" %>
-        立即开始创作
-      </a>
+      <% if user_signed_in? %>
+        <%= link_to write_path, class: "btn-primary btn-xl px-10 py-5 text-xl" do %>
+          <%= lucide_icon "rocket", class: "w-6 h-6 inline-block mr-2" %>
+          立即开始创作
+        <% end %>
+      <% else %>
+        <%= link_to sign_up_path, class: "btn-primary btn-xl px-10 py-5 text-xl" do %>
+          <%= lucide_icon "rocket", class: "w-6 h-6 inline-block mr-2" %>
+          立即开始创作
+        <% end %>
+      <% end %>
     </div>
   </div>
 </section>
@@ -331,7 +345,7 @@
       <div class="card card-elevated p-6">
         <h3 class="text-xl font-bold text-primary mb-3">需要注册登录吗？</h3>
         <p class="text-secondary leading-relaxed">
-          完全不需要。打开网页就能直接使用，无需注册、登录或提供任何个人信息。
+          需要注册登录后才能使用写作功能。注册非常简单，只需邮箱和密码即可。我们会保护你的个人信息安全。
         </p>
       </div>
 
@@ -363,12 +377,19 @@
       </h2>
       <p class="text-xl text-secondary mb-10 leading-relaxed">
         让 AI 成为你的写作助手，将想法转化为优质文章。<br/>
-        无需注册，无需下载，打开就用。
+        注册后即可开始使用，完全免费。
       </p>
-      <a href="#" class="btn-primary btn-xl px-12 py-6 text-2xl inline-flex items-center gap-3 shadow-xl hover:shadow-2xl transition-all">
-        <%= lucide_icon "mic", class: "w-8 h-8" %>
-        立即开始创作
-      </a>
+      <% if user_signed_in? %>
+        <%= link_to write_path, class: "btn-primary btn-xl px-12 py-6 text-2xl inline-flex items-center gap-3 shadow-xl hover:shadow-2xl transition-all" do %>
+          <%= lucide_icon "mic", class: "w-8 h-8" %>
+          立即开始创作
+        <% end %>
+      <% else %>
+        <%= link_to sign_up_path, class: "btn-primary btn-xl px-12 py-6 text-2xl inline-flex items-center gap-3 shadow-xl hover:shadow-2xl transition-all" do %>
+          <%= lucide_icon "mic", class: "w-8 h-8" %>
+          立即开始创作
+        <% end %>
+      <% end %>
     </div>
   </div>
 </section>
@@ -402,24 +423,13 @@
       <div>
         <h4 class="text-lg font-bold text-primary mb-4">支持</h4>
         <ul class="space-y-2">
-          <li><a href="#" class="text-secondary hover:text-primary transition-colors">使用帮助</a></li>
-          <li><a href="#" class="text-secondary hover:text-primary transition-colors">隐私政策</a></li>
-          <li><a href="#" class="text-secondary hover:text-primary transition-colors">服务条款</a></li>
+          <li><%= link_to "使用帮助", help_path, class: "text-secondary hover:text-primary transition-colors" %></li>
+          <li><%= link_to "隐私政策", privacy_path, class: "text-secondary hover:text-primary transition-colors" %></li>
+          <li><%= link_to "服务条款", terms_path, class: "text-secondary hover:text-primary transition-colors" %></li>
         </ul>
       </div>
     </div>
 
-    <!-- Social Links -->
-    <div class="flex justify-center gap-6 pt-8 border-t border-border">
-      <a href="#" class="w-10 h-10 bg-surface rounded-full flex items-center justify-center hover:bg-primary/10 transition-colors">
-        <%= lucide_icon "twitter", class: "w-5 h-5 text-primary" %>
-      </a>
-      <a href="#" class="w-10 h-10 bg-surface rounded-full flex items-center justify-center hover:bg-primary/10 transition-colors">
-        <%= lucide_icon "facebook", class: "w-5 h-5 text-primary" %>
-      </a>
-      <a href="#" class="w-10 h-10 bg-surface rounded-full flex items-center justify-center hover:bg-primary/10 transition-colors">
-        <%= lucide_icon "linkedin", class: "w-5 h-5 text-primary" %>
-      </a>
-    </div>
+
   </div>
 </footer>

@@ -55,7 +55,10 @@ class ArticlesChannel < ApplicationCable::Channel
     article = if article_id.present?
                 Article.find(article_id)
               else
-                Article.create!(transcript: transcript, thinking_framework: thinking_framework)
+                # Associate with current_user if authenticated
+                article_attrs = { transcript: transcript, thinking_framework: thinking_framework }
+                article_attrs[:user_id] = current_user.id if current_user
+                Article.create!(article_attrs)
               end
     
     # List of all available providers

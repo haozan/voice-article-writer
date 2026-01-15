@@ -1,7 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe "MyBooks", type: :request do
-  let(:book) { create(:book) }
+  let(:user) { create(:user) }
+  let(:book) { create(:book, user: user) }
+
+  before do
+    sign_in_as(user)
+  end
 
   describe "GET /my_books/:id" do
     it "returns http success" do
