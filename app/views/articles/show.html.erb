@@ -140,8 +140,8 @@
           <%= lucide_icon "file-edit", class: "w-6 h-6" %>
           初稿
         </h2>
-        <div class="text-secondary text-base leading-relaxed whitespace-pre-wrap">
-          <%= @article.draft %>
+        <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+          <%= markdown(@article.draft) %>
         </div>
       </div>
     <% end %>
@@ -163,8 +163,52 @@
             </span>
           <% end %>
         </h2>
-        <div class="text-secondary text-base leading-relaxed whitespace-pre-wrap">
-          <%= @article.final_content %>
+        <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+          <%= markdown(@article.final_content) %>
+        </div>
+      </div>
+    <% end %>
+    
+    <!-- Viral Title -->
+    <% if @article.title.present? %>
+      <div class="card card-elevated p-6 mb-6 rounded-none">
+        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+          <%= lucide_icon "sparkles", class: "w-6 h-6" %>
+          爆款标题
+          <% if @article.title_style.present? %>
+            <span class="badge badge-success">
+              <%= case @article.title_style
+                  when 'mimeng' then '迷蒙体'
+                  when 'normal' then '普通风格'
+                  else @article.title_style
+                  end %>
+            </span>
+          <% end %>
+        </h2>
+        <div class="text-primary text-2xl font-bold leading-relaxed px-4 py-3 bg-surface/50 border-2 border-primary/20 rounded-none">
+          <%= @article.title %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Variant -->
+    <% if @article.variant.present? %>
+      <div class="card card-elevated p-6 mb-6 rounded-none">
+        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+          <%= lucide_icon "shuffle", class: "w-6 h-6" %>
+          内容变体
+          <% if @article.variant_style.present? %>
+            <span class="badge badge-success">
+              <%= case @article.variant_style
+                  when 'xiaolvshu' then '小绿书'
+                  when 'xiaohongshu' then '小红书'
+                  else @article.variant_style
+                  end %>
+            </span>
+          <% end %>
+        </h2>
+        <div class="text-secondary text-base leading-relaxed px-4 py-3 bg-surface/50 border-2 border-primary/20 rounded-none prose prose-lg max-w-none">
+          <%= markdown(@article.variant) %>
         </div>
       </div>
     <% end %>

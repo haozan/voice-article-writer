@@ -47,6 +47,10 @@ class ArticlesController < ApplicationController
           draft: @article.draft,
           final_style: @article.final_style,
           final_content: @article.final_content,
+          title: @article.title,
+          title_style: @article.title_style,
+          variant: @article.variant,
+          variant_style: @article.variant_style,
           has_brainstorm: @article.has_brainstorm?,
           created_at: @article.created_at
         }

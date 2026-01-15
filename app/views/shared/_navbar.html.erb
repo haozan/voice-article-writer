@@ -43,7 +43,10 @@ Additional Effects:
         <!-- Left section: Logo + Navigation -->
         <div class="flex items-center space-x-8">
           <!-- Logo -->
-          <%= link_to Rails.application.config.x.appname, root_path, class: "text-xl font-bold text-primary" %>
+          <%= link_to root_path, class: "flex items-center gap-2 text-xl font-bold text-primary hover:opacity-80 transition-opacity" do %>
+            <%= lucide_icon "pen-line", class: "w-6 h-6" %>
+            <span><%= Rails.application.config.x.appname %></span>
+          <% end %>
 
           <!-- Desktop navigation -->
           <div class="hidden lg:flex items-center space-x-6">

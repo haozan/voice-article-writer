@@ -3,6 +3,13 @@ import { showToast } from "../toast"
 import consumer from "../channels/consumer"
 import { marked } from "marked"
 
+// Configure marked.js to match server-side Redcarpet behavior
+marked.setOptions({
+  gfm: true,         // GitHub Flavored Markdown
+  breaks: true,      // Convert \n to <br>
+  pedantic: false    // Don't conform to original markdown.pl
+})
+
 /**
  * Articles Controller - Handles "懒人写作术" 4-step workflow
  * 
@@ -22,9 +29,9 @@ import { marked } from "marked"
  * - selectedModelLabel: Shows selected model name
  * - finalSection: Final article section
  * - finalArticleContainer: Final article display container
- * - finalArticle: Final article content
+ * - finalArticlePreview: Hidden div for streaming markdown display
+ * - finalArticle: Editable textarea for final article content
  * - finalStyleLabel: Shows selected style name
- * - actionButtons: Container for action buttons
  *
  * Values:
  * - streamName: Base stream name for this session
@@ -56,9 +63,17 @@ export default class extends BaseChannelController {
     "selectedModelLabel",
     "finalSection",
     "finalArticleContainer",
+    "finalArticlePreview",
     "finalArticle",
     "finalStyleLabel",
-    "actionButtons",
+    "titleSection",
+    "titleContainer",
+    "titleText",
+    "titleStyleLabel",
+    "variantSection",
+    "variantContainer",
+    "variantText",
+    "variantStyleLabel",
     "historyOverlay",
     "historySidebar",
     "historyList",
@@ -94,9 +109,17 @@ export default class extends BaseChannelController {
   declare readonly selectedModelLabelTarget: HTMLElement
   declare readonly finalSectionTarget: HTMLElement
   declare readonly finalArticleContainerTarget: HTMLElement
-  declare readonly finalArticleTarget: HTMLElement
+  declare readonly finalArticlePreviewTarget: HTMLElement
+  declare readonly finalArticleTarget: HTMLTextAreaElement
   declare readonly finalStyleLabelTarget: HTMLElement
-  declare readonly actionButtonsTarget: HTMLElement
+  declare readonly titleSectionTarget: HTMLElement
+  declare readonly titleContainerTarget: HTMLElement
+  declare readonly titleTextTarget: HTMLTextAreaElement
+  declare readonly titleStyleLabelTarget: HTMLElement
+  declare readonly variantSectionTarget: HTMLElement
+  declare readonly variantContainerTarget: HTMLElement
+  declare readonly variantTextTarget: HTMLTextAreaElement
+  declare readonly variantStyleLabelTarget: HTMLElement
   declare readonly historyOverlayTarget: HTMLElement
   declare readonly historySidebarTarget: HTMLElement
   declare readonly historyListTarget: HTMLElement
@@ -120,8 +143,12 @@ export default class extends BaseChannelController {
   private commandSubscription: any = null
   private draftSubscription: any = null
   private finalSubscription: any = null
+  private titleSubscription: any = null
+  private variantSubscription: any = null
   private draftContent: string = ""
   private finalContent: string = ""
+  private titleContent: string = ""
+  private variantContent: string = ""
 
   connect(): void {
     console.log("Articles controller connected")
@@ -147,6 +174,14 @@ export default class extends BaseChannelController {
           if (data.type === 'article-created') {
             this.currentArticleId = data.article_id
             console.log('Article created with ID:', this.currentArticleId)
+          } else if (data.type === 'final-saved') {
+            showToast("定稿已保存", "success")
+          } else if (data.type === 'draft-saved') {
+            showToast("草稿已保存", "success")
+          } else if (data.type === 'title-saved') {
+            showToast("标题已保存", "success")
+          } else if (data.type === 'variant-saved') {
+            showToast("变体已保存", "success")
           }
         }
       }
@@ -213,6 +248,48 @@ export default class extends BaseChannelController {
         }
       }
     )
+    
+    // Subscribe to title channel
+    this.titleSubscription = consumer.subscriptions.create(
+      {
+        channel: "ArticlesChannel",
+        stream_name: `${this.streamNameValue}_title`
+      },
+      {
+        connected: () => { console.log("Title channel connected") },
+        disconnected: () => { console.log("Title channel disconnected") },
+        received: (data: any) => {
+          if (data.type === 'chunk') {
+            this.handleTitleChunk(data.chunk)
+          } else if (data.type === 'complete') {
+            this.handleTitleComplete()
+          } else if (data.type === 'error') {
+            this.handleTitleError(data.message)
+          }
+        }
+      }
+    )
+    
+    // Subscribe to variant channel
+    this.variantSubscription = consumer.subscriptions.create(
+      {
+        channel: "ArticlesChannel",
+        stream_name: `${this.streamNameValue}_variant`
+      },
+      {
+        connected: () => { console.log("Variant channel connected") },
+        disconnected: () => { console.log("Variant channel disconnected") },
+        received: (data: any) => {
+          if (data.type === 'chunk') {
+            this.handleVariantChunk(data.chunk)
+          } else if (data.type === 'complete') {
+            this.handleVariantComplete()
+          } else if (data.type === 'error') {
+            this.handleVariantError(data.message)
+          }
+        }
+      }
+    )
   }
 
   disconnect(): void {
@@ -220,11 +297,15 @@ export default class extends BaseChannelController {
     this.commandSubscription?.unsubscribe()
     this.commandSubscription = null
     
-    // Unsubscribe from draft and final channels
+    // Unsubscribe from draft, final, title, and variant channels
     this.draftSubscription?.unsubscribe()
     this.draftSubscription = null
     this.finalSubscription?.unsubscribe()
     this.finalSubscription = null
+    this.titleSubscription?.unsubscribe()
+    this.titleSubscription = null
+    this.variantSubscription?.unsubscribe()
+    this.variantSubscription = null
     
     // Unsubscribe from all provider channels
     Object.values(this.subscriptions).forEach(subscription => {
@@ -415,9 +496,9 @@ export default class extends BaseChannelController {
       draftButton.style.display = "inline-flex"
     }
 
-    // If all models are complete, show action buttons
+    // All models complete (no action needed)
     if (this.completedModels.size === 6) {
-      this.actionButtonsTarget.style.display = "block"
+      // All responses generated
     }
   }
 
@@ -448,9 +529,9 @@ export default class extends BaseChannelController {
     // 标记为完成（虽然失败）
     this.completedModels.add(provider)
     
-    // If all models are complete (including errors), show action buttons
+    // All models complete (including errors)
     if (this.completedModels.size === 6) {
-      this.actionButtonsTarget.style.display = "block"
+      // All responses generated
     }
   }
 
@@ -540,12 +621,44 @@ export default class extends BaseChannelController {
     showToast("初稿生成完成，您可以编辑后继续", "success")
   }
   
-  // Save draft (manual save by user)
+  // Copy draft to clipboard
+  copyDraft(): void {
+    const draftText = this.draftContentTarget.value.trim()
+    if (!draftText || draftText.length === 0) {
+      showToast("草稿内容为空", "warning")
+      return
+    }
+
+    navigator.clipboard.writeText(draftText).then(() => {
+      showToast("草稿已复制到剪贴板", "success")
+    }).catch(err => {
+      console.error("Failed to copy:", err)
+      showToast("复制失败，请手动选择并复制文本", "danger")
+    })
+  }
+  
+  // Save draft (after user edits)
   saveDraft(): void {
-    const draftText = this.draftContentTarget.value
-    if (draftText && draftText.trim().length > 0) {
-      this.draftContent = draftText
-      showToast("草稿已保存", "success")
+    const draftText = this.draftContentTarget.value.trim()
+    if (!draftText || draftText.length === 0) {
+      showToast("草稿内容为空", "warning")
+      return
+    }
+    
+    if (!this.currentArticleId) {
+      showToast("文章ID不存在，无法保存", "danger")
+      return
+    }
+    
+    // Update local state
+    this.draftContent = draftText
+    
+    // Send to backend
+    if (this.commandSubscription) {
+      this.commandSubscription.perform("save_draft", {
+        article_id: this.currentArticleId,
+        draft_content: draftText
+      })
     }
   }
   
@@ -590,12 +703,7 @@ export default class extends BaseChannelController {
     // Show final article container
     this.finalArticleContainerTarget.style.display = "block"
     this.finalContent = ""
-    this.finalArticleTarget.innerHTML = `
-      <div class="flex items-center gap-2 text-muted">
-        <div class="loading-spinner w-4 h-4"></div>
-        <span>正在生成定稿...</span>
-      </div>
-    `
+    this.finalArticleTarget.value = "定稿生成中..."
     
     // Scroll to final article
     this.finalArticleContainerTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -613,7 +721,8 @@ export default class extends BaseChannelController {
   // Handle final chunks
   private handleFinalChunk(chunk: string): void {
     this.finalContent += chunk
-    this.finalArticleTarget.textContent = this.finalContent
+    // Update textarea with plain markdown text
+    this.finalArticleTarget.value = this.finalContent
     // Auto-scroll to bottom
     this.finalArticleTarget.scrollTop = this.finalArticleTarget.scrollHeight
   }
@@ -622,21 +731,51 @@ export default class extends BaseChannelController {
   private handleFinalComplete(): void {
     console.log("Final article generation complete")
     showToast("定稿生成完成！", "success")
+    
+    // Show Step 5: Title Generation Section
+    this.titleSectionTarget.style.display = "block"
+    this.titleSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   
   // Copy final article
   copyFinal(): void {
-    if (!this.finalContent || this.finalContent.trim().length === 0) {
+    const finalText = this.finalArticleTarget.value.trim()
+    if (!finalText || finalText.length === 0) {
       showToast("定稿内容为空", "warning")
       return
     }
 
-    navigator.clipboard.writeText(this.finalContent).then(() => {
+    navigator.clipboard.writeText(finalText).then(() => {
       showToast("定稿已复制到剪贴板", "success")
     }).catch(err => {
       console.error("Failed to copy:", err)
       showToast("复制失败，请手动选择并复制文本", "danger")
     })
+  }
+  
+  // Save final article (after user edits)
+  saveFinal(): void {
+    const finalText = this.finalArticleTarget.value.trim()
+    if (!finalText || finalText.length === 0) {
+      showToast("定稿内容为空", "warning")
+      return
+    }
+    
+    if (!this.currentArticleId) {
+      showToast("文章ID不存在，无法保存", "danger")
+      return
+    }
+    
+    // Update local state
+    this.finalContent = finalText
+    
+    // Send to backend
+    if (this.commandSubscription) {
+      this.commandSubscription.perform("save_final", {
+        article_id: this.currentArticleId,
+        final_content: finalText
+      })
+    }
   }
 
   // Reset and start over
@@ -647,12 +786,15 @@ export default class extends BaseChannelController {
     this.selectedModel = null
     this.draftContent = ""
     this.finalContent = ""
+    this.titleContent = ""
+    this.variantContent = ""
     this.responseContents = {
       grok: "",
       qwen: "",
       deepseek: "",
       gemini: "",
-      zhipu: ""
+      zhipu: "",
+      doubao: ""
     }
     this.completedModels.clear()
 
@@ -666,7 +808,10 @@ export default class extends BaseChannelController {
     this.draftSectionTarget.style.display = "none"
     this.finalSectionTarget.style.display = "none"
     this.finalArticleContainerTarget.style.display = "none"
-    this.actionButtonsTarget.style.display = "none"
+    this.titleSectionTarget.style.display = "none"
+    this.titleContainerTarget.style.display = "none"
+    this.variantSectionTarget.style.display = "none"
+    this.variantContainerTarget.style.display = "none"
     
     // Hide all copy buttons
     this.copyButtonGrokTarget.style.display = "none"
@@ -674,6 +819,7 @@ export default class extends BaseChannelController {
     this.copyButtonDeepseekTarget.style.display = "none"
     this.copyButtonGeminiTarget.style.display = "none"
     this.copyButtonZhipuTarget.style.display = "none"
+    this.copyButtonDoubaoTarget.style.display = "none"
     
     // Hide all draft buttons
     this.draftButtonGrokTarget.style.display = "none"
@@ -681,6 +827,7 @@ export default class extends BaseChannelController {
     this.draftButtonDeepseekTarget.style.display = "none"
     this.draftButtonGeminiTarget.style.display = "none"
     this.draftButtonZhipuTarget.style.display = "none"
+    this.draftButtonDoubaoTarget.style.display = "none"
 
     // Reset all response texts
     this.responseGrokTarget.innerHTML = ""
@@ -688,13 +835,255 @@ export default class extends BaseChannelController {
     this.responseDeepseekTarget.innerHTML = ""
     this.responseGeminiTarget.innerHTML = ""
     this.responseZhipuTarget.innerHTML = ""
+    this.responseDoubaoTarget.innerHTML = ""
     
-    // Reset draft and final content
+    // Reset draft, final, title and variant content
     this.draftContentTarget.value = ""
-    this.finalArticleTarget.innerHTML = ""
+    this.finalArticleTarget.value = ""
+    this.titleTextTarget.value = ""
+    this.variantTextTarget.value = ""
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+  
+  // Step 5: Generate viral title with selected style
+  generateTitle(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const style = button.dataset.style
+    
+    if (!style) {
+      showToast("无法确定选择的风格", "danger")
+      return
+    }
+    
+    if (!this.currentArticleId) {
+      showToast("文章ID不存在，请重新开始", "danger")
+      return
+    }
+    
+    // Update style label
+    const styleNames: { [key: string]: string } = {
+      mimeng: "迷蒙体",
+      normal: "普通风格"
+    }
+    this.titleStyleLabelTarget.textContent = styleNames[style] || style
+    
+    // Show title container
+    this.titleContainerTarget.style.display = "block"
+    this.titleContent = ""
+    this.titleTextTarget.value = "标题生成中..."
+    
+    // Scroll to title container
+    this.titleContainerTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    
+    // Call backend to generate title
+    if (this.commandSubscription) {
+      this.commandSubscription.perform("generate_title", {
+        article_id: this.currentArticleId,
+        final_content: this.finalContent,
+        style: style
+      })
+    }
+  }
+  
+  // Handle title chunks
+  private handleTitleChunk(chunk: string): void {
+    this.titleContent += chunk
+    // Update textarea with title text
+    this.titleTextTarget.value = this.titleContent
+  }
+  
+  // Handle title complete
+  private handleTitleComplete(): void {
+    console.log("Title generation complete")
+    showToast("标题生成完成！", "success")
+    
+    // Show Step 6: Variant Generation Section
+    this.variantSectionTarget.style.display = "block"
+    this.variantSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  
+  // Handle title error
+  private handleTitleError(message: string): void {
+    console.error("Title generation error:", message)
+    
+    // Clear the "生成中..." placeholder
+    this.titleTextTarget.value = ""
+    
+    // Hide title container to allow user to retry
+    this.titleContainerTarget.style.display = "none"
+    
+    // Show error toast
+    showToast(message || "标题生成失败，请稍后重试", "danger")
+  }
+  
+  // Copy title
+  copyTitle(): void {
+    const titleText = this.titleTextTarget.value.trim()
+    if (!titleText || titleText.length === 0) {
+      showToast("标题内容为空", "warning")
+      return
+    }
+
+    navigator.clipboard.writeText(titleText).then(() => {
+      showToast("标题已复制到剪贴板", "success")
+    }).catch(err => {
+      console.error("Failed to copy:", err)
+      showToast("复制失败，请手动选择并复制文本", "danger")
+    })
+  }
+  
+  // Save title (after user edits)
+  saveTitle(): void {
+    const titleText = this.titleTextTarget.value.trim()
+    if (!titleText || titleText.length === 0) {
+      showToast("标题内容为空", "warning")
+      return
+    }
+    
+    if (!this.currentArticleId) {
+      showToast("文章ID不存在，无法保存", "danger")
+      return
+    }
+    
+    // Update local state
+    this.titleContent = titleText
+    
+    // Send to backend
+    if (this.commandSubscription) {
+      this.commandSubscription.perform("save_title", {
+        article_id: this.currentArticleId,
+        title_content: titleText
+      })
+    }
+  }
+  
+  // Step 6: Generate variant with selected style
+  generateVariant(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const style = button.dataset.style
+    
+    if (!style) {
+      showToast("无法确定选择的风格", "danger")
+      return
+    }
+    
+    if (!this.currentArticleId) {
+      showToast("文章ID不存在，请重新开始", "danger")
+      return
+    }
+    
+    // Update style label
+    const styleNames: { [key: string]: string } = {
+      xiaolvshu: "小绿书",
+      xiaohongshu: "小红书"
+    }
+    this.variantStyleLabelTarget.textContent = styleNames[style] || style
+    
+    // Show variant container
+    this.variantContainerTarget.style.display = "block"
+    this.variantContent = ""
+    this.variantTextTarget.value = "变体生成中..."
+    
+    // Scroll to variant container
+    this.variantContainerTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    
+    // Call backend to generate variant
+    // 后端会从数据库读取完整的定稿文章，确保内容完整
+    if (this.commandSubscription) {
+      this.commandSubscription.perform("generate_variant", {
+        article_id: this.currentArticleId,
+        style: style
+      })
+    }
+  }
+  
+  // Handle variant chunks
+  private handleVariantChunk(chunk: string): void {
+    // 如果之前是错误状态，清空并重新开始
+    if (this.variantTextTarget.disabled) {
+      this.variantTextTarget.disabled = false
+      this.variantContent = ""
+    }
+    
+    this.variantContent += chunk
+    // Update textarea with variant text
+    this.variantTextTarget.value = this.variantContent
+    // Auto-scroll to bottom
+    this.variantTextTarget.scrollTop = this.variantTextTarget.scrollHeight
+  }
+  
+  // Handle variant complete
+  private handleVariantComplete(): void {
+    console.log("Variant generation complete")
+    // 确保 textarea 可编辑
+    this.variantTextTarget.disabled = false
+    showToast("变体生成完成！", "success")
+  }
+  
+  // Handle variant error
+  private handleVariantError(message: string): void {
+    console.error("Variant generation error:", message)
+    
+    // 检测是否为临时错误（503服务繁忙、自动重试中）
+    const isTemporaryError = message.includes('服务繁忙') || 
+                            message.includes('正在自动重试') || 
+                            message.includes('overloaded') ||
+                            message.includes('503')
+    
+    if (isTemporaryError) {
+      // 临时错误：保持容器显示，显示重试提示
+      this.variantTextTarget.value = `⏳ ${message}\n\n系统正在自动重试，请稍候...`
+      this.variantTextTarget.disabled = true
+      showToast(message, "warning")
+    } else {
+      // 永久错误：清空内容并隐藏容器
+      this.variantTextTarget.value = ""
+      this.variantContainerTarget.style.display = "none"
+      showToast(message || "变体生成失败，请稍后重试", "danger")
+    }
+  }
+  
+  // Copy variant
+  copyVariant(): void {
+    const variantText = this.variantTextTarget.value.trim()
+    if (!variantText || variantText.length === 0) {
+      showToast("变体内容为空", "warning")
+      return
+    }
+
+    navigator.clipboard.writeText(variantText).then(() => {
+      showToast("变体已复制到剪贴板", "success")
+    }).catch(err => {
+      console.error("Failed to copy:", err)
+      showToast("复制失败，请手动选择并复制文本", "danger")
+    })
+  }
+  
+  // Save variant (after user edits)
+  saveVariant(): void {
+    const variantText = this.variantTextTarget.value.trim()
+    if (!variantText || variantText.length === 0) {
+      showToast("变体内容为空", "warning")
+      return
+    }
+    
+    if (!this.currentArticleId) {
+      showToast("文章ID不存在，无法保存", "danger")
+      return
+    }
+    
+    // Update local state
+    this.variantContent = variantText
+    
+    // Send to backend
+    if (this.commandSubscription) {
+      this.commandSubscription.perform("save_variant", {
+        article_id: this.currentArticleId,
+        variant_content: variantText
+      })
+    }
   }
   
   // Open history sidebar
@@ -870,7 +1259,8 @@ export default class extends BaseChannelController {
         this.finalContent = article.final_content
         this.finalSectionTarget.style.display = "block"
         this.finalArticleContainerTarget.style.display = "block"
-        this.finalArticleTarget.textContent = article.final_content
+        // Set textarea value directly (no markdown rendering needed)
+        this.finalArticleTarget.value = article.final_content
         
         const styleNames: { [key: string]: string } = {
           pinker: "史蒂芬·平克",
@@ -878,11 +1268,50 @@ export default class extends BaseChannelController {
           wangxiaobo: "王小波"
         }
         this.finalStyleLabelTarget.textContent = styleNames[article.final_style] || article.final_style
+        
+        // Show Step 5: Title Generation Section
+        this.titleSectionTarget.style.display = "block"
+        
+        // If title exists, restore it
+        if (article.title) {
+          this.titleContent = article.title
+          this.titleContainerTarget.style.display = "block"
+          this.titleTextTarget.value = article.title
+          
+          const titleStyleNames: { [key: string]: string } = {
+            mimeng: "迷蒙体",
+            normal: "普通风格"
+          }
+          this.titleStyleLabelTarget.textContent = titleStyleNames[article.title_style] || article.title_style
+          
+          // Show Step 6: Variant Generation Section
+          this.variantSectionTarget.style.display = "block"
+          
+          // If variant exists, restore it
+          if (article.variant) {
+            this.variantContent = article.variant
+            this.variantContainerTarget.style.display = "block"
+            this.variantTextTarget.value = article.variant
+            
+            const variantStyleNames: { [key: string]: string } = {
+              xiaolvshu: "小绿书",
+              xiaohongshu: "小红书"
+            }
+            this.variantStyleLabelTarget.textContent = variantStyleNames[article.variant_style] || article.variant_style
+          }
+        }
       }
       
       // Scroll to appropriate section
-      if (article.final_content) {
-        this.finalSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (article.variant) {
+        // If has variant, scroll to variant section (most complete state)
+        this.variantSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else if (article.title) {
+        // If has title but no variant, scroll to variant section to encourage variant generation
+        this.variantSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else if (article.final_content) {
+        // If has final content but no title, scroll to title section to encourage title generation
+        this.titleSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
       } else if (article.draft) {
         this.draftSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
       } else if (article.has_brainstorm) {

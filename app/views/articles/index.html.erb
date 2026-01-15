@@ -27,7 +27,7 @@
             历史文章
           </button>
         </div>
-      </div>
+
       <p class="text-lg text-secondary text-center mb-4">
         能说就能写，写出影响力
       </p>
@@ -58,9 +58,9 @@
       <div class="card card-elevated p-6 mb-6 rounded-none">
         
         <div class="mb-4">
-          <label class="block text-lg font-semibold text-primary mb-3">
-            <%= lucide_icon "message-square", class: "w-5 h-5 inline-block mr-2" %>
-            输入你的想法
+          <label class="block text-lg font-semibold text-primary mb-3 flex items-center gap-2">
+            <%= lucide_icon "message-square", class: "w-6 h-6" %>
+            Step 1: 输入你的想法
           </label>
           <textarea
             data-articles-target="inputText"
@@ -164,12 +164,12 @@
       <div data-articles-target="responsesContainer" style="display: none;">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
           <%= lucide_icon "brain-circuit", class: "w-6 h-6" %>
-          AI 模型回应
+          Step 2: AI 模型回应
         </h2>
         
         <!-- Grok Response -->
         <div class="card card-elevated mb-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-none">
-          <div class="card-header border-b border-border flex items-center justify-between">
+          <div class="card-header border-b border-border flex items-center justify-between rounded-none">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "zap", class: "w-5 h-5" %>
               Grok
@@ -353,7 +353,7 @@
 
         <!-- Zhipu Response -->
         <div class="card card-elevated mb-4 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-none">
-          <div class="card-header border-b border-border flex items-center justify-between">
+          <div class="card-header border-b border-border flex items-center justify-between rounded-none">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "zap-off", class: "w-5 h-5 text-purple-600" %>
               智谱
@@ -466,6 +466,14 @@
                   <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
                   保存草稿
                 </button>
+                <button
+                  type="button"
+                  data-action="click->articles#copyDraft"
+                  class="btn-primary btn-sm"
+                >
+                  <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                  复制草稿
+                </button>
               </div>
             </div>
             <textarea
@@ -522,7 +530,7 @@
             class="card card-elevated p-6 hover:shadow-lg transition-all text-left group rounded-none"
           >
             <div class="flex items-center gap-3 mb-3">
-              <%= lucide_icon "message-circle", class: "w-8 h-8 text-primary" %>
+              <img src="https://backend-prod-hjlerckip39sk4no.s3-accelerate.amazonaws.com/images/2026/01/15/0194e09c-901f-7b99-bb46-e5b93b676708/icon_-192_1b61556a.png" alt="罗振宇" class="w-8 h-8 rounded-full object-cover" />
               <h3 class="text-xl font-bold text-primary">罗振宇</h3>
             </div>
             <p class="text-secondary text-sm leading-relaxed">
@@ -553,41 +561,217 @@
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-xl font-bold text-primary flex items-center gap-2">
                 <%= lucide_icon "file-check", class: "w-5 h-5" %>
-                定稿结果
+                定稿结果（可编辑）
                 <span class="text-base font-normal text-muted">（风格：<span data-articles-target="finalStyleLabel"></span>）</span>
               </h3>
-              <button
-                type="button"
-                data-action="click->articles#copyFinal"
-                class="btn-primary btn-sm"
-              >
-                <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
-                复制定稿
-              </button>
-            </div>
-            <div 
-              data-articles-target="finalArticle"
-              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[300px] max-h-[600px] overflow-y-auto p-4 bg-surface-elevated rounded-none"
-            >
-              <div class="flex items-center gap-2 text-muted">
-                <div class="loading-spinner w-4 h-4"></div>
-                <span>正在生成定稿...</span>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  data-action="click->articles#saveFinal"
+                  class="btn-secondary btn-sm"
+                >
+                  <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
+                  保存定稿
+                </button>
+                <button
+                  type="button"
+                  data-action="click->articles#copyFinal"
+                  class="btn-primary btn-sm"
+                >
+                  <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                  复制定稿
+                </button>
               </div>
             </div>
+            
+            <!-- Hidden div for streaming markdown display -->
+            <div 
+              data-articles-target="finalArticlePreview"
+              class="hidden"
+            >
+            </div>
+            
+            <!-- Editable textarea for final content -->
+            <textarea
+              data-articles-target="finalArticle"
+              class="w-full px-4 py-3 text-base border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
+              rows="20"
+              placeholder="定稿生成中..."
+            ></textarea>
           </div>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="text-center mt-8" data-articles-target="actionButtons" style="display: none;">
-        <button
-          type="button"
-          data-action="click->articles#reset"
-          class="btn-secondary btn-lg px-8"
-        >
-          <%= lucide_icon "refresh-cw", class: "w-5 h-5 inline-block mr-2" %>
-          重新对话
-        </button>
+      <!-- Step 5: Generate Viral Title -->
+      <div data-articles-target="titleSection" style="display: none;" class="mt-8">
+        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+          <%= lucide_icon "sparkles", class: "w-6 h-6" %>
+          Step 5: 选择风格 & 生成爆款标题
+        </h2>
+        
+        <!-- Title Style Selection -->
+        <div class="grid md:grid-cols-2 gap-4 mb-6">
+          <!-- 迷蒙体 -->
+          <button
+            type="button"
+            data-action="click->articles#generateTitle"
+            data-style="mimeng"
+            class="card card-elevated p-6 hover:shadow-lg transition-all text-left group rounded-none"
+          >
+            <div class="flex items-center gap-3 mb-3">
+              <%= lucide_icon "flame", class: "w-8 h-8 text-primary" %>
+              <h3 class="text-xl font-bold text-primary">迷蒙体</h3>
+            </div>
+            <p class="text-secondary text-sm leading-relaxed">
+              情绪共鸣、制造对比、身份代入、悬念设置的爆款标题风格
+            </p>
+          </button>
+          
+          <!-- 普通风格 -->
+          <button
+            type="button"
+            data-action="click->articles#generateTitle"
+            data-style="normal"
+            class="card card-elevated p-6 hover:shadow-lg transition-all text-left group rounded-none"
+          >
+            <div class="flex items-center gap-3 mb-3">
+              <%= lucide_icon "type", class: "w-8 h-8 text-primary" %>
+              <h3 class="text-xl font-bold text-primary">普通风格</h3>
+            </div>
+            <p class="text-secondary text-sm leading-relaxed">
+              简洁、准确、有吸引力的常规标题风格
+            </p>
+          </button>
+        </div>
+        
+        <!-- Title Display -->
+        <div data-articles-target="titleContainer" style="display: none;">
+          <div class="card card-elevated p-6 rounded-none">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-bold text-primary flex items-center gap-2">
+                <%= lucide_icon "heading", class: "w-5 h-5" %>
+                标题结果（可编辑）
+                <span class="text-base font-normal text-muted">（风格：<span data-articles-target="titleStyleLabel"></span>）</span>
+              </h3>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  data-action="click->articles#saveTitle"
+                  class="btn-secondary btn-sm"
+                >
+                  <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
+                  保存标题
+                </button>
+                <button
+                  type="button"
+                  data-action="click->articles#copyTitle"
+                  class="btn-primary btn-sm"
+                >
+                  <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                  复制标题
+                </button>
+              </div>
+            </div>
+            
+            <!-- Editable textarea for title -->
+            <textarea
+              data-articles-target="titleText"
+              class="w-full px-4 py-3 text-lg border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface font-bold"
+              rows="2"
+              placeholder="标题生成中..."
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Generate Variant -->
+      <div data-articles-target="variantSection" style="display: none;" class="mt-8">
+        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+          <%= lucide_icon "shuffle", class: "w-6 h-6" %>
+          Step 6: 选择变体风格
+        </h2>
+        
+        <!-- Variant Style Selection -->
+        <div class="grid md:grid-cols-2 gap-4 mb-6">
+          <!-- 小绿书 -->
+          <button
+            data-action="click->articles#generateVariant"
+            data-style="xiaolvshu"
+            class="card card-elevated p-6 hover:shadow-xl transition-all cursor-pointer text-left group rounded-none"
+          >
+            <div class="flex items-start gap-4">
+              <div class="text-4xl">🌿</div>
+              <div class="flex-1">
+                <h3 class="text-xl font-bold text-primary mb-2 group-hover:text-accent transition-colors">小绿书</h3>
+                <p class="text-sm text-muted mb-2">纯文本风格，简洁直白</p>
+                <ul class="text-xs text-muted space-y-1">
+                  <li>• 1000字以内，精简表达</li>
+                  <li>• 无Markdown格式，纯文本</li>
+                  <li>• 口语化，易于阅读</li>
+                </ul>
+              </div>
+            </div>
+          </button>
+          
+          <!-- 小红书 -->
+          <button
+            data-action="click->articles#generateVariant"
+            data-style="xiaohongshu"
+            class="card card-elevated p-6 hover:shadow-xl transition-all cursor-pointer text-left group rounded-none"
+          >
+            <div class="flex items-start gap-4">
+              <div class="text-4xl">📝</div>
+              <div class="flex-1">
+                <h3 class="text-xl font-bold text-primary mb-2 group-hover:text-accent transition-colors">小红书</h3>
+                <p class="text-sm text-muted mb-2">爆款笔记风格，互动性强</p>
+                <ul class="text-xs text-muted space-y-1">
+                  <li>• Emoji点缀，视觉吸引</li>
+                  <li>• 口语化表达，亲切感</li>
+                  <li>• 干货标签，易于分享</li>
+                </ul>
+              </div>
+            </div>
+          </button>
+        </div>
+        
+        <!-- Variant Display -->
+        <div data-articles-target="variantContainer" style="display: none;">
+          <div class="card card-elevated p-6 rounded-none">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold text-primary flex items-center gap-2">
+                <%= lucide_icon "file-text", class: "w-5 h-5" %>
+                生成的变体
+                <span class="badge badge-info" data-articles-target="variantStyleLabel">小绿书</span>
+              </h3>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  data-action="click->articles#saveVariant"
+                  class="btn-primary btn-sm"
+                >
+                  <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
+                  保存变体
+                </button>
+                <button
+                  type="button"
+                  data-action="click->articles#copyVariant"
+                  class="btn-secondary btn-sm"
+                >
+                  <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                  复制变体
+                </button>
+              </div>
+            </div>
+            
+            <!-- Editable textarea for variant -->
+            <textarea
+              data-articles-target="variantText"
+              class="w-full px-4 py-3 text-base border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface leading-relaxed"
+              rows="15"
+              placeholder="变体生成中..."
+            ></textarea>
+          </div>
+        </div>
       </div>
 
       <!-- History Sidebar -->

@@ -129,7 +129,6 @@ class LlmStreamJob < ApplicationJob
         3. 保持专业、友好、有洞见的风格
         4. 不要扩写、不要改写、不要帮用户写文章
         5. 就像朋友之间的思想交流，说出你真实的思考
-        6. 把核心观点、金句进行高亮
       PROMPT
     when 'experience'
       <<~PROMPT.strip
