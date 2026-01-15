@@ -68,7 +68,7 @@ export default class extends BaseChannelController {
     "finalStyleLabel",
     "titleSection",
     "titleContainer",
-    "titleText",
+    "titleList",
     "titleStyleLabel",
     "variantSection",
     "variantContainer",
@@ -114,7 +114,7 @@ export default class extends BaseChannelController {
   declare readonly finalStyleLabelTarget: HTMLElement
   declare readonly titleSectionTarget: HTMLElement
   declare readonly titleContainerTarget: HTMLElement
-  declare readonly titleTextTarget: HTMLTextAreaElement
+  declare readonly titleListTarget: HTMLElement
   declare readonly titleStyleLabelTarget: HTMLElement
   declare readonly variantSectionTarget: HTMLElement
   declare readonly variantContainerTarget: HTMLElement
@@ -496,8 +496,8 @@ export default class extends BaseChannelController {
       draftButton.style.display = "inline-flex"
     }
 
-    // All models complete (no action needed)
-    if (this.completedModels.size === 6) {
+    // All models complete (5 models, Doubao hidden)
+    if (this.completedModels.size === 5) {
       // All responses generated
     }
   }
@@ -529,8 +529,8 @@ export default class extends BaseChannelController {
     // 标记为完成（虽然失败）
     this.completedModels.add(provider)
     
-    // All models complete (including errors)
-    if (this.completedModels.size === 6) {
+    // All models complete (including errors) (5 models, Doubao hidden)
+    if (this.completedModels.size === 5) {
       // All responses generated
     }
   }
@@ -872,7 +872,7 @@ export default class extends BaseChannelController {
     // Show title container
     this.titleContainerTarget.style.display = "block"
     this.titleContent = ""
-    this.titleTextTarget.value = "标题生成中..."
+    this.titleListTarget.innerHTML = '<p class="text-muted">标题生成中...</p>'
     
     // Scroll to title container
     this.titleContainerTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -890,8 +890,27 @@ export default class extends BaseChannelController {
   // Handle title chunks
   private handleTitleChunk(chunk: string): void {
     this.titleContent += chunk
-    // Update textarea with title text
-    this.titleTextTarget.value = this.titleContent
+    
+    // Split by newlines to get individual titles
+    const lines = this.titleContent.split('\n').filter(line => line.trim().length > 0)
+    
+    // Update display with formatted titles
+    if (lines.length > 0) {
+      this.titleListTarget.innerHTML = lines.map((title, index) => 
+        `<div class="flex items-start gap-3 p-3 bg-surface/50 hover:bg-primary/5 transition-colors rounded-none border border-border/50">
+          <span class="text-primary font-bold text-xl flex-shrink-0">${index + 1}.</span>
+          <p class="flex-1 text-foreground">${this.escapeHtml(title)}</p>
+          <button 
+            class="btn-sm btn-secondary flex-shrink-0" 
+            onclick="navigator.clipboard.writeText('${this.escapeHtml(title).replace(/'/g, "\\'")}')
+              .then(() => window.showToast('已复制', 'success'))
+              .catch(() => window.showToast('复制失败', 'danger'))"
+          >
+            ${this.getCopyIcon()}
+          </button>
+        </div>`
+      ).join('')
+    }
   }
   
   // Handle title complete
@@ -909,7 +928,7 @@ export default class extends BaseChannelController {
     console.error("Title generation error:", message)
     
     // Clear the "生成中..." placeholder
-    this.titleTextTarget.value = ""
+    this.titleListTarget.innerHTML = ""
     
     // Hide title container to allow user to retry
     this.titleContainerTarget.style.display = "none"
@@ -918,45 +937,35 @@ export default class extends BaseChannelController {
     showToast(message || "标题生成失败，请稍后重试", "danger")
   }
   
-  // Copy title
-  copyTitle(): void {
-    const titleText = this.titleTextTarget.value.trim()
-    if (!titleText || titleText.length === 0) {
+  // Copy all titles
+  copyAllTitles(): void {
+    const lines = this.titleContent.split('\n').filter(line => line.trim().length > 0)
+    
+    if (lines.length === 0) {
       showToast("标题内容为空", "warning")
       return
     }
 
-    navigator.clipboard.writeText(titleText).then(() => {
-      showToast("标题已复制到剪贴板", "success")
+    const allTitles = lines.map((title, index) => `${index + 1}. ${title}`).join('\n\n')
+    
+    navigator.clipboard.writeText(allTitles).then(() => {
+      showToast("所有标题已复制到剪贴板", "success")
     }).catch(err => {
       console.error("Failed to copy:", err)
       showToast("复制失败，请手动选择并复制文本", "danger")
     })
   }
   
-  // Save title (after user edits)
-  saveTitle(): void {
-    const titleText = this.titleTextTarget.value.trim()
-    if (!titleText || titleText.length === 0) {
-      showToast("标题内容为空", "warning")
-      return
-    }
-    
-    if (!this.currentArticleId) {
-      showToast("文章ID不存在，无法保存", "danger")
-      return
-    }
-    
-    // Update local state
-    this.titleContent = titleText
-    
-    // Send to backend
-    if (this.commandSubscription) {
-      this.commandSubscription.perform("save_title", {
-        article_id: this.currentArticleId,
-        title_content: titleText
-      })
-    }
+  // Helper: Escape HTML
+  private escapeHtml(text: string): string {
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
+  }
+  
+  // Helper: Get copy icon SVG
+  private getCopyIcon(): string {
+    return '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'
   }
   
   // Step 6: Generate variant with selected style
@@ -1276,7 +1285,42 @@ export default class extends BaseChannelController {
         if (article.title) {
           this.titleContent = article.title
           this.titleContainerTarget.style.display = "block"
-          this.titleTextTarget.value = article.title
+          
+          // Parse titles (split by newlines)
+          const lines = article.title.split('\n').filter((line: string) => line.trim().length > 0)
+          
+          if (lines.length > 0) {
+            this.titleListTarget.innerHTML = lines.map((title: string, index: number) => 
+              `<div class="flex items-start gap-3 p-3 bg-surface/50 hover:bg-primary/5 transition-colors rounded-none border border-border/50">
+                <span class="text-primary font-bold text-xl flex-shrink-0">${index + 1}.</span>
+                <p class="flex-1 text-foreground">${this.escapeHtml(title)}</p>
+                <button 
+                  class="btn-sm btn-secondary flex-shrink-0" 
+                  onclick="navigator.clipboard.writeText('${this.escapeHtml(title).replace(/'/g, "\\'")}')
+                    .then(() => window.showToast('已复制', 'success'))
+                    .catch(() => window.showToast('复制失败', 'danger'))"
+                >
+                  ${this.getCopyIcon()}
+                </button>
+              </div>`
+            ).join('')
+          } else {
+            // Fallback: if title is not in multi-line format, show as single title
+            this.titleListTarget.innerHTML = `
+              <div class="flex items-start gap-3 p-3 bg-surface/50 hover:bg-primary/5 transition-colors rounded-none border border-border/50">
+                <span class="text-primary font-bold text-xl flex-shrink-0">1.</span>
+                <p class="flex-1 text-foreground">${this.escapeHtml(article.title)}</p>
+                <button 
+                  class="btn-sm btn-secondary flex-shrink-0" 
+                  onclick="navigator.clipboard.writeText('${this.escapeHtml(article.title).replace(/'/g, "\\'")}')
+                    .then(() => window.showToast('已复制', 'success'))
+                    .catch(() => window.showToast('复制失败', 'danger'))"
+                >
+                  ${this.getCopyIcon()}
+                </button>
+              </div>
+            `
+          }
           
           const titleStyleNames: { [key: string]: string } = {
             mimeng: "迷蒙体",

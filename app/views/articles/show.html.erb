@@ -172,22 +172,70 @@
     <!-- Viral Title -->
     <% if @article.title.present? %>
       <div class="card card-elevated p-6 mb-6 rounded-none">
-        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-          <%= lucide_icon "sparkles", class: "w-6 h-6" %>
-          爆款标题
-          <% if @article.title_style.present? %>
-            <span class="badge badge-success">
-              <%= case @article.title_style
-                  when 'mimeng' then '迷蒙体'
-                  when 'normal' then '普通风格'
-                  else @article.title_style
-                  end %>
-            </span>
-          <% end %>
-        </h2>
-        <div class="text-primary text-2xl font-bold leading-relaxed px-4 py-3 bg-surface/50 border-2 border-primary/20 rounded-none">
-          <%= @article.title %>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
+            <%= lucide_icon "sparkles", class: "w-6 h-6" %>
+            爆款标题
+            <% if @article.title_style.present? %>
+              <span class="badge badge-success">
+                <%= case @article.title_style
+                    when 'mimeng' then '迷蒙体'
+                    when 'normal' then '普通风格'
+                    else @article.title_style
+                    end %>
+              </span>
+            <% end %>
+          </h2>
+          <button
+            type="button"
+            onclick="copyAllTitles()"
+            class="btn-primary btn-sm"
+          >
+            <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+            复制全部
+          </button>
         </div>
+        
+        <!-- Title list display -->
+        <div class="space-y-3 text-foreground text-lg leading-relaxed">
+          <% titles = @article.title.split("\n").map(&:strip).reject(&:empty?) %>
+          <% if titles.length > 1 %>
+            <% titles.each_with_index do |title, index| %>
+              <div class="flex items-start gap-3 p-3 bg-surface/50 hover:bg-primary/5 transition-colors rounded-none border border-border/50">
+                <span class="text-primary font-bold text-xl flex-shrink-0"><%= index + 1 %>.</span>
+                <p class="flex-1 text-foreground"><%= title %></p>
+                <button 
+                  class="btn-sm btn-secondary flex-shrink-0" 
+                  onclick="navigator.clipboard.writeText('<%= title.gsub("'", "\\\\'") %>').then(() => window.showToast('已复制', 'success')).catch(() => window.showToast('复制失败', 'danger'))"
+                >
+                  <%= lucide_icon "copy", class: "w-4 h-4" %>
+                </button>
+              </div>
+            <% end %>
+          <% else %>
+            <!-- Fallback for legacy single-line titles -->
+            <div class="flex items-start gap-3 p-3 bg-surface/50 hover:bg-primary/5 transition-colors rounded-none border border-border/50">
+              <span class="text-primary font-bold text-xl flex-shrink-0">1.</span>
+              <p class="flex-1 text-foreground"><%= @article.title %></p>
+              <button 
+                class="btn-sm btn-secondary flex-shrink-0" 
+                onclick="navigator.clipboard.writeText('<%= @article.title.gsub("'", "\\\\'") %>').then(() => window.showToast('已复制', 'success')).catch(() => window.showToast('复制失败', 'danger'))"
+              >
+                <%= lucide_icon "copy", class: "w-4 h-4" %>
+              </button>
+            </div>
+          <% end %>
+        </div>
+        
+        <script>
+          function copyAllTitles() {
+            const titles = <%= raw titles.each_with_index.map { |t, i| "#{i + 1}. #{t}" }.to_json %>;
+            const allTitles = titles.join('\n\n');
+            navigator.clipboard.writeText(allTitles)
+              .then(() => window.showToast('所有标题已复制到剪贴板', 'success'))
+              .catch(() => window.showToast('复制失败，请手动选择并复制文本', 'danger'));
+          }
+        </script>
       </div>
     <% end %>
 

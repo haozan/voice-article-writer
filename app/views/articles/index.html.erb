@@ -215,7 +215,7 @@
 
         <!-- Qwen Response -->
         <div class="card card-elevated mb-4 bg-gradient-to-br from-secondary/5 to-accent/5 rounded-none">
-          <div class="card-header border-b border-border flex items-center justify-between">
+          <div class="card-header border-b border-border flex items-center justify-between rounded-none">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "sparkles", class: "w-5 h-5" %>
               千问
@@ -261,7 +261,7 @@
 
         <!-- DeepSeek Response -->
         <div class="card card-elevated mb-4 bg-gradient-to-br from-accent/5 to-primary/5 rounded-none">
-          <div class="card-header border-b border-border flex items-center justify-between">
+          <div class="card-header border-b border-border flex items-center justify-between rounded-none">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "brain", class: "w-5 h-5" %>
               DeepSeek
@@ -307,7 +307,7 @@
 
         <!-- Gemini Response -->
         <div class="card card-elevated mb-4 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-none">
-          <div class="card-header border-b border-border flex items-center justify-between">
+          <div class="card-header border-b border-border flex items-center justify-between rounded-none">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "gem", class: "w-5 h-5 text-blue-600" %>
               Gemini
@@ -397,9 +397,9 @@
           </div>
         </div>
 
-        <!-- Doubao Response -->
-        <div class="card card-elevated mb-4 bg-gradient-to-br from-orange-500/5 to-red-500/5 rounded-none">
-          <div class="card-header border-b border-border flex items-center justify-between">
+        <!-- Doubao Response - HIDDEN -->
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-orange-500/5 to-red-500/5 rounded-none" style="display: none;">
+          <div class="card-header border-b border-border flex items-center justify-between rounded-none">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
               <%= lucide_icon "flame", class: "w-5 h-5 text-orange-600" %>
               豆包
@@ -650,36 +650,28 @@
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-xl font-bold text-primary flex items-center gap-2">
                 <%= lucide_icon "heading", class: "w-5 h-5" %>
-                标题结果（可编辑）
+                标题建议
                 <span class="text-base font-normal text-muted">（风格：<span data-articles-target="titleStyleLabel"></span>）</span>
               </h3>
               <div class="flex gap-2">
                 <button
                   type="button"
-                  data-action="click->articles#saveTitle"
-                  class="btn-secondary btn-sm"
-                >
-                  <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
-                  保存标题
-                </button>
-                <button
-                  type="button"
-                  data-action="click->articles#copyTitle"
+                  data-action="click->articles#copyAllTitles"
                   class="btn-primary btn-sm"
                 >
                   <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
-                  复制标题
+                  复制全部
                 </button>
               </div>
             </div>
             
-            <!-- Editable textarea for title -->
-            <textarea
-              data-articles-target="titleText"
-              class="w-full px-4 py-3 text-lg border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface font-bold"
-              rows="2"
-              placeholder="标题生成中..."
-            ></textarea>
+            <!-- Title list display -->
+            <div 
+              data-articles-target="titleList"
+              class="space-y-3 text-foreground text-lg leading-relaxed"
+            >
+              <p class="text-muted">标题生成中...</p>
+            </div>
           </div>
         </div>
       </div>

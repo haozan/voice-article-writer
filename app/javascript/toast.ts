@@ -94,3 +94,8 @@ function removeToast(toast: HTMLElement, position: 'top-right' | 'top-center' | 
 }
 
 export { showToast }
+
+// Make showToast available globally for inline onclick handlers
+if (typeof window !== 'undefined') {
+  (window as any).showToast = showToast
+}

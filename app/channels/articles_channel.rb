@@ -61,8 +61,8 @@ class ArticlesChannel < ApplicationCable::Channel
                 Article.create!(article_attrs)
               end
     
-    # List of all available providers
-    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu', 'doubao']
+    # List of all available providers (Doubao hidden)
+    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
     
     # Trigger jobs for all providers concurrently
     providers.each do |provider|
@@ -145,7 +145,7 @@ class ArticlesChannel < ApplicationCable::Channel
       3. **保持 #{model_display_name} 风格**：直接、深刻、有洞见、不废话、不套话
       4. **长度控制**：1300 字以内（根据内容自然决定，不要为了凑字数而啰嗦）
       5. **结构自由**：不强制开头/正文/结尾，跟随内容自然展开
-      6. **面向读者**：像在跟朋友分享，不是自言自语，有沟通感
+      6. **面向读者**：像在跟朋友面对面聊天，不是自言自语，有沟通感
       
       直接输出文章正文，不要加标题、解释、引号或任何多余内容。
     PROMPT
@@ -457,16 +457,26 @@ class ArticlesChannel < ApplicationCable::Channel
         - 不使用粗俗、低俗词汇
         - 直接输出标题，不需要序号或选项
         
-        请仔细阅读文章内容，生成1款个最能吸引读者点击的迷蒙体标题。只输出标题文本，不要有任何额外说明。
+        请仔细阅读文章内容，生成至少5个最能吸引读者点击的迷蒙体标题。
+        
+        【输出格式】
+        - 每个标题单独一行
+        - 不要序号、不要引号、不要其他符号
+        - 直接输出标题文本
       PROMPT
     else
       <<~PROMPT
-        请根据以下文章内容，生成一个简洁、有吸引力的标题。
+        请根据以下文章内容，生成至少5个简洁、有吸引力的标题。
+        
         标题要求：
         - 长度：15-25字
         - 准确概括文章核心观点
         - 有一定吸引力和可读性
-        - 直接输出标题，不要有任何额外说明
+        
+        【输出格式】
+        - 每个标题单独一行
+        - 不要序号、不要引号、不要其他符号
+        - 直接输出标题文本
       PROMPT
     end
   end
