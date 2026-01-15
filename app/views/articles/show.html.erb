@@ -10,11 +10,11 @@
         </div>
       </div>
       <div class="flex gap-3">
-        <%= link_to articles_path(article_id: @article.id), class: "btn-primary" do %>
+        <%= link_to write_path, class: "btn-primary" do %>
           <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-2" %>
-          继续编辑
+          继续写作
         <% end %>
-        <%= link_to articles_path, class: "btn-secondary" do %>
+        <%= link_to root_path, class: "btn-secondary" do %>
           <%= lucide_icon "arrow-left", class: "w-4 h-4 inline-block mr-2" %>
           返回主页
         <% end %>
@@ -114,6 +114,21 @@
               </div>
             </div>
           <% end %>
+
+          <% if @article.brainstorm_doubao.present? %>
+            <div class="card card-elevated p-5 rounded-none">
+              <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
+                <%= lucide_icon "flame", class: "w-5 h-5" %>
+                豆包
+                <% if @article.selected_model == 'doubao' %>
+                  <span class="badge badge-success text-xs">已选择</span>
+                <% end %>
+              </h3>
+              <div class="text-secondary text-base leading-relaxed whitespace-pre-wrap">
+                <%= @article.brainstorm_doubao %>
+              </div>
+            </div>
+          <% end %>
         </div>
       </div>
     <% end %>
@@ -156,9 +171,9 @@
 
     <!-- Back to Top Button -->
     <div class="text-center mt-8">
-      <%= link_to articles_path(article_id: @article.id), class: "btn-primary btn-lg px-12" do %>
+      <%= link_to write_path, class: "btn-primary btn-lg px-12" do %>
         <%= lucide_icon "edit", class: "w-5 h-5 inline-block mr-2" %>
-        继续编辑此文章
+        继续写作
       <% end %>
     </div>
   </div>

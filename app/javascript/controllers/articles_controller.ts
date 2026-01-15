@@ -37,16 +37,19 @@ export default class extends BaseChannelController {
     "responseDeepseek",
     "responseGemini",
     "responseZhipu",
+    "responseDoubao",
     "copyButtonGrok",
     "copyButtonQwen",
     "copyButtonDeepseek",
     "copyButtonGemini",
     "copyButtonZhipu",
+    "copyButtonDoubao",
     "draftButtonGrok",
     "draftButtonQwen",
     "draftButtonDeepseek",
     "draftButtonGemini",
     "draftButtonZhipu",
+    "draftButtonDoubao",
     "draftSection",
     "draftContent",
     "selectedModelLabel",
@@ -72,16 +75,19 @@ export default class extends BaseChannelController {
   declare readonly responseDeepseekTarget: HTMLElement
   declare readonly responseGeminiTarget: HTMLElement
   declare readonly responseZhipuTarget: HTMLElement
+  declare readonly responseDoubaoTarget: HTMLElement
   declare readonly copyButtonGrokTarget: HTMLElement
   declare readonly copyButtonQwenTarget: HTMLElement
   declare readonly copyButtonDeepseekTarget: HTMLElement
   declare readonly copyButtonGeminiTarget: HTMLElement
   declare readonly copyButtonZhipuTarget: HTMLElement
+  declare readonly copyButtonDoubaoTarget: HTMLElement
   declare readonly draftButtonGrokTarget: HTMLElement
   declare readonly draftButtonQwenTarget: HTMLElement
   declare readonly draftButtonDeepseekTarget: HTMLElement
   declare readonly draftButtonGeminiTarget: HTMLElement
   declare readonly draftButtonZhipuTarget: HTMLElement
+  declare readonly draftButtonDoubaoTarget: HTMLElement
   declare readonly draftSectionTarget: HTMLElement
   declare readonly draftContentTarget: HTMLTextAreaElement
   declare readonly selectedModelLabelTarget: HTMLElement
@@ -105,7 +111,8 @@ export default class extends BaseChannelController {
     qwen: "",
     deepseek: "",
     gemini: "",
-    zhipu: ""
+    zhipu: "",
+    doubao: ""
   }
   private completedModels: Set<string> = new Set()
   private subscriptions: { [key: string]: any } = {}
@@ -144,8 +151,8 @@ export default class extends BaseChannelController {
       }
     )
 
-    // Subscribe to WebSocket channels for all 5 models (for receiving responses)
-    const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
+    // Subscribe to WebSocket channels for all 6 models (for receiving responses)
+    const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu', 'doubao']
     
     providers.forEach(provider => {
       const streamName = `${this.streamNameValue}_${provider}`
@@ -286,7 +293,8 @@ export default class extends BaseChannelController {
       qwen: "",
       deepseek: "",
       gemini: "",
-      zhipu: ""
+      zhipu: "",
+      doubao: ""
     }
     this.completedModels.clear()
 
@@ -299,6 +307,7 @@ export default class extends BaseChannelController {
     this.resetResponseArea("deepseek", "DeepSeek 思考中...")
     this.resetResponseArea("gemini", "Gemini 思考中...")
     this.resetResponseArea("zhipu", "智谱思考中...")
+    this.resetResponseArea("doubao", "豆包思考中...")
 
     // Hide all copy buttons
     this.copyButtonGrokTarget.style.display = "none"
@@ -306,6 +315,7 @@ export default class extends BaseChannelController {
     this.copyButtonDeepseekTarget.style.display = "none"
     this.copyButtonGeminiTarget.style.display = "none"
     this.copyButtonZhipuTarget.style.display = "none"
+    this.copyButtonDoubaoTarget.style.display = "none"
     
     // Hide all draft buttons
     this.draftButtonGrokTarget.style.display = "none"
@@ -313,6 +323,7 @@ export default class extends BaseChannelController {
     this.draftButtonDeepseekTarget.style.display = "none"
     this.draftButtonGeminiTarget.style.display = "none"
     this.draftButtonZhipuTarget.style.display = "none"
+    this.draftButtonDoubaoTarget.style.display = "none"
 
     // Trigger backend job (which will start all 5 models)
     // We only need to call this once - the backend will handle all providers
@@ -344,6 +355,7 @@ export default class extends BaseChannelController {
       case 'deepseek': return this.responseDeepseekTarget
       case 'gemini': return this.responseGeminiTarget
       case 'zhipu': return this.responseZhipuTarget
+      case 'doubao': return this.responseDoubaoTarget
       default: return null
     }
   }
@@ -355,6 +367,7 @@ export default class extends BaseChannelController {
       case 'deepseek': return this.copyButtonDeepseekTarget
       case 'gemini': return this.copyButtonGeminiTarget
       case 'zhipu': return this.copyButtonZhipuTarget
+      case 'doubao': return this.copyButtonDoubaoTarget
       default: return null
     }
   }
@@ -366,6 +379,7 @@ export default class extends BaseChannelController {
       case 'deepseek': return this.draftButtonDeepseekTarget
       case 'gemini': return this.draftButtonGeminiTarget
       case 'zhipu': return this.draftButtonZhipuTarget
+      case 'doubao': return this.draftButtonDoubaoTarget
       default: return null
     }
   }
@@ -400,7 +414,7 @@ export default class extends BaseChannelController {
     }
 
     // If all models are complete, show action buttons
-    if (this.completedModels.size === 5) {
+    if (this.completedModels.size === 6) {
       this.actionButtonsTarget.style.display = "block"
     }
   }
@@ -409,19 +423,28 @@ export default class extends BaseChannelController {
   private handleErrorForProvider(provider: string, message: string): void {
     console.error(`${provider} generation error:`, message)
     
-    const errorMessage = `生成失败: ${message || "未知错误"}`
     const target = this.getResponseTarget(provider)
     
     if (target) {
+      // 显示友好的错误消息
       target.innerHTML = `
-        <div class="text-danger">${errorMessage}</div>
+        <div class="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+          <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-red-800 dark:text-red-200">生成失败</p>
+            <p class="text-sm text-red-700 dark:text-red-300 mt-1">${message}</p>
+          </div>
+        </div>
       `
     }
     
+    // 标记为完成（虽然失败）
     this.completedModels.add(provider)
     
     // If all models are complete (including errors), show action buttons
-    if (this.completedModels.size === 5) {
+    if (this.completedModels.size === 6) {
       this.actionButtonsTarget.style.display = "block"
     }
   }
@@ -476,7 +499,8 @@ export default class extends BaseChannelController {
       qwen: "千问",
       deepseek: "DeepSeek",
       gemini: "Gemini",
-      zhipu: "智谱"
+      zhipu: "智谱",
+      doubao: "豆包"
     }
     this.selectedModelLabelTarget.textContent = modelNames[provider] || provider
     
@@ -703,7 +727,7 @@ export default class extends BaseChannelController {
   // Load history from backend
   private async loadHistory(): Promise<void> {
     try {
-      const response = await fetch('/articles/history')
+      const response = await fetch('/write/history')
       if (!response.ok) {
         throw new Error('Failed to load history')
       }

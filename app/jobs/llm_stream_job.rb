@@ -4,7 +4,15 @@ class LlmStreamJob < ApplicationJob
   # Retry strategy configuration
   retry_on Net::ReadTimeout, wait: 5.seconds, attempts: 3
   retry_on LlmService::TimeoutError, wait: 5.seconds, attempts: 3
-  retry_on LlmService::ApiError, wait: 10.seconds, attempts: 2
+  # 503 (服务过载) - 等待更长时间后重试
+  retry_on LlmService::ApiError, wait: :exponentially_longer, attempts: 3 do |job, exception|
+    # 只对 503 错误重试
+    exception.message.include?('503') || exception.message.include?('overloaded')
+  end
+  # 401/400 (认证错误) - 不重试，直接失败
+  discard_on LlmService::ApiError do |job, exception|
+    exception.message.include?('401') || exception.message.include?('400') || exception.message.include?('invalid') || exception.message.include?('Incorrect API key')
+  end
 
   # Streaming LLM responses via ActionCable for article generation
   # This job handles single-step Grok response:
@@ -42,6 +50,7 @@ class LlmStreamJob < ApplicationJob
     return 'Gemini' if base_url&.include?('generativelanguage')
     return 'Zhipu' if base_url&.include?('bigmodel')
     return 'ChatGPT' if base_url&.include?('openai')
+    return 'Doubao' if base_url&.include?('volces') || base_url&.include?('doubao')
     'Grok'
   end
   
@@ -86,6 +95,14 @@ class LlmStreamJob < ApplicationJob
     when 'ChatGPT'
       <<~PROMPT.strip
         你是 ChatGPT，来自 OpenAI。用户会分享他的想法、观点或内容。
+        
+        #{framework_prompt}
+        
+        直接输出你的回应，不要加任何解释或套话。
+      PROMPT
+    when 'Doubao'
+      <<~PROMPT.strip
+        你是豆包，来自字节跳动。用户会分享他的想法、观点或内容。
         
         #{framework_prompt}
         
@@ -152,12 +169,29 @@ class LlmStreamJob < ApplicationJob
   def generate_and_stream(stream_name, prompt, system, article_id, provider, **options)
     full_content = ""
     
-    LlmService.call(prompt: prompt, system: system, **options) do |chunk|
-      full_content += chunk
+    begin
+      LlmService.call(prompt: prompt, system: system, **options) do |chunk|
+        full_content += chunk
+        ActionCable.server.broadcast(stream_name, {
+          type: 'chunk',
+          chunk: chunk
+        })
+      end
+    rescue LlmService::ApiError => e
+      # 友好的错误消息
+      error_message = parse_error_message(e, provider)
+      
+      # 广播错误到前端
       ActionCable.server.broadcast(stream_name, {
-        type: 'chunk',
-        chunk: chunk
+        type: 'error',
+        message: error_message
       })
+      
+      # 记录错误日志
+      Rails.logger.error "LLM Stream Error (#{provider}): #{e.message}"
+      
+      # 重新抛出异常让 retry_on 处理
+      raise e
     end
     
     # Save to database based on provider
@@ -175,6 +209,8 @@ class LlmStreamJob < ApplicationJob
           article.update!(brainstorm_gemini: full_content)
         when 'zhipu'
           article.update!(brainstorm_zhipu: full_content)
+        when 'doubao'
+          article.update!(brainstorm_doubao: full_content)
         when 'draft'
           article.update!(draft: full_content)
         when 'final'
@@ -187,5 +223,40 @@ class LlmStreamJob < ApplicationJob
       type: 'complete',
       content: full_content
     })
+  end
+  
+  def parse_error_message(error, provider)
+    message = error.message
+    
+    # API密钥错误
+    if message.include?('Incorrect API key') || message.include?('invalid') || message.include?('401')
+      return "#{get_provider_display_name(provider)} API密钥配置错误，请联系管理员检查配置"
+    end
+    
+    # 服务过载
+    if message.include?('503') || message.include?('overloaded')
+      return "#{get_provider_display_name(provider)} 服务繁忙，正在自动重试..."
+    end
+    
+    # 速率限制
+    if message.include?('429') || message.include?('rate limit')
+      return "#{get_provider_display_name(provider)} 请求过于频繁，请稍后再试"
+    end
+    
+    # 通用错误
+    "#{get_provider_display_name(provider)} 服务暂时不可用，请稍后再试"
+  end
+  
+  def get_provider_display_name(provider)
+    case provider
+    when 'grok' then 'Grok'
+    when 'qwen' then '千问'
+    when 'deepseek' then 'DeepSeek'
+    when 'gemini' then 'Gemini'
+    when 'zhipu' then '智谱'
+    when 'doubao' then '豆包'
+    when 'chatgpt' then 'ChatGPT'
+    else provider.to_s.capitalize
+    end
   end
 end

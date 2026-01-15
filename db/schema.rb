@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_14_234236) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_15_081801) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -89,6 +89,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_14_234236) do
     t.integer "word_count", default: 0
     t.string "thinking_framework", default: "original"
     t.bigint "user_id"
+    t.text "brainstorm_doubao"
     t.index ["chapter_id"], name: "index_articles_on_chapter_id"
     t.index ["user_id"], name: "index_articles_on_user_id"
   end

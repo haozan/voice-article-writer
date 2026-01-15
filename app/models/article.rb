@@ -35,7 +35,8 @@ class Article < ApplicationRecord
     brainstorm_qwen.present? || 
     brainstorm_deepseek.present? || 
     brainstorm_gemini.present? || 
-    brainstorm_zhipu.present?
+    brainstorm_zhipu.present? ||
+    brainstorm_doubao.present?
   end
   
   def can_archive?

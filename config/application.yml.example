@@ -75,6 +75,12 @@ CHATGPT_API_KEY_OPTIONAL: '<%= ENV.fetch("CHATGPT_API_KEY", "") %>'
 CHATGPT_MODEL_OPTIONAL: '<%= ENV.fetch("CHATGPT_MODEL", "gpt-5.2") %>'
 # ChatGPT Configuration end
 
+# Doubao (ByteDance) Configuration
+DOUBAO_BASE_URL_OPTIONAL: '<%= ENV.fetch("DOUBAO_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3") %>'
+DOUBAO_API_KEY_OPTIONAL: '<%= ENV.fetch("DOUBAO_API_KEY", "") %>'
+DOUBAO_MODEL_OPTIONAL: '<%= ENV.fetch("DOUBAO_MODEL", "doubao-seed-1-8-251228") %>'
+# Doubao Configuration end
+
 # Image Generation Service Configuration (uses LLM_BASE_URL and LLM_API_KEY)
 IMAGE_GEN_MODEL: '<%= ENV.fetch("CLACKY_IMAGE_GEN_MODEL", "gemini-2.5-flash-image") %>'
 IMAGE_GEN_SIZE: '<%= ENV.fetch("CLACKY_IMAGE_GEN_SIZE", "1024x1024") %>'

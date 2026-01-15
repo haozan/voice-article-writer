@@ -62,7 +62,7 @@ class ArticlesChannel < ApplicationCable::Channel
               end
     
     # List of all available providers
-    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
+    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu', 'doubao']
     
     # Trigger jobs for all providers concurrently
     providers.each do |provider|
@@ -115,6 +115,9 @@ class ArticlesChannel < ApplicationCable::Channel
       
       【智谱 的脑爆】
       #{article.brainstorm_zhipu}
+      
+      【豆包 的脑爆】
+      #{article.brainstorm_doubao}
     CONTENT
     
     draft_prompt = <<~PROMPT
@@ -194,6 +197,12 @@ class ArticlesChannel < ApplicationCable::Channel
         base_url: ENV.fetch('CHATGPT_BASE_URL_OPTIONAL'),
         api_key: ENV.fetch('CHATGPT_API_KEY_OPTIONAL'),
         model: ENV.fetch('CHATGPT_MODEL_OPTIONAL')
+      }
+    when 'doubao'
+      {
+        base_url: ENV.fetch('DOUBAO_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('DOUBAO_API_KEY_OPTIONAL'),
+        model: ENV.fetch('DOUBAO_MODEL_OPTIONAL')
       }
     when 'grok'
       {

@@ -393,6 +393,52 @@
             </div>
           </div>
         </div>
+
+        <!-- Doubao Response -->
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-orange-500/5 to-red-500/5 rounded-none">
+          <div class="card-header border-b border-border flex items-center justify-between">
+            <h3 class="text-lg font-bold text-primary flex items-center gap-2">
+              <%= lucide_icon "flame", class: "w-5 h-5 text-orange-600" %>
+              豆包
+              <span class="text-sm font-normal text-muted">doubao-seed-1-8-251228</span>
+            </h3>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                data-action="click->articles#copyResponse"
+                data-provider="doubao"
+                data-articles-target="copyButtonDoubao"
+                class="btn-primary btn-sm"
+                style="display: none;"
+              >
+                <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                复制
+              </button>
+              <button
+                type="button"
+                data-action="click->articles#generateDraft"
+                data-provider="doubao"
+                data-articles-target="draftButtonDoubao"
+                class="btn-success btn-sm"
+                style="display: none;"
+              >
+                <%= lucide_icon "file-edit", class: "w-4 h-4 inline-block mr-1" %>
+                生成初稿
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div 
+              data-articles-target="responseDoubao"
+              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+            >
+              <div class="flex items-center gap-2 text-muted">
+                <div class="loading-spinner w-4 h-4"></div>
+                <span>豆包思考中...</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Step 3: Draft Section -->
