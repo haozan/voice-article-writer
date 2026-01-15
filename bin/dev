@@ -48,11 +48,6 @@ app_port = EnvChecker.get_app_port
 ENV['APP_PORT'] = app_port
 ENV['PORT'] ||= app_port
 
-# Override LLM configuration to use Grok API
-ENV['CLACKY_LLM_BASE_URL'] = 'https://api.x.ai/v1'
-ENV['CLACKY_LLM_API_KEY'] = 'xai-zSQraL5yh9P8204oppSfAvfkNJyK2T6ivNHVAk1LhDBEPd7xB6XXhc4a3gWvTqY1MOHWF20c69aajyud'
-ENV['CLACKY_LLM_MODEL'] = 'grok-4-1-fast-reasoning'
-
 puts "Starting server on port #{ENV['PORT']}"
 
 # Execute foreman

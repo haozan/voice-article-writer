@@ -10,11 +10,6 @@ require 'open-uri'
 module Myapp
   class Application < Rails::Application
 
-    # Override LLM environment variables for Grok API
-    ENV['CLACKY_LLM_BASE_URL'] = 'https://api.x.ai/v1'
-    ENV['CLACKY_LLM_API_KEY'] = 'xai-zSQraL5yh9P8204oppSfAvfkNJyK2T6ivNHVAk1LhDBEPd7xB6XXhc4a3gWvTqY1MOHWF20c69aajyud'
-    ENV['CLACKY_LLM_MODEL'] = 'grok-4-1-fast-reasoning'
-
     # check environment variables in production
     EnvChecker.check_required_env_vars if Rails.env.production?
 

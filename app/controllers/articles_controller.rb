@@ -42,6 +42,7 @@ class ArticlesController < ApplicationController
           brainstorm_deepseek: @article.brainstorm_deepseek,
           brainstorm_gemini: @article.brainstorm_gemini,
           brainstorm_zhipu: @article.brainstorm_zhipu,
+          brainstorm_doubao: @article.brainstorm_doubao,
           selected_model: @article.selected_model,
           draft: @article.draft,
           final_style: @article.final_style,

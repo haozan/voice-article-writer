@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="flex gap-3">
-        <%= link_to write_path, class: "btn-primary" do %>
+        <%= link_to write_path(article_id: @article.id), class: "btn-primary" do %>
           <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-2" %>
           继续写作
         <% end %>
@@ -49,8 +49,8 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed whitespace-pre-wrap">
-                <%= @article.brainstorm_grok %>
+              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                <%= markdown(@article.brainstorm_grok) %>
               </div>
             </div>
           <% end %>
@@ -64,8 +64,8 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed whitespace-pre-wrap">
-                <%= @article.brainstorm_qwen %>
+              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                <%= markdown(@article.brainstorm_qwen) %>
               </div>
             </div>
           <% end %>
@@ -79,8 +79,8 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed whitespace-pre-wrap">
-                <%= @article.brainstorm_deepseek %>
+              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                <%= markdown(@article.brainstorm_deepseek) %>
               </div>
             </div>
           <% end %>
@@ -94,8 +94,8 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed whitespace-pre-wrap">
-                <%= @article.brainstorm_gemini %>
+              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                <%= markdown(@article.brainstorm_gemini) %>
               </div>
             </div>
           <% end %>
@@ -109,8 +109,8 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed whitespace-pre-wrap">
-                <%= @article.brainstorm_zhipu %>
+              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                <%= markdown(@article.brainstorm_zhipu) %>
               </div>
             </div>
           <% end %>
@@ -124,8 +124,8 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed whitespace-pre-wrap">
-                <%= @article.brainstorm_doubao %>
+              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                <%= markdown(@article.brainstorm_doubao) %>
               </div>
             </div>
           <% end %>
@@ -171,7 +171,7 @@
 
     <!-- Back to Top Button -->
     <div class="text-center mt-8">
-      <%= link_to write_path, class: "btn-primary btn-lg px-12" do %>
+      <%= link_to write_path(article_id: @article.id), class: "btn-primary btn-lg px-12" do %>
         <%= lucide_icon "edit", class: "w-5 h-5 inline-block mr-2" %>
         继续写作
       <% end %>

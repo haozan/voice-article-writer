@@ -52,6 +52,7 @@ yarn-debug.log*
 *.bak
 *~
 .env
+.env.local
 .byebug_history
 .DS_Store
 

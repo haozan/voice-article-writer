@@ -10,8 +10,14 @@
         <h1 class="text-4xl lg:text-5xl font-bold text-primary mb-4 lg:mb-0">
           最小阻力写作
         </h1>
-        <!-- Desktop: button on title row -->
-        <div class="hidden lg:flex lg:absolute lg:right-0 lg:top-0">
+        <!-- Desktop: buttons on title row -->
+        <div class="hidden lg:flex lg:absolute lg:right-0 lg:top-0 gap-3">
+          <% if params[:article_id].present? %>
+            <%= link_to root_path, class: "btn-secondary" do %>
+              <%= lucide_icon "arrow-left", class: "w-5 h-5 inline-block mr-2" %>
+              返回主页
+            <% end %>
+          <% end %>
           <button
             type="button"
             data-action="click->articles#openHistory"
@@ -25,8 +31,14 @@
       <p class="text-lg text-secondary text-center mb-4">
         能说就能写，写出影响力
       </p>
-      <!-- Mobile: button below subtitle -->
-      <div class="flex justify-center lg:hidden">
+      <!-- Mobile: buttons below subtitle -->
+      <div class="flex justify-center gap-3 lg:hidden">
+        <% if params[:article_id].present? %>
+          <%= link_to root_path, class: "btn-secondary" do %>
+            <%= lucide_icon "arrow-left", class: "w-5 h-5 inline-block mr-2" %>
+            返回主页
+          <% end %>
+        <% end %>
         <button
           type="button"
           data-action="click->articles#openHistory"
@@ -41,15 +53,6 @@
     <!-- Main Content Wrapper -->
     <div
     >
-      <!-- Top Action Buttons (Fixed Position) -->
-      <% if params[:article_id].present? %>
-        <div class="fixed top-20 right-6 z-40">
-          <%= link_to articles_path, class: "btn-secondary shadow-lg hover:shadow-xl transition-all" do %>
-            <%= lucide_icon "arrow-left", class: "w-5 h-5 inline-block mr-2" %>
-            返回主页
-          <% end %>
-        </div>
-      <% end %>
       
       <!-- Input Section -->
       <div class="card card-elevated p-6 mb-6 rounded-none">
@@ -200,7 +203,7 @@
           <div class="card-body">
             <div 
               data-articles-target="responseGrok"
-              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+              class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert min-h-[150px] max-h-[400px] overflow-y-auto"
             >
               <div class="flex items-center gap-2 text-muted">
                 <div class="loading-spinner w-4 h-4"></div>
@@ -246,7 +249,7 @@
           <div class="card-body">
             <div 
               data-articles-target="responseQwen"
-              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+              class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert min-h-[150px] max-h-[400px] overflow-y-auto"
             >
               <div class="flex items-center gap-2 text-muted">
                 <div class="loading-spinner w-4 h-4"></div>
@@ -292,7 +295,7 @@
           <div class="card-body">
             <div 
               data-articles-target="responseDeepseek"
-              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+              class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert min-h-[150px] max-h-[400px] overflow-y-auto"
             >
               <div class="flex items-center gap-2 text-muted">
                 <div class="loading-spinner w-4 h-4"></div>
@@ -338,7 +341,7 @@
           <div class="card-body">
             <div 
               data-articles-target="responseGemini"
-              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+              class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert min-h-[150px] max-h-[400px] overflow-y-auto"
             >
               <div class="flex items-center gap-2 text-muted">
                 <div class="loading-spinner w-4 h-4"></div>
@@ -384,7 +387,7 @@
           <div class="card-body">
             <div 
               data-articles-target="responseZhipu"
-              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+              class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert min-h-[150px] max-h-[400px] overflow-y-auto"
             >
               <div class="flex items-center gap-2 text-muted">
                 <div class="loading-spinner w-4 h-4"></div>
@@ -430,7 +433,7 @@
           <div class="card-body">
             <div 
               data-articles-target="responseDoubao"
-              class="text-secondary text-base leading-relaxed whitespace-pre-wrap min-h-[150px] max-h-[400px] overflow-y-auto"
+              class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert min-h-[150px] max-h-[400px] overflow-y-auto"
             >
               <div class="flex items-center gap-2 text-muted">
                 <div class="loading-spinner w-4 h-4"></div>

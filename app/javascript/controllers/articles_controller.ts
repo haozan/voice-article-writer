@@ -1,6 +1,7 @@
 import BaseChannelController from "./base_channel_controller"
 import { showToast } from "../toast"
 import consumer from "../channels/consumer"
+import { marked } from "marked"
 
 /**
  * Articles Controller - Handles "懒人写作术" 4-step workflow
@@ -390,7 +391,8 @@ export default class extends BaseChannelController {
     const target = this.getResponseTarget(provider)
     
     if (target) {
-      target.textContent = this.responseContents[provider]
+      // Render Markdown
+      target.innerHTML = marked.parse(this.responseContents[provider]) as string
       // Auto-scroll to bottom
       target.scrollTop = target.scrollHeight
     }
@@ -427,10 +429,13 @@ export default class extends BaseChannelController {
     
     if (target) {
       // 显示友好的错误消息
+      const errorPath = "M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 " +
+        "1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 " +
+        "00-1.414-1.414L10 8.586 8.707 7.293z"
       target.innerHTML = `
         <div class="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
           <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            <path fill-rule="evenodd" d="${errorPath}" clip-rule="evenodd"/>
           </svg>
           <div class="flex-1">
             <p class="text-sm font-medium text-red-800 dark:text-red-200">生成失败</p>
@@ -820,7 +825,7 @@ export default class extends BaseChannelController {
         this.responsesContainerTarget.style.display = "block"
         
         // Restore brainstorm results
-        const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
+        const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu', 'doubao']
         providers.forEach(provider => {
           const content = article[`brainstorm_${provider}`]
           if (content) {
@@ -831,7 +836,8 @@ export default class extends BaseChannelController {
             const targetName = `response${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
             const target = this[targetName] as HTMLElement
             if (target) {
-              target.textContent = content
+              // Render Markdown for restored content
+              target.innerHTML = marked.parse(content) as string
             }
             
             // Show buttons
@@ -854,7 +860,7 @@ export default class extends BaseChannelController {
         
         const modelNames: { [key: string]: string } = {
           grok: "Grok", qwen: "千问", deepseek: "DeepSeek", 
-          gemini: "Gemini", zhipu: "智谱"
+          gemini: "Gemini", zhipu: "智谱", doubao: "豆包"
         }
         this.selectedModelLabelTarget.textContent = modelNames[article.selected_model] || article.selected_model
       }
