@@ -248,14 +248,20 @@ class ArticlesChannel < ApplicationCable::Channel
     article.update!(final_content: final_content, title_style: style)
     
     style_prompt = get_title_style_prompt(style)
-    title_prompt = style_prompt + "\n\n【文章内容】\n" + final_content
+    
+    # Add timestamp and randomness to ensure different titles each time
+    timestamp_hint = "\n\n【生成时间】#{Time.current.strftime('%Y-%m-%d %H:%M:%S')}\n每次生成都要创造全新的标题，不要重复之前的创意。"
+    title_prompt = style_prompt + timestamp_hint + "\n\n【文章内容】\n" + final_content
     
     llm_config = get_llm_config(article.selected_model)
+    
+    # Add higher temperature for more creativity and randomness
+    llm_config_with_temp = llm_config.merge(temperature: 0.95)
     
     LlmStreamJob.perform_later(
       stream_name: "#{@stream_name}_title",
       prompt: title_prompt,
-      llm_config: llm_config,
+      llm_config: llm_config_with_temp,
       article_id: article.id,
       provider: 'title'
     )

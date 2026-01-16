@@ -390,6 +390,11 @@ export default class extends BaseChannelController {
 
     this.originalTranscript = inputText
 
+    // CRITICAL: Clear article_id to create a new article
+    // Every "Start Conversation" click should create a NEW article
+    this.currentArticleId = null
+    console.log('Starting new conversation, article_id cleared')
+
     // Get selected thinking framework
     const thinkingFramework = this.getSelectedThinkingFramework()
 
@@ -1205,10 +1210,12 @@ export default class extends BaseChannelController {
     }
     this.titleStyleLabelTarget.textContent = styleNames[style] || style
     
-    // Show title container
-    this.titleContainerTarget.style.display = "block"
+    // CRITICAL: Clear old content and reset state
     this.titleContent = ""
     this.titleListTarget.innerHTML = '<p class="text-muted">标题生成中...</p>'
+    
+    // Show title container
+    this.titleContainerTarget.style.display = "block"
     
     // Scroll to title container
     this.titleContainerTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
