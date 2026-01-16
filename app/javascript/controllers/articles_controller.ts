@@ -22,7 +22,8 @@ marked.setOptions({
  * - inputText: Text input area
  * - responsesContainer: Container for all model responses
  * - responseGrok/Qwen/Deepseek/Gemini/Zhipu: Display areas for each model
- * - copyButtonGrok/Qwen/Deepseek/Gemini/Zhipu: Copy buttons for each model
+ * - copyHtmlButtonGrok/Qwen/Deepseek/Gemini/Zhipu: Copy HTML buttons for each model
+ * - copyMarkdownButtonGrok/Qwen/Deepseek/Gemini/Zhipu: Copy Markdown buttons for each model
  * - draftButtonGrok/Qwen/Deepseek/Gemini/Zhipu: Draft generation buttons
  * - draftSection: Draft editing section
  * - draftContent: Draft textarea
@@ -46,12 +47,37 @@ export default class extends BaseChannelController {
     "responseGemini",
     "responseZhipu",
     "responseDoubao",
-    "copyButtonGrok",
-    "copyButtonQwen",
-    "copyButtonDeepseek",
-    "copyButtonGemini",
-    "copyButtonZhipu",
-    "copyButtonDoubao",
+    "responseGrokEdit",
+    "responseQwenEdit",
+    "responseDeepseekEdit",
+    "responseGeminiEdit",
+    "responseZhipuEdit",
+    "responseDoubaoEdit",
+    "editButtonGrok",
+    "editButtonQwen",
+    "editButtonDeepseek",
+    "editButtonGemini",
+    "editButtonZhipu",
+    "editButtonDoubao",
+    "saveButtonGrok",
+    "saveButtonQwen",
+    "saveButtonDeepseek",
+    "saveButtonGemini",
+    "saveButtonZhipu",
+    "saveButtonDoubao",
+    "copyHtmlButtonGrok",
+    "copyHtmlButtonQwen",
+    "copyHtmlButtonDeepseek",
+    "copyHtmlButtonGemini",
+    "copyHtmlButtonZhipu",
+    "copyHtmlButtonDoubao",
+    "copyMarkdownButtonGrok",
+    "copyMarkdownButtonQwen",
+    "copyMarkdownButtonDeepseek",
+    "copyMarkdownButtonGemini",
+    "copyMarkdownButtonZhipu",
+    "copyMarkdownButtonDoubao",
+
     "draftButtonGrok",
     "draftButtonQwen",
     "draftButtonDeepseek",
@@ -60,11 +86,21 @@ export default class extends BaseChannelController {
     "draftButtonDoubao",
     "draftSection",
     "draftContent",
+    "draftContentEdit",
+    "editButtonDraft",
+    "saveButtonDraft",
+    "copyHtmlButtonDraft",
+    "copyMarkdownButtonDraft",
     "selectedModelLabel",
     "finalSection",
     "finalArticleContainer",
     "finalArticlePreview",
     "finalArticle",
+    "finalArticleEdit",
+    "editButtonFinal",
+    "saveButtonFinal",
+    "copyHtmlButtonFinal",
+    "copyMarkdownButtonFinal",
     "finalStyleLabel",
     "titleSection",
     "titleContainer",
@@ -92,12 +128,7 @@ export default class extends BaseChannelController {
   declare readonly responseGeminiTarget: HTMLElement
   declare readonly responseZhipuTarget: HTMLElement
   declare readonly responseDoubaoTarget: HTMLElement
-  declare readonly copyButtonGrokTarget: HTMLElement
-  declare readonly copyButtonQwenTarget: HTMLElement
-  declare readonly copyButtonDeepseekTarget: HTMLElement
-  declare readonly copyButtonGeminiTarget: HTMLElement
-  declare readonly copyButtonZhipuTarget: HTMLElement
-  declare readonly copyButtonDoubaoTarget: HTMLElement
+
   declare readonly draftButtonGrokTarget: HTMLElement
   declare readonly draftButtonQwenTarget: HTMLElement
   declare readonly draftButtonDeepseekTarget: HTMLElement
@@ -149,6 +180,16 @@ export default class extends BaseChannelController {
   private finalContent: string = ""
   private titleContent: string = ""
   private variantContent: string = ""
+  private responseEditMode: { [key: string]: boolean } = {
+    grok: false,
+    qwen: false,
+    deepseek: false,
+    gemini: false,
+    zhipu: false,
+    doubao: false
+  }
+  private draftEditMode: boolean = false
+  private finalEditMode: boolean = false
 
   connect(): void {
     console.log("Articles controller connected")
@@ -391,13 +432,7 @@ export default class extends BaseChannelController {
     this.resetResponseArea("zhipu", "智谱思考中...")
     this.resetResponseArea("doubao", "豆包思考中...")
 
-    // Hide all copy buttons
-    this.copyButtonGrokTarget.style.display = "none"
-    this.copyButtonQwenTarget.style.display = "none"
-    this.copyButtonDeepseekTarget.style.display = "none"
-    this.copyButtonGeminiTarget.style.display = "none"
-    this.copyButtonZhipuTarget.style.display = "none"
-    this.copyButtonDoubaoTarget.style.display = "none"
+    // Hide all copy buttons (edit, save, copyHtml, copyMarkdown buttons are hidden by default with style="display: none")
     
     // Hide all draft buttons
     this.draftButtonGrokTarget.style.display = "none"
@@ -442,14 +477,64 @@ export default class extends BaseChannelController {
     }
   }
 
-  private getCopyButtonTarget(provider: string): HTMLElement | null {
+
+  
+  private getEditButtonTarget(provider: string): HTMLElement | null {
     switch (provider) {
-      case 'grok': return this.copyButtonGrokTarget
-      case 'qwen': return this.copyButtonQwenTarget
-      case 'deepseek': return this.copyButtonDeepseekTarget
-      case 'gemini': return this.copyButtonGeminiTarget
-      case 'zhipu': return this.copyButtonZhipuTarget
-      case 'doubao': return this.copyButtonDoubaoTarget
+      case 'grok': return (this as any).editButtonGrokTarget
+      case 'qwen': return (this as any).editButtonQwenTarget
+      case 'deepseek': return (this as any).editButtonDeepseekTarget
+      case 'gemini': return (this as any).editButtonGeminiTarget
+      case 'zhipu': return (this as any).editButtonZhipuTarget
+      case 'doubao': return (this as any).editButtonDoubaoTarget
+      default: return null
+    }
+  }
+  
+  private getSaveButtonTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return (this as any).saveButtonGrokTarget
+      case 'qwen': return (this as any).saveButtonQwenTarget
+      case 'deepseek': return (this as any).saveButtonDeepseekTarget
+      case 'gemini': return (this as any).saveButtonGeminiTarget
+      case 'zhipu': return (this as any).saveButtonZhipuTarget
+      case 'doubao': return (this as any).saveButtonDoubaoTarget
+      default: return null
+    }
+  }
+  
+  private getCopyHtmlButtonTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return (this as any).copyHtmlButtonGrokTarget
+      case 'qwen': return (this as any).copyHtmlButtonQwenTarget
+      case 'deepseek': return (this as any).copyHtmlButtonDeepseekTarget
+      case 'gemini': return (this as any).copyHtmlButtonGeminiTarget
+      case 'zhipu': return (this as any).copyHtmlButtonZhipuTarget
+      case 'doubao': return (this as any).copyHtmlButtonDoubaoTarget
+      default: return null
+    }
+  }
+  
+  private getCopyMarkdownButtonTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return (this as any).copyMarkdownButtonGrokTarget
+      case 'qwen': return (this as any).copyMarkdownButtonQwenTarget
+      case 'deepseek': return (this as any).copyMarkdownButtonDeepseekTarget
+      case 'gemini': return (this as any).copyMarkdownButtonGeminiTarget
+      case 'zhipu': return (this as any).copyMarkdownButtonZhipuTarget
+      case 'doubao': return (this as any).copyMarkdownButtonDoubaoTarget
+      default: return null
+    }
+  }
+  
+  private getResponseEditTarget(provider: string): HTMLTextAreaElement | null {
+    switch (provider) {
+      case 'grok': return (this as any).responseGrokEditTarget
+      case 'qwen': return (this as any).responseQwenEditTarget
+      case 'deepseek': return (this as any).responseDeepseekEditTarget
+      case 'gemini': return (this as any).responseGeminiEditTarget
+      case 'zhipu': return (this as any).responseZhipuEditTarget
+      case 'doubao': return (this as any).responseDoubaoEditTarget
       default: return null
     }
   }
@@ -484,17 +569,16 @@ export default class extends BaseChannelController {
     console.log(`${provider} response complete`)
     this.completedModels.add(provider)
     
-    // Show copy button for this provider
-    const copyButton = this.getCopyButtonTarget(provider)
-    if (copyButton) {
-      copyButton.style.display = "inline-flex"
-    }
-    
-    // Show draft button for this provider
+    // Show edit, copy HTML, copy markdown, and draft buttons
+    const editButton = this.getEditButtonTarget(provider)
+    const copyHtmlButton = this.getCopyHtmlButtonTarget(provider)
+    const copyMarkdownButton = this.getCopyMarkdownButtonTarget(provider)
     const draftButton = this.getDraftButtonTarget(provider)
-    if (draftButton) {
-      draftButton.style.display = "inline-flex"
-    }
+    
+    if (editButton) editButton.style.display = "inline-flex"
+    if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
+    if (draftButton) draftButton.style.display = "inline-flex"
 
     // All models complete (5 models, Doubao hidden)
     if (this.completedModels.size === 5) {
@@ -562,6 +646,108 @@ export default class extends BaseChannelController {
     })
   }
   
+  // Edit a specific provider's response
+  editResponse(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider) return
+    
+    const responseDiv = this.getResponseTarget(provider)
+    const responseEdit = this.getResponseEditTarget(provider)
+    const editButton = this.getEditButtonTarget(provider)
+    const saveButton = this.getSaveButtonTarget(provider)
+    const copyHtmlButton = this.getCopyHtmlButtonTarget(provider)
+    const copyMarkdownButton = this.getCopyMarkdownButtonTarget(provider)
+    const draftButton = this.getDraftButtonTarget(provider)
+    
+    if (!responseDiv || !responseEdit) return
+    
+    // Switch to edit mode
+    this.responseEditMode[provider] = true
+    responseDiv.style.display = "none"
+    responseEdit.style.display = "block"
+    responseEdit.value = this.responseContents[provider]
+    
+    // Switch buttons
+    if (editButton) editButton.style.display = "none"
+    if (saveButton) saveButton.style.display = "inline-flex"
+    if (copyHtmlButton) copyHtmlButton.style.display = "none"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "none"
+    if (draftButton) draftButton.style.display = "none"
+  }
+  
+  // Save edited response
+  saveResponse(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider) return
+    
+    const responseDiv = this.getResponseTarget(provider)
+    const responseEdit = this.getResponseEditTarget(provider)
+    const editButton = this.getEditButtonTarget(provider)
+    const saveButton = this.getSaveButtonTarget(provider)
+    const copyHtmlButton = this.getCopyHtmlButtonTarget(provider)
+    const copyMarkdownButton = this.getCopyMarkdownButtonTarget(provider)
+    const draftButton = this.getDraftButtonTarget(provider)
+    
+    if (!responseDiv || !responseEdit) return
+    
+    // Update content
+    this.responseContents[provider] = responseEdit.value
+    responseDiv.innerHTML = marked.parse(this.responseContents[provider]) as string
+    
+    // Switch back to view mode
+    this.responseEditMode[provider] = false
+    responseDiv.style.display = "block"
+    responseEdit.style.display = "none"
+    
+    // Switch buttons
+    if (editButton) editButton.style.display = "inline-flex"
+    if (saveButton) saveButton.style.display = "none"
+    if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
+    if (draftButton) draftButton.style.display = "inline-flex"
+    
+    showToast("已保存", "success")
+  }
+  
+  // Copy response HTML (with styles)
+  copyResponseHtml(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider) return
+    
+    const responseDiv = this.getResponseTarget(provider)
+    if (!responseDiv) return
+    
+    const htmlContent = responseDiv.innerHTML
+    
+    navigator.clipboard.writeText(htmlContent).then(() => {
+      showToast("已复制HTML", "success")
+    }).catch(err => {
+      console.error("Failed to copy:", err)
+      showToast("复制失败", "danger")
+    })
+  }
+  
+  // Copy response Markdown
+  copyResponseMarkdown(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider || !this.responseContents[provider]) return
+    
+    navigator.clipboard.writeText(this.responseContents[provider]).then(() => {
+      showToast("已复制Markdown", "success")
+    }).catch(err => {
+      console.error("Failed to copy:", err)
+      showToast("复制失败", "danger")
+    })
+  }
+  
   // Generate draft using selected model
   generateDraft(event: Event): void {
     const button = event.currentTarget as HTMLElement
@@ -610,36 +796,96 @@ export default class extends BaseChannelController {
   // Handle draft chunks
   private handleDraftChunk(chunk: string): void {
     this.draftContent += chunk
-    this.draftContentTarget.value = this.draftContent
-    // Auto-scroll to bottom
-    this.draftContentTarget.scrollTop = this.draftContentTarget.scrollHeight
+    // Update rendered view with markdown
+    const draftDiv = (this as any).draftContentTarget as HTMLElement
+    if (draftDiv) {
+      draftDiv.innerHTML = marked.parse(this.draftContent) as string
+      // Auto-scroll to bottom
+      draftDiv.scrollTop = draftDiv.scrollHeight
+    }
   }
   
   // Handle draft complete
   private handleDraftComplete(): void {
     console.log("Draft generation complete")
     showToast("初稿生成完成，您可以编辑后继续", "success")
+    
+    // Show edit, copy HTML, copy markdown buttons
+    const editButton = (this as any).editButtonDraftTarget as HTMLElement
+    const copyHtmlButton = (this as any).copyHtmlButtonDraftTarget as HTMLElement
+    const copyMarkdownButton = (this as any).copyMarkdownButtonDraftTarget as HTMLElement
+    
+    if (editButton) editButton.style.display = "inline-flex"
+    if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
   }
   
-  // Copy draft to clipboard
-  copyDraft(): void {
-    const draftText = this.draftContentTarget.value.trim()
-    if (!draftText || draftText.length === 0) {
+  // Edit draft
+  editDraft(): void {
+    const draftDiv = (this as any).draftContentTarget as HTMLElement
+    const draftEdit = (this as any).draftContentEditTarget as HTMLTextAreaElement
+    const editButton = (this as any).editButtonDraftTarget as HTMLElement
+    const saveButton = (this as any).saveButtonDraftTarget as HTMLElement
+    const copyHtmlButton = (this as any).copyHtmlButtonDraftTarget as HTMLElement
+    const copyMarkdownButton = (this as any).copyMarkdownButtonDraftTarget as HTMLElement
+    
+    if (!draftDiv || !draftEdit) return
+    
+    // Switch to edit mode
+    this.draftEditMode = true
+    draftDiv.style.display = "none"
+    draftEdit.style.display = "block"
+    draftEdit.value = this.draftContent
+    
+    // Switch buttons
+    if (editButton) editButton.style.display = "none"
+    if (saveButton) saveButton.style.display = "inline-flex"
+    if (copyHtmlButton) copyHtmlButton.style.display = "none"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "none"
+  }
+  
+  // Copy draft HTML
+  copyDraftHtml(): void {
+    const draftDiv = (this as any).draftContentTarget as HTMLElement
+    if (!draftDiv) return
+    
+    const htmlContent = draftDiv.innerHTML
+    
+    navigator.clipboard.writeText(htmlContent).then(() => {
+      showToast("已复制HTML", "success")
+    }).catch(err => {
+      console.error("Failed to copy:", err)
+      showToast("复制失败", "danger")
+    })
+  }
+  
+  // Copy draft Markdown
+  copyDraftMarkdown(): void {
+    if (!this.draftContent) {
       showToast("草稿内容为空", "warning")
       return
     }
-
-    navigator.clipboard.writeText(draftText).then(() => {
-      showToast("草稿已复制到剪贴板", "success")
+    
+    navigator.clipboard.writeText(this.draftContent).then(() => {
+      showToast("已复制Markdown", "success")
     }).catch(err => {
       console.error("Failed to copy:", err)
-      showToast("复制失败，请手动选择并复制文本", "danger")
+      showToast("复制失败", "danger")
     })
   }
   
   // Save draft (after user edits)
   saveDraft(): void {
-    const draftText = this.draftContentTarget.value.trim()
+    const draftDiv = (this as any).draftContentTarget as HTMLElement
+    const draftEdit = (this as any).draftContentEditTarget as HTMLTextAreaElement
+    const editButton = (this as any).editButtonDraftTarget as HTMLElement
+    const saveButton = (this as any).saveButtonDraftTarget as HTMLElement
+    const copyHtmlButton = (this as any).copyHtmlButtonDraftTarget as HTMLElement
+    const copyMarkdownButton = (this as any).copyMarkdownButtonDraftTarget as HTMLElement
+    
+    if (!draftDiv || !draftEdit) return
+    
+    const draftText = draftEdit.value.trim()
     if (!draftText || draftText.length === 0) {
       showToast("草稿内容为空", "warning")
       return
@@ -650,8 +896,20 @@ export default class extends BaseChannelController {
       return
     }
     
-    // Update local state
+    // Update local state and render
     this.draftContent = draftText
+    draftDiv.innerHTML = marked.parse(this.draftContent) as string
+    
+    // Switch back to view mode
+    this.draftEditMode = false
+    draftDiv.style.display = "block"
+    draftEdit.style.display = "none"
+    
+    // Switch buttons
+    if (editButton) editButton.style.display = "inline-flex"
+    if (saveButton) saveButton.style.display = "none"
+    if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
     
     // Send to backend
     if (this.commandSubscription) {
@@ -664,9 +922,7 @@ export default class extends BaseChannelController {
   
   // Show style selection (Step 4)
   showStyleSelection(): void {
-    // Save current draft content
-    this.draftContent = this.draftContentTarget.value
-    
+    // Check if draft content exists and is sufficient
     if (!this.draftContent || this.draftContent.trim().length < 50) {
       showToast("草稿内容太短，请至少输入50个字", "warning")
       return
@@ -721,10 +977,13 @@ export default class extends BaseChannelController {
   // Handle final chunks
   private handleFinalChunk(chunk: string): void {
     this.finalContent += chunk
-    // Update textarea with plain markdown text
-    this.finalArticleTarget.value = this.finalContent
-    // Auto-scroll to bottom
-    this.finalArticleTarget.scrollTop = this.finalArticleTarget.scrollHeight
+    // Update rendered view with markdown
+    const finalDiv = (this as any).finalArticleTarget as HTMLElement
+    if (finalDiv && finalDiv.classList.contains('prose')) {
+      finalDiv.innerHTML = marked.parse(this.finalContent) as string
+      // Auto-scroll to bottom
+      finalDiv.scrollTop = finalDiv.scrollHeight
+    }
   }
   
   // Handle final complete
@@ -732,12 +991,75 @@ export default class extends BaseChannelController {
     console.log("Final article generation complete")
     showToast("定稿生成完成！", "success")
     
+    // Show edit, copy HTML, copy markdown buttons
+    const editButton = (this as any).editButtonFinalTarget as HTMLElement
+    const copyHtmlButton = (this as any).copyHtmlButtonFinalTarget as HTMLElement
+    const copyMarkdownButton = (this as any).copyMarkdownButtonFinalTarget as HTMLElement
+    
+    if (editButton) editButton.style.display = "inline-flex"
+    if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
+    
     // Show Step 5: Title Generation Section
     this.titleSectionTarget.style.display = "block"
     this.titleSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   
-  // Copy final article
+  // Edit final article
+  editFinal(): void {
+    const finalDiv = (this as any).finalArticleTarget as HTMLElement
+    const finalEdit = (this as any).finalArticleEditTarget as HTMLTextAreaElement
+    const editButton = (this as any).editButtonFinalTarget as HTMLElement
+    const saveButton = (this as any).saveButtonFinalTarget as HTMLElement
+    const copyHtmlButton = (this as any).copyHtmlButtonFinalTarget as HTMLElement
+    const copyMarkdownButton = (this as any).copyMarkdownButtonFinalTarget as HTMLElement
+    
+    if (!finalDiv || !finalEdit) return
+    
+    // Switch to edit mode
+    this.finalEditMode = true
+    finalDiv.style.display = "none"
+    finalEdit.style.display = "block"
+    finalEdit.value = this.finalContent
+    
+    // Switch buttons
+    if (editButton) editButton.style.display = "none"
+    if (saveButton) saveButton.style.display = "inline-flex"
+    if (copyHtmlButton) copyHtmlButton.style.display = "none"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "none"
+  }
+  
+  // Copy final HTML
+  copyFinalHtml(): void {
+    const finalDiv = (this as any).finalArticleTarget as HTMLElement
+    if (!finalDiv) return
+    
+    const htmlContent = finalDiv.innerHTML
+    
+    navigator.clipboard.writeText(htmlContent).then(() => {
+      showToast("已复制HTML", "success")
+    }).catch(err => {
+      console.error("Failed to copy:", err)
+      showToast("复制失败", "danger")
+    })
+  }
+  
+  // Copy final Markdown
+  copyFinalMarkdown(): void {
+    if (!this.finalContent) {
+      showToast("定稿内容为空", "warning")
+      return
+    }
+    
+    navigator.clipboard.writeText(this.finalContent).then(() => {
+      showToast("已复制Markdown", "success")
+    }).catch(err => {
+      console.error("Failed to copy:", err)
+      showToast("复制失败", "danger")
+    })
+  }
+  
+  // Copy final article (deprecated, for backward compatibility)
   copyFinal(): void {
     const finalText = this.finalArticleTarget.value.trim()
     if (!finalText || finalText.length === 0) {
@@ -755,7 +1077,16 @@ export default class extends BaseChannelController {
   
   // Save final article (after user edits)
   saveFinal(): void {
-    const finalText = this.finalArticleTarget.value.trim()
+    const finalDiv = (this as any).finalArticleTarget as HTMLElement
+    const finalEdit = (this as any).finalArticleEditTarget as HTMLTextAreaElement
+    const editButton = (this as any).editButtonFinalTarget as HTMLElement
+    const saveButton = (this as any).saveButtonFinalTarget as HTMLElement
+    const copyHtmlButton = (this as any).copyHtmlButtonFinalTarget as HTMLElement
+    const copyMarkdownButton = (this as any).copyMarkdownButtonFinalTarget as HTMLElement
+    
+    if (!finalDiv || !finalEdit) return
+    
+    const finalText = finalEdit.value.trim()
     if (!finalText || finalText.length === 0) {
       showToast("定稿内容为空", "warning")
       return
@@ -766,8 +1097,20 @@ export default class extends BaseChannelController {
       return
     }
     
-    // Update local state
+    // Update local state and render
     this.finalContent = finalText
+    finalDiv.innerHTML = marked.parse(this.finalContent) as string
+    
+    // Switch back to view mode
+    this.finalEditMode = false
+    finalDiv.style.display = "block"
+    finalEdit.style.display = "none"
+    
+    // Switch buttons
+    if (editButton) editButton.style.display = "inline-flex"
+    if (saveButton) saveButton.style.display = "none"
+    if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
     
     // Send to backend
     if (this.commandSubscription) {
@@ -813,15 +1156,7 @@ export default class extends BaseChannelController {
     this.variantSectionTarget.style.display = "none"
     this.variantContainerTarget.style.display = "none"
     
-    // Hide all copy buttons
-    this.copyButtonGrokTarget.style.display = "none"
-    this.copyButtonQwenTarget.style.display = "none"
-    this.copyButtonDeepseekTarget.style.display = "none"
-    this.copyButtonGeminiTarget.style.display = "none"
-    this.copyButtonZhipuTarget.style.display = "none"
-    this.copyButtonDoubaoTarget.style.display = "none"
-    
-    // Hide all draft buttons
+    // Hide all draft buttons (other buttons are hidden by default with style="display: none")
     this.draftButtonGrokTarget.style.display = "none"
     this.draftButtonQwenTarget.style.display = "none"
     this.draftButtonDeepseekTarget.style.display = "none"
@@ -837,10 +1172,11 @@ export default class extends BaseChannelController {
     this.responseZhipuTarget.innerHTML = ""
     this.responseDoubaoTarget.innerHTML = ""
     
-    // Reset draft, final, title and variant content
-    this.draftContentTarget.value = ""
-    this.finalArticleTarget.value = ""
-    this.titleTextTarget.value = ""
+    // Reset draft, final and variant content
+    const draftDiv = (this as any).draftContentTarget as HTMLElement
+    const finalDiv = (this as any).finalArticleTarget as HTMLElement
+    if (draftDiv) draftDiv.innerHTML = '<p class="text-muted">草稿生成中...</p>'
+    if (finalDiv) finalDiv.innerHTML = '<p class="text-muted">定稿生成中...</p>'
     this.variantTextTarget.value = ""
 
     // Scroll to top
@@ -1238,13 +1574,21 @@ export default class extends BaseChannelController {
               target.innerHTML = marked.parse(content) as string
             }
             
-            // Show buttons
-            const copyButtonName = `copyButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
+            // Show buttons (edit, copyHtml, copyMarkdown, draft)
+            const editButtonName = `editButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
+            const copyHtmlButtonName = `copyHtmlButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
+            const copyMarkdownButtonName = `copyMarkdownButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
             const draftButtonName = `draftButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
-            const copyButton = this[copyButtonName] as HTMLElement
+            
+            const editButton = this[editButtonName] as HTMLElement
+            const copyHtmlButton = this[copyHtmlButtonName] as HTMLElement
+            const copyMarkdownButton = this[copyMarkdownButtonName] as HTMLElement
             const draftButton = this[draftButtonName] as HTMLElement
-            if (copyButton) copyButton.style.display = "inline-block"
-            if (draftButton) draftButton.style.display = "inline-block"
+            
+            if (editButton) editButton.style.display = "inline-flex"
+            if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
+            if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
+            if (draftButton) draftButton.style.display = "inline-flex"
           }
         })
       }
@@ -1254,7 +1598,20 @@ export default class extends BaseChannelController {
         this.selectedModel = article.selected_model
         this.draftContent = article.draft
         this.draftSectionTarget.style.display = "block"
-        this.draftContentTarget.value = article.draft
+        
+        // Render markdown in div (view mode)
+        const draftDiv = (this as any).draftContentTarget as HTMLElement
+        if (draftDiv) {
+          draftDiv.innerHTML = marked.parse(article.draft) as string
+        }
+        
+        // Show edit, copyHtml, copyMarkdown buttons
+        const editButtonDraft = (this as any).editButtonDraftTarget as HTMLElement
+        const copyHtmlButtonDraft = (this as any).copyHtmlButtonDraftTarget as HTMLElement
+        const copyMarkdownButtonDraft = (this as any).copyMarkdownButtonDraftTarget as HTMLElement
+        if (editButtonDraft) editButtonDraft.style.display = "inline-flex"
+        if (copyHtmlButtonDraft) copyHtmlButtonDraft.style.display = "inline-flex"
+        if (copyMarkdownButtonDraft) copyMarkdownButtonDraft.style.display = "inline-flex"
         
         const modelNames: { [key: string]: string } = {
           grok: "Grok", qwen: "千问", deepseek: "DeepSeek", 
@@ -1268,8 +1625,20 @@ export default class extends BaseChannelController {
         this.finalContent = article.final_content
         this.finalSectionTarget.style.display = "block"
         this.finalArticleContainerTarget.style.display = "block"
-        // Set textarea value directly (no markdown rendering needed)
-        this.finalArticleTarget.value = article.final_content
+        
+        // Render markdown in div (view mode)
+        const finalDiv = (this as any).finalArticleTarget as HTMLElement
+        if (finalDiv && finalDiv.classList.contains('prose')) {
+          finalDiv.innerHTML = marked.parse(article.final_content) as string
+        }
+        
+        // Show edit, copyHtml, copyMarkdown buttons
+        const editButtonFinal = (this as any).editButtonFinalTarget as HTMLElement
+        const copyHtmlButtonFinal = (this as any).copyHtmlButtonFinalTarget as HTMLElement
+        const copyMarkdownButtonFinal = (this as any).copyMarkdownButtonFinalTarget as HTMLElement
+        if (editButtonFinal) editButtonFinal.style.display = "inline-flex"
+        if (copyHtmlButtonFinal) copyHtmlButtonFinal.style.display = "inline-flex"
+        if (copyMarkdownButtonFinal) copyMarkdownButtonFinal.style.display = "inline-flex"
         
         const styleNames: { [key: string]: string } = {
           pinker: "史蒂芬·平克",

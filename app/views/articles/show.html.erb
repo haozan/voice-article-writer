@@ -22,13 +22,13 @@
     </div>
 
     <!-- Original Input -->
+    <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+      <div class="w-1 h-6 bg-orange-500"></div>
+      原始输入
+    </h2>
     <div class="card card-elevated p-6 mb-6 rounded-none">
-      <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2">
-        <%= lucide_icon "mic", class: "w-5 h-5" %>
-        原始输入
-      </h2>
-      <div class="text-secondary text-base leading-relaxed whitespace-pre-wrap">
-        <%= @article.transcript || '无内容' %>
+      <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+        <%= markdown(@article.transcript || '无内容') %>
       </div>
     </div>
 
@@ -36,14 +36,14 @@
     <% if @article.has_brainstorm? %>
       <div class="mb-6">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-          <%= lucide_icon "lightbulb", class: "w-6 h-6" %>
+          <div class="w-1 h-6 bg-orange-500"></div>
           AI 脑爆结果
         </h2>
         <div class="space-y-4">
           <% if @article.brainstorm_grok.present? %>
             <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
-                <%= lucide_icon "zap", class: "w-5 h-5" %>
+                <%= image_tag "grok-logo.png", class: "w-5 h-5", alt: "Grok" %>
                 Grok
                 <% if @article.selected_model == 'grok' %>
                   <span class="badge badge-success text-xs">已选择</span>
@@ -58,7 +58,7 @@
           <% if @article.brainstorm_qwen.present? %>
             <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
-                <%= lucide_icon "zap", class: "w-5 h-5" %>
+                <%= image_tag "qwen-logo.png", class: "w-5 h-5", alt: "千问" %>
                 千问
                 <% if @article.selected_model == 'qwen' %>
                   <span class="badge badge-success text-xs">已选择</span>
@@ -73,7 +73,7 @@
           <% if @article.brainstorm_deepseek.present? %>
             <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
-                <%= lucide_icon "zap", class: "w-5 h-5" %>
+                <%= image_tag "deepseek-logo.png", class: "w-5 h-5", alt: "DeepSeek" %>
                 DeepSeek
                 <% if @article.selected_model == 'deepseek' %>
                   <span class="badge badge-success text-xs">已选择</span>
@@ -88,7 +88,7 @@
           <% if @article.brainstorm_gemini.present? %>
             <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
-                <%= lucide_icon "zap", class: "w-5 h-5" %>
+                <%= image_tag "gemini-logo.png", class: "w-5 h-5", alt: "Gemini" %>
                 Gemini
                 <% if @article.selected_model == 'gemini' %>
                   <span class="badge badge-success text-xs">已选择</span>
@@ -103,7 +103,7 @@
           <% if @article.brainstorm_zhipu.present? %>
             <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
-                <%= lucide_icon "zap", class: "w-5 h-5" %>
+                <%= image_tag "zhipu-logo.png", class: "w-5 h-5", alt: "智谱" %>
                 智谱
                 <% if @article.selected_model == 'zhipu' %>
                   <span class="badge badge-success text-xs">已选择</span>
@@ -135,11 +135,11 @@
 
     <!-- Draft -->
     <% if @article.draft.present? %>
+      <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+        <div class="w-1 h-6 bg-orange-500"></div>
+        初稿
+      </h2>
       <div class="card card-elevated p-6 mb-6 rounded-none">
-        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-          <%= lucide_icon "file-edit", class: "w-6 h-6" %>
-          初稿
-        </h2>
         <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
           <%= markdown(@article.draft) %>
         </div>
@@ -148,21 +148,21 @@
 
     <!-- Final Content -->
     <% if @article.final_content.present? %>
+      <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+        <div class="w-1 h-6 bg-orange-500"></div>
+        最终定稿
+        <% if @article.final_style.present? %>
+          <span class="badge badge-success">
+            <%= case @article.final_style
+                when 'pinker' then '史蒂芬·平克风格'
+                when 'luozhenyu' then '罗振宇风格'
+                when 'wangxiaobo' then '王小波风格'
+                else @article.final_style
+                end %>
+          </span>
+        <% end %>
+      </h2>
       <div class="card card-elevated p-6 mb-6 rounded-none">
-        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-          <%= lucide_icon "check-circle", class: "w-6 h-6" %>
-          最终定稿
-          <% if @article.final_style.present? %>
-            <span class="badge badge-success">
-              <%= case @article.final_style
-                  when 'pinker' then '史蒂芬·平克风格'
-                  when 'luozhenyu' then '罗振宇风格'
-                  when 'wangxiaobo' then '王小波风格'
-                  else @article.final_style
-                  end %>
-            </span>
-          <% end %>
-        </h2>
         <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
           <%= markdown(@article.final_content) %>
         </div>
@@ -171,30 +171,30 @@
     
     <!-- Viral Title -->
     <% if @article.title.present? %>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
+          <div class="w-1 h-6 bg-orange-500"></div>
+          爆款标题
+          <% if @article.title_style.present? %>
+            <span class="badge badge-success">
+              <%= case @article.title_style
+                  when 'mimeng' then '迷蒙体'
+                  when 'normal' then '普通风格'
+                  else @article.title_style
+                  end %>
+            </span>
+          <% end %>
+        </h2>
+        <button
+          type="button"
+          onclick="copyAllTitles()"
+          class="btn-primary btn-sm"
+        >
+          <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+          复制全部
+        </button>
+      </div>
       <div class="card card-elevated p-6 mb-6 rounded-none">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
-            <%= lucide_icon "sparkles", class: "w-6 h-6" %>
-            爆款标题
-            <% if @article.title_style.present? %>
-              <span class="badge badge-success">
-                <%= case @article.title_style
-                    when 'mimeng' then '迷蒙体'
-                    when 'normal' then '普通风格'
-                    else @article.title_style
-                    end %>
-              </span>
-            <% end %>
-          </h2>
-          <button
-            type="button"
-            onclick="copyAllTitles()"
-            class="btn-primary btn-sm"
-          >
-            <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
-            复制全部
-          </button>
-        </div>
         
         <!-- Title list display -->
         <div class="space-y-3 text-foreground text-lg leading-relaxed">
@@ -241,20 +241,20 @@
 
     <!-- Variant -->
     <% if @article.variant.present? %>
+      <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+        <div class="w-1 h-6 bg-orange-500"></div>
+        内容变体
+        <% if @article.variant_style.present? %>
+          <span class="badge badge-success">
+            <%= case @article.variant_style
+                when 'xiaolvshu' then '小绿书'
+                when 'xiaohongshu' then '小红书'
+                else @article.variant_style
+                end %>
+          </span>
+        <% end %>
+      </h2>
       <div class="card card-elevated p-6 mb-6 rounded-none">
-        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-          <%= lucide_icon "shuffle", class: "w-6 h-6" %>
-          内容变体
-          <% if @article.variant_style.present? %>
-            <span class="badge badge-success">
-              <%= case @article.variant_style
-                  when 'xiaolvshu' then '小绿书'
-                  when 'xiaohongshu' then '小红书'
-                  else @article.variant_style
-                  end %>
-            </span>
-          <% end %>
-        </h2>
         <div class="text-secondary text-base leading-relaxed px-4 py-3 bg-surface/50 border-2 border-primary/20 rounded-none prose prose-lg max-w-none">
           <%= markdown(@article.variant) %>
         </div>
