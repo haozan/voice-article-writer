@@ -585,9 +585,10 @@ export default class extends BaseChannelController {
     const target = this.getResponseTarget(provider)
     
     if (target) {
-      // Render Markdown with header fix
-      const fixedMarkdown = fixMarkdownHeaders(this.responseContents[provider])
-      target.innerHTML = marked.parse(fixedMarkdown) as string
+      // Display raw Markdown text (no rendering)
+      // Why: Brainstorm phase focuses on ideas, not formatting
+      // Benefits: Zero format errors, better performance, no layout shifts
+      target.textContent = this.responseContents[provider]
       // Auto-scroll to bottom
       target.scrollTop = target.scrollHeight
     }
@@ -725,8 +726,7 @@ export default class extends BaseChannelController {
     
     // Update content
     this.responseContents[provider] = responseEdit.value
-    const fixedMarkdown = fixMarkdownHeaders(this.responseContents[provider])
-    responseDiv.innerHTML = marked.parse(fixedMarkdown) as string
+    responseDiv.textContent = this.responseContents[provider]
     
     // Switch back to view mode
     this.responseEditMode[provider] = false
