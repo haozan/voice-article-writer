@@ -25,7 +25,9 @@ class LlmService < ApplicationService
     @model = options[:model] || options['model'] || ENV.fetch('LLM_MODEL')
     @temperature = (options[:temperature] || options['temperature'])&.to_f || 0.7
     @max_tokens = options[:max_tokens] || options['max_tokens'] || 4000
-    @timeout = options[:timeout] || options['timeout'] || 30
+    
+    # Smart timeout based on model capabilities
+    @timeout = options[:timeout] || options['timeout'] || smart_timeout_for_model(@model)
     @images = normalize_images(options[:images] || options['images'])
     
     # Support custom base_url and api_key (both symbol and string keys)
@@ -82,7 +84,18 @@ class LlmService < ApplicationService
   # Simple blocking call without tool support (backward compatible)
   def call_blocking_simple
     response = make_http_request(stream: false)
-    content = response.dig("choices", 0, "message", "content")
+    
+    # Detect response format based on API
+    base_url = @base_url || ENV.fetch('LLM_BASE_URL')
+    is_gemini = base_url.include?('generativelanguage.googleapis.com')
+    
+    content = if is_gemini
+      # Gemini format: candidates[0].content.parts[0].text
+      response.dig("candidates", 0, "content", "parts", 0, "text")
+    else
+      # OpenAI format: choices[0].message.content
+      response.dig("choices", 0, "message", "content")
+    end
 
     raise LlmError, "No content in response" if content.blank?
 
@@ -322,20 +335,9 @@ class LlmService < ApplicationService
         raise ApiError, "API error: #{response.code} - #{response.body}"
       end
 
-      buffer = "".force_encoding('UTF-8')  # Ensure UTF-8 encoding
+      buffer = ""
       response.read_body do |chunk|
-        # Force UTF-8 encoding and handle invalid bytes
-        chunk = chunk.force_encoding('UTF-8')
-        
-        # If chunk starts with invalid UTF-8, it might be a continuation
-        # Append to buffer and let Ruby's string handling fix it
-        buffer << chunk
-        
-        # Only process when buffer is valid UTF-8
-        unless buffer.valid_encoding?
-          # Wait for more data to complete the UTF-8 sequence
-          next
-        end
+        buffer += chunk
 
         while (line_end = buffer.index("\n"))
           line = buffer[0...line_end].strip
@@ -570,6 +572,22 @@ class LlmService < ApplicationService
     return [] if images.blank?
     list = images.is_a?(Array) ? images.compact : [images].compact
     list.map(&:to_s).reject(&:blank?)
+  end
+  
+  # Determine smart timeout based on model capabilities
+  # Why: Models with reasoning capabilities need significantly more time
+  # - Reasoning models (DeepSeek Reasoner, o1, o3): 180s
+  # - Standard models: 60s (increased from 30s for stability)
+  def smart_timeout_for_model(model_name)
+    model_lower = model_name.to_s.downcase
+    
+    # Reasoning models need 3 minutes
+    if model_lower.include?('reasoner') || model_lower.include?('o1') || model_lower.include?('o3')
+      180
+    # Standard models get 1 minute (more stable than 30s)
+    else
+      60
+    end
   end
 
   # Mock HTTP response for test environment

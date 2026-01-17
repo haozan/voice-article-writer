@@ -50,6 +50,8 @@ class ArticlesChannel < ApplicationCable::Channel
     transcript = data['transcript']
     article_id = data['article_id']
     thinking_framework = data['thinking_framework'] || 'original'
+    # Use blocking (non-streaming) mode by default to fix Markdown format issues
+    streaming = data['streaming'] || false
     
     # Create or update article with transcript and thinking_framework
     article = if article_id.present?
@@ -74,7 +76,8 @@ class ArticlesChannel < ApplicationCable::Channel
         llm_config: llm_config,
         article_id: article.id,
         provider: provider,
-        thinking_framework: thinking_framework
+        thinking_framework: thinking_framework,
+        streaming: streaming
       )
     end
     
@@ -162,19 +165,6 @@ class ArticlesChannel < ApplicationCable::Channel
       - 输出要求：直接输出文章正文，不要加标题、解释或任何多余内容
       - **长度控制**：写完立即停止，不要为了凑字数而啰嗦
       
-      ⚠️ 【Markdown 格式规范 - 必须严格遵守】
-      1. 标题：# 和 ## 之后必须有空格（正确：`### 标题`，错误：`###标题`）
-      2. 列表：- 和 * 之后必须有空格（正确：`- 项目`，错误：`-项目`）
-      3. 数字列表：数字和点之后必须有空格（正确：`1. 项目`，错误：`1.项目`）
-      4. 表格：每行必须以 | 开头和结尾（正确：`|列1|列2|`，错误：`|列1|列2`）
-      5. 表格分隔符：必须使用 |---| 格式（正确：`|---|---|`）
-      6. 加粗：**文字** 前后不要紧贴其他字符（正确：`这是 **加粗** 文字`）
-      
-      ✅ 输出前自查：
-      - 所有标题、列表、表格都符合标准 Markdown 语法
-      - 特别注意中英文混排时的空格问题
-      - 确保表格每行都完整闭合
-      
       ─────────────────────────
       【素材1：初步想法】
       #{article.transcript}
@@ -189,7 +179,6 @@ class ArticlesChannel < ApplicationCable::Channel
       - 只整合素材中的信息，不扩展，不详述，不举例
       - 字数控制在素材总字数的1.5倍以内
       - 写完立即停止，不要为了达到某个字数而继续
-      - 确保所有 Markdown 格式正确
     PROMPT
     
     llm_config = get_llm_config(selected_model)
@@ -327,19 +316,6 @@ class ArticlesChannel < ApplicationCable::Channel
       - 必须保持文章的完整性，不要截断或省略内容
       - 如果原文较长，你也要输出完整的润色版本
       
-      ⚠️ 【Markdown 格式规范 - 必须严格遵守】
-      1. 标题：# 和 ## 之后必须有空格（正确：`### 标题`，错误：`###标题`）
-      2. 列表：- 和 * 之后必须有空格（正确：`- 项目`，错误：`-项目`）
-      3. 数字列表：数字和点之后必须有空格（正确：`1. 项目`，错误：`1.项目`）
-      4. 表格：每行必须以 | 开头和结尾（正确：`|列1|列2|`，错误：`|列1|列2`）
-      5. 表格分隔符：必须使用 |---| 格式（正确：`|---|---|`）
-      6. 加粗：**文字** 前后不要紧贴其他字符（正确：`这是 **加粗** 文字`）
-      
-      ✅ 输出前自查：
-      - 所有标题、列表、表格都符合标准 Markdown 语法
-      - 特别注意中英文混排时的空格问题
-      - 确保表格每行都完整闭合
-      
       【原文内容】（请完整阅读并完整输出）
       #{final_content}
       
@@ -427,23 +403,6 @@ class ArticlesChannel < ApplicationCable::Channel
   end
 
   def get_style_prompt(style)
-    # Markdown formatting requirements (apply to all styles)
-    markdown_requirements = <<~MARKDOWN_RULES.strip
-      
-      ⚠️ 【Markdown 格式规范 - 必须严格遵守】
-      1. 标题：# 和 ## 之后必须有空格（正确：`### 标题`，错误：`###标题`）
-      2. 列表：- 和 * 之后必须有空格（正确：`- 项目`，错误：`-项目`）
-      3. 数字列表：数字和点之后必须有空格（正确：`1. 项目`，错误：`1.项目`）
-      4. 表格：每行必须以 | 开头和结尾（正确：`|列1|列2|`，错误：`|列1|列2`）
-      5. 表格分隔符：必须使用 |---| 格式（正确：`|---|---|`）
-      6. 加粗：**文字** 前后不要紧贴其他字符（正确：`这是 **加粗** 文字`）
-      
-      ✅ 输出前自查：
-      - 所有标题、列表、表格都符合标准 Markdown 语法
-      - 特别注意中英文混排时的空格问题
-      - 确保表格每行都完整闭合
-    MARKDOWN_RULES
-    
     case style
     when 'pinker'
       <<~PROMPT
@@ -460,7 +419,6 @@ class ArticlesChannel < ApplicationCable::Channel
         - 长短句交替，节奏感强
         - 使用"想象一下..."、"让我们看看..."等引导句
         - 避免空洞概念，每个观点都有具体例子支撑
-        #{markdown_requirements}
         
         请将以下草稿改写为史蒂芬·平克风格的文章，保持第一人称视角。
       PROMPT
@@ -480,7 +438,6 @@ class ArticlesChannel < ApplicationCable::Channel
         - 大量使用"你看"、"这就是"、"换句话说"等口语化衔接
         - 爱用"三段论"结构：是什么 → 为什么 → 怎么办
         - 结尾升华：从具体事例上升到人生哲理
-        #{markdown_requirements}
         
         请将以下草稿改写为罗振宇风格的文章，保持第一人称视角，像在跟朋友讲故事。
       PROMPT
@@ -501,7 +458,6 @@ class ArticlesChannel < ApplicationCable::Channel
         - 突然插入个人经历或假设场景
         - 句式随意，像跟读者聊天
         - 结尾往往出人意料，留下回味
-        #{markdown_requirements}
         
         请将以下草稿改写为王小波风格的文章，保持第一人称视角，带着玩世不恭的智慧。
       PROMPT
