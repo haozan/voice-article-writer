@@ -7,8 +7,60 @@ import { marked } from "marked"
 marked.setOptions({
   gfm: true,         // GitHub Flavored Markdown
   breaks: true,      // Convert \n to <br>
-  pedantic: false    // Don't conform to original markdown.pl
+  pedantic: false,   // Don't conform to original markdown.pl
+  silent: true       // Don't throw on malformed markdown (for streaming)
 })
+
+/**
+ * Preprocess markdown to fix common AI model output issues
+ * Fixes:
+ * - Missing space after heading markers: ###3.3 → ### 3.3
+ * - Missing space after list markers: -Item → - Item
+ * - Incomplete table rows: |col1|col2| → |col1|col2|
+ * - Headings without line breaks: # Title1## Title2 → # Title1\n## Title2
+ * - UTF-8 character boundary issues in streaming
+ * 
+ * IMPORTANT: Order matters!
+ * 1. First add line breaks between headings (handles both #Text##Text and # Text## Text)
+ * 2. Then fix missing spaces after markers
+ */
+function preprocessMarkdown(markdown: string): string {
+  let processed = markdown
+  
+  // STEP 1: Fix headings without line breaks FIRST
+  // Match: any heading (with or without space after #) followed by another heading marker
+  // Pattern breakdown:
+  // - (#{1,6})         : First heading marker (capture group 1)
+  // - (\s*)           : Optional space after first marker (capture group 2)
+  // - ([^\n#]+)       : Heading content - any chars except newline or # (capture group 3)
+  // - (#{1,6})        : Second heading marker (capture group 4)
+  // Replace with: first heading (with space if missing) + newline + second heading marker
+  // Need to loop because regex only replaces one match at a time
+  let prevProcessed = ''
+  while (prevProcessed !== processed) {
+    prevProcessed = processed
+    processed = processed.replace(/(#{1,6})(\s*)([^\n#]+)(#{1,6})/g, (match, h1, space, content, h2) => {
+      // Ensure first heading has space, add newline, then second heading marker
+      const fixedSpace = space || ' '
+      return `${h1}${fixedSpace}${content}\n${h2}`
+    })
+  }
+  
+  // STEP 2: Now fix missing spaces after markers (for headings that are already on separate lines)
+  processed = processed
+    // Fix heading markers without space: ###Text → ### Text
+    .replace(/^(#{1,6})([^#\s])/gm, '$1 $2')
+    // Fix list markers without space: -Text → - Text, *Text → * Text, +Text → + Text
+    .replace(/^([*+-])([^\s])/gm, '$1 $2')
+    // Fix numbered list without space: 1.Text → 1. Text
+    .replace(/^(\d+\.)([^\s])/gm, '$1 $2')
+  
+  // STEP 3: Fix incomplete table rows (missing closing pipe)
+  // Match lines that start with | and contain at least one more | but don't end with |
+  processed = processed.replace(/^(\|[^\n]*[^|\s])$/gm, '$1|')
+  
+  return processed
+}
 
 /**
  * Articles Controller - Handles "懒人写作术" 4-step workflow
@@ -562,8 +614,15 @@ export default class extends BaseChannelController {
     const target = this.getResponseTarget(provider)
     
     if (target) {
-      // Render Markdown
-      target.innerHTML = marked.parse(this.responseContents[provider]) as string
+      try {
+        // Preprocess and render Markdown with error handling for incomplete syntax
+        const processed = preprocessMarkdown(this.responseContents[provider])
+        target.innerHTML = marked.parse(processed) as string
+      } catch (e) {
+        // Fallback: display as plain text if markdown parsing fails
+        console.warn(`Markdown parsing error for ${provider}:`, e)
+        target.textContent = this.responseContents[provider]
+      }
       // Auto-scroll to bottom
       target.scrollTop = target.scrollHeight
     }
@@ -699,14 +758,20 @@ export default class extends BaseChannelController {
     
     if (!responseDiv || !responseEdit) return
     
-    // Update content
-    this.responseContents[provider] = responseEdit.value
-    responseDiv.innerHTML = marked.parse(this.responseContents[provider]) as string
-    
     // Switch back to view mode
     this.responseEditMode[provider] = false
     responseDiv.style.display = "block"
     responseEdit.style.display = "none"
+      
+    // Update content
+    this.responseContents[provider] = responseEdit.value
+    try {
+      const processed = preprocessMarkdown(this.responseContents[provider])
+      responseDiv.innerHTML = marked.parse(processed) as string
+    } catch (e) {
+      console.warn(`Markdown parsing error for ${provider}:`, e)
+      responseDiv.textContent = this.responseContents[provider]
+    }
     
     // Switch buttons
     if (editButton) editButton.style.display = "inline-flex"
@@ -784,7 +849,26 @@ export default class extends BaseChannelController {
     // Show draft section
     this.draftSectionTarget.style.display = "block"
     this.draftContent = ""
-    this.draftContentTarget.value = "草稿生成中..."
+    
+    // Clear draft content display (using innerHTML for div, not value for textarea)
+    const draftDiv = (this as any).draftContentTarget as HTMLElement
+    if (draftDiv) {
+      draftDiv.innerHTML = `
+        <div class="flex items-center gap-2 text-muted">
+          <div class="loading-spinner w-4 h-4"></div>
+          <span>草稿生成中...</span>
+        </div>
+      `
+    }
+    
+    // Hide edit, copy HTML, copy markdown buttons during generation
+    const editButton = (this as any).editButtonDraftTarget as HTMLElement
+    const copyHtmlButton = (this as any).copyHtmlButtonDraftTarget as HTMLElement
+    const copyMarkdownButton = (this as any).copyMarkdownButtonDraftTarget as HTMLElement
+    
+    if (editButton) editButton.style.display = "none"
+    if (copyHtmlButton) copyHtmlButton.style.display = "none"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "none"
     
     // Scroll to draft section
     this.draftSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -804,7 +888,13 @@ export default class extends BaseChannelController {
     // Update rendered view with markdown
     const draftDiv = (this as any).draftContentTarget as HTMLElement
     if (draftDiv) {
-      draftDiv.innerHTML = marked.parse(this.draftContent) as string
+      try {
+        const processed = preprocessMarkdown(this.draftContent)
+        draftDiv.innerHTML = marked.parse(processed) as string
+      } catch (e) {
+        console.warn('Markdown parsing error for draft:', e)
+        draftDiv.textContent = this.draftContent
+      }
       // Auto-scroll to bottom
       draftDiv.scrollTop = draftDiv.scrollHeight
     }
@@ -903,7 +993,13 @@ export default class extends BaseChannelController {
     
     // Update local state and render
     this.draftContent = draftText
-    draftDiv.innerHTML = marked.parse(this.draftContent) as string
+    try {
+      const processed = preprocessMarkdown(this.draftContent)
+      draftDiv.innerHTML = marked.parse(processed) as string
+    } catch (e) {
+      console.warn('Markdown parsing error for draft:', e)
+      draftDiv.textContent = this.draftContent
+    }
     
     // Switch back to view mode
     this.draftEditMode = false
@@ -985,7 +1081,13 @@ export default class extends BaseChannelController {
     // Update rendered view with markdown
     const finalDiv = (this as any).finalArticleTarget as HTMLElement
     if (finalDiv && finalDiv.classList.contains('prose')) {
-      finalDiv.innerHTML = marked.parse(this.finalContent) as string
+      try {
+        const processed = preprocessMarkdown(this.finalContent)
+        finalDiv.innerHTML = marked.parse(processed) as string
+      } catch (e) {
+        console.warn('Markdown parsing error for final:', e)
+        finalDiv.textContent = this.finalContent
+      }
       // Auto-scroll to bottom
       finalDiv.scrollTop = finalDiv.scrollHeight
     }
@@ -1104,7 +1206,13 @@ export default class extends BaseChannelController {
     
     // Update local state and render
     this.finalContent = finalText
-    finalDiv.innerHTML = marked.parse(this.finalContent) as string
+    try {
+      const processed = preprocessMarkdown(this.finalContent)
+      finalDiv.innerHTML = marked.parse(processed) as string
+    } catch (e) {
+      console.warn('Markdown parsing error for final:', e)
+      finalDiv.textContent = this.finalContent
+    }
     
     // Switch back to view mode
     this.finalEditMode = false
@@ -1578,7 +1686,13 @@ export default class extends BaseChannelController {
             const target = this[targetName] as HTMLElement
             if (target) {
               // Render Markdown for restored content
-              target.innerHTML = marked.parse(content) as string
+              try {
+                const processed = preprocessMarkdown(content)
+                target.innerHTML = marked.parse(processed) as string
+              } catch (e) {
+                console.warn(`Markdown parsing error for ${provider}:`, e)
+                target.textContent = content
+              }
             }
             
             // Show buttons (edit, copyHtml, copyMarkdown, draft)
@@ -1609,7 +1723,13 @@ export default class extends BaseChannelController {
         // Render markdown in div (view mode)
         const draftDiv = (this as any).draftContentTarget as HTMLElement
         if (draftDiv) {
-          draftDiv.innerHTML = marked.parse(article.draft) as string
+          try {
+            const processed = preprocessMarkdown(article.draft)
+            draftDiv.innerHTML = marked.parse(processed) as string
+          } catch (e) {
+            console.warn('Markdown parsing error for draft:', e)
+            draftDiv.textContent = article.draft
+          }
         }
         
         // Show edit, copyHtml, copyMarkdown buttons
@@ -1636,7 +1756,13 @@ export default class extends BaseChannelController {
         // Render markdown in div (view mode)
         const finalDiv = (this as any).finalArticleTarget as HTMLElement
         if (finalDiv && finalDiv.classList.contains('prose')) {
-          finalDiv.innerHTML = marked.parse(article.final_content) as string
+          try {
+            const processed = preprocessMarkdown(article.final_content)
+            finalDiv.innerHTML = marked.parse(processed) as string
+          } catch (e) {
+            console.warn('Markdown parsing error for final:', e)
+            finalDiv.textContent = article.final_content
+          }
         }
         
         // Show edit, copyHtml, copyMarkdown buttons

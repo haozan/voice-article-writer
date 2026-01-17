@@ -62,6 +62,23 @@ class LlmStreamJob < ApplicationJob
     # Get framework-specific prompt content
     framework_prompt = get_framework_prompt(thinking_framework)
     
+    # Markdown formatting requirements (apply to all providers)
+    markdown_requirements = <<~MARKDOWN_RULES.strip
+      
+      ⚠️ 【Markdown 格式规范 - 必须严格遵守】
+      1. 标题：# 和 ## 之后必须有空格（正确：`### 标题`，错误：`###标题`）
+      2. 列表：- 和 * 之后必须有空格（正确：`- 项目`，错误：`-项目`）
+      3. 数字列表：数字和点之后必须有空格（正确：`1. 项目`，错误：`1.项目`）
+      4. 表格：每行必须以 | 开头和结尾（正确：`|列1|列2|`，错误：`|列1|列2`）
+      5. 表格分隔符：必须使用 |---| 格式（正确：`|---|---|`）
+      6. 加粗：**文字** 前后不要紧贴其他字符（正确：`这是 **加粗** 文字`）
+      
+      ✅ 输出前自查：
+      - 所有标题、列表、表格都符合标准 Markdown 语法
+      - 特别注意中英文混排时的空格问题
+      - 确保表格每行都完整闭合
+    MARKDOWN_RULES
+    
     # Build provider-specific system prompt with framework content
     case provider_name
     when 'Qwen'
@@ -69,6 +86,7 @@ class LlmStreamJob < ApplicationJob
         你是千问，来自阿里云。用户会分享他的想法、观点或内容。
         
         #{framework_prompt}
+        #{markdown_requirements}
         
         直接输出你的回应，不要加任何解释或套话。
       PROMPT
@@ -77,6 +95,7 @@ class LlmStreamJob < ApplicationJob
         你是 DeepSeek，一个专注于深度思考的 AI 助手。用户会分享他的想法、观点或内容。
         
         #{framework_prompt}
+        #{markdown_requirements}
         
         直接输出你的回应，不要加任何解释或套话。
       PROMPT
@@ -85,6 +104,7 @@ class LlmStreamJob < ApplicationJob
         你是 Gemini，来自 Google。用户会分享他的想法、观点或内容。
         
         #{framework_prompt}
+        #{markdown_requirements}
         
         直接输出你的回应，不要加任何解释或套话。
       PROMPT
@@ -93,6 +113,7 @@ class LlmStreamJob < ApplicationJob
         你是智谱 GLM，来自智谱 AI。用户会分享他的想法、观点或内容。
         
         #{framework_prompt}
+        #{markdown_requirements}
         
         直接输出你的回应，不要加任何解释或套话。
       PROMPT
@@ -101,6 +122,7 @@ class LlmStreamJob < ApplicationJob
         你是 ChatGPT，来自 OpenAI。用户会分享他的想法、观点或内容。
         
         #{framework_prompt}
+        #{markdown_requirements}
         
         直接输出你的回应，不要加任何解释或套话。
       PROMPT
@@ -109,6 +131,7 @@ class LlmStreamJob < ApplicationJob
         你是豆包，来自字节跳动。用户会分享他的想法、观点或内容。
         
         #{framework_prompt}
+        #{markdown_requirements}
         
         直接输出你的回应，不要加任何解释或套话。
       PROMPT
@@ -117,6 +140,7 @@ class LlmStreamJob < ApplicationJob
         你是 Grok，来自 xAI。用户会分享他的想法、观点或内容。
         
         #{framework_prompt}
+        #{markdown_requirements}
         
         直接输出你的回应，不要加任何解释或套话。
       PROMPT
@@ -156,13 +180,33 @@ class LlmStreamJob < ApplicationJob
         1. 信息扩展：brainstorm 所有相关知识点、案例、数据、反例、二阶影响（用 bullet points）。
         2. 反思整合：MECE分类 + 找出信息熵最高（最稀缺/最有洞见）的点；删除低价值内容。
         3. 构建信息树：Why（为什么重要） → How（怎么做） → Warning（坑/风险） → Metric（量化指标）。
-        4. 大纲生成：极简大纲（3-7层标题）。
+        4. 大纲生成：极简大纲（3-7层标题）
+           
+           ⚠️ 【大纲格式要求 - 必须严格遵守】
+           - 使用纯 Markdown 标题语法：`#`、`##`、`###`（每级标题独立成行）
+           - **每个标题后必须换行**（按 Enter 键），不能挤在一行
+           - 标题之间可以有空行，但不能连在一起
+           - ❌ 禁止：所有标题挤在一行（如 `# 标题1## 标题2### 标题3`）
+           - ❌ 禁止：在列表项中嵌套标题（如 `- # 标题`）
+           - ❌ 禁止：重复标题符号（如 `### ###1. 标题`）
+           - ❌ 禁止：混用列表和标题（如 `- ## How` 后接 `### ###1`）
+           - ✅ 正确示例：
+             ```
+             # 主标题
+             ## 二级标题
+             ### 三级标题
+             ### 三级标题2
+             ## 二级标题2
+             ```
+           - ✅ 如需缩进层级，用多级标题（`##`、`###`、`####`），不用列表符号
+           - ⚠️ 关键：输出大纲时，每写完一个标题就按 Enter 换行，再写下一个标题
+           
         5. 撰写：每段信息密度最大化（知识点/字数比高），用短句 + 编号 + 表格增强可读性。
         6. Self-Check：输出前打分（好奇心/深度/节奏/干货密度，满分10），低于8分重写。
         
         输出格式：
-        - 先思考链（可见）
-        - 然后最终文章（Markdown）
+        - 先思考链（可见，用 ### 标题分隔各步骤）
+        - 然后最终文章（Markdown，纯标题结构，无列表嵌套）
         
         注意：不要扩写、不要改写，只需按照OmniThink流程分享你的思考。
       PROMPT

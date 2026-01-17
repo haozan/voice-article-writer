@@ -29,15 +29,15 @@
         </a>
       </div>
 
-      <!-- Product Demo Image -->
+      <!-- Product Hero Image -->
       <div class="relative max-w-5xl mx-auto">
         <div class="rounded-xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-500">
-          <img 
-            src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&h=700&fit=crop" 
-            alt="语音写作演示界面"
-            class="w-full h-auto"
-          />
+          <%= image_tag "hero.jpg", alt: "顶尖思考框架 + 顶尖 AI 大模型 + 顶尖作家风格，服务您一人", class: "w-full h-auto" %>
         </div>
+        <!-- Caption below image -->
+        <p class="text-center text-secondary text-sm mt-4">
+          顶尖思考框架 + 顶尖 AI 大模型 + 顶尖作家风格，服务您一人
+        </p>
         <!-- Floating decoration elements -->
         <div class="absolute -top-6 -left-6 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-6 -right-6 w-40 h-40 bg-secondary/20 rounded-full blur-3xl"></div>
@@ -75,7 +75,7 @@
         <div class="w-16 h-16 bg-secondary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-secondary/20 transition-colors">
           <%= lucide_icon "cpu", class: "w-8 h-8 text-secondary" %>
         </div>
-        <h3 class="text-xl font-bold text-primary mb-4">5 大 AI 同时脑爆</h3>
+        <h3 class="text-xl font-bold text-primary mb-4">5 大顶尖 AI 同步脑爆</h3>
         <p class="text-secondary leading-relaxed">
           <span class="flex flex-wrap items-center gap-2 mb-3">
             <%= image_tag "grok-logo.png", class: "w-6 h-6", alt: "Grok" %>

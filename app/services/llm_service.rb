@@ -322,9 +322,20 @@ class LlmService < ApplicationService
         raise ApiError, "API error: #{response.code} - #{response.body}"
       end
 
-      buffer = ""
+      buffer = "".force_encoding('UTF-8')  # Ensure UTF-8 encoding
       response.read_body do |chunk|
-        buffer += chunk
+        # Force UTF-8 encoding and handle invalid bytes
+        chunk = chunk.force_encoding('UTF-8')
+        
+        # If chunk starts with invalid UTF-8, it might be a continuation
+        # Append to buffer and let Ruby's string handling fix it
+        buffer << chunk
+        
+        # Only process when buffer is valid UTF-8
+        unless buffer.valid_encoding?
+          # Wait for more data to complete the UTF-8 sequence
+          next
+        end
 
         while (line_end = buffer.index("\n"))
           line = buffer[0...line_end].strip
