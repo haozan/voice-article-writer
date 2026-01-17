@@ -576,17 +576,17 @@ class LlmService < ApplicationService
   
   # Determine smart timeout based on model capabilities
   # Why: Models with reasoning capabilities need significantly more time
-  # - Reasoning models (DeepSeek Reasoner, o1, o3): 180s
-  # - Standard models: 60s (increased from 30s for stability)
+  # - Reasoning models (DeepSeek Reasoner, o1, o3): 240s (4 minutes)
+  # - Standard models: 120s (2 minutes) - doubled for API stability
   def smart_timeout_for_model(model_name)
     model_lower = model_name.to_s.downcase
     
-    # Reasoning models need 3 minutes
+    # Reasoning models need 4 minutes
     if model_lower.include?('reasoner') || model_lower.include?('o1') || model_lower.include?('o3')
-      180
-    # Standard models get 1 minute (more stable than 30s)
+      240
+    # Standard models get 2 minutes (doubled from 60s for stability)
     else
-      60
+      120
     end
   end
 

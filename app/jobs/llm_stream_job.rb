@@ -64,12 +64,18 @@ class LlmStreamJob < ApplicationJob
     framework_prompt = get_framework_prompt(thinking_framework)
     
     # Markdown formatting requirements (apply to all providers)
+    # CRITICAL: These are especially important for streaming mode!
     markdown_requirements = <<~MARKDOWN.strip
-      输出格式要求（严格遵守）：
+      输出格式要求（严格遵守，流式输出尤其重要）：
       - 使用标准 Markdown 语法
+      - 标题标记（# ## ###）后**必须有一个空格**，例如：`### 标题` 而不是 `###标题`
+      - 标题后**必须换行**（不能紧跟内容），例如：
+        正确：`### 标题\n内容`
+        错误：`###标题内容` 或 `### 标题内容`
       - 列表标记（- * +）必须在行首，前面不能有空格
-      - 标题标记（# ## ###）后必须有一个空格
+      - 列表项前的符号（如 `**粗体**:` ）后面需要加空格
       - 不要在同一行输出多个标题
+      - 每个语义单元之间保持适当换行，提高可读性
     MARKDOWN
     
     # Build provider-specific system prompt with framework content
@@ -151,13 +157,13 @@ class LlmStreamJob < ApplicationJob
     # Frameworks that need longer generation time (2000-3000+ characters)
     case framework
     when 'bezos_memo', 'regret_minimization', 'systems_thinking'
-      120 # 2 minutes for long-form content
+      180 # 3 minutes for long-form content
     when 'omnithink', 'first_principles'
-      90  # 1.5 minutes for multi-step analysis
+      150  # 2.5 minutes for multi-step analysis
     when 'mimeng_nlp', 'rapid_decision'
-      60  # 1 minute for structured frameworks
+      120  # 2 minutes for structured frameworks
     else
-      nil # Use default 30s timeout
+      nil # Use default (smart_timeout_for_model: 120s for standard, 240s for reasoners)
     end
   end
   
