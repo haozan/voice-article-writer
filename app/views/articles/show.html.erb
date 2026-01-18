@@ -27,9 +27,11 @@
       原始输入
     </h2>
     <div class="card card-elevated p-6 mb-6 rounded-none">
-      <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-        <%= markdown(@article.transcript || '无内容') %>
-      </div>
+      <div 
+        class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+        data-controller="markdown-renderer"
+        data-markdown-renderer-content-value="<%= (@article.transcript || '无内容').to_json %>"
+      ></div>
     </div>
 
     <!-- Brainstorm Results -->
@@ -49,9 +51,11 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-                <%= markdown(@article.brainstorm_grok) %>
-              </div>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.brainstorm_grok.to_json %>"
+              ></div>
             </div>
           <% end %>
 
@@ -64,9 +68,11 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-                <%= markdown(@article.brainstorm_qwen) %>
-              </div>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.brainstorm_qwen.to_json %>"
+              ></div>
             </div>
           <% end %>
 
@@ -79,9 +85,11 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-                <%= markdown(@article.brainstorm_deepseek) %>
-              </div>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.brainstorm_deepseek.to_json %>"
+              ></div>
             </div>
           <% end %>
 
@@ -94,9 +102,11 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-                <%= markdown(@article.brainstorm_gemini) %>
-              </div>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.brainstorm_gemini.to_json %>"
+              ></div>
             </div>
           <% end %>
 
@@ -109,9 +119,11 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-                <%= markdown(@article.brainstorm_zhipu) %>
-              </div>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.brainstorm_zhipu.to_json %>"
+              ></div>
             </div>
           <% end %>
 
@@ -124,9 +136,11 @@
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
-              <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-                <%= markdown(@article.brainstorm_doubao) %>
-              </div>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.brainstorm_doubao.to_json %>"
+              ></div>
             </div>
           <% end %>
         </div>
@@ -140,9 +154,11 @@
         初稿
       </h2>
       <div class="card card-elevated p-6 mb-6 rounded-none">
-        <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-          <%= markdown(@article.draft) %>
-        </div>
+        <div 
+          class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+          data-controller="markdown-renderer"
+          data-markdown-renderer-content-value="<%= @article.draft.to_json %>"
+        ></div>
       </div>
     <% end %>
 
@@ -163,9 +179,11 @@
         <% end %>
       </h2>
       <div class="card card-elevated p-6 mb-6 rounded-none">
-        <div class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-          <%= markdown(@article.final_content) %>
-        </div>
+        <div 
+          class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+          data-controller="markdown-renderer"
+          data-markdown-renderer-content-value="<%= @article.final_content.to_json %>"
+        ></div>
       </div>
     <% end %>
     
@@ -255,9 +273,11 @@
         <% end %>
       </h2>
       <div class="card card-elevated p-6 mb-6 rounded-none">
-        <div class="text-secondary text-base leading-relaxed px-4 py-3 bg-surface/50 border-2 border-primary/20 rounded-none prose prose-lg max-w-none">
-          <%= markdown(@article.variant) %>
-        </div>
+        <div 
+          class="text-secondary text-base leading-relaxed px-4 py-3 bg-surface/50 border-2 border-primary/20 rounded-none prose prose-lg max-w-none"
+          data-controller="markdown-renderer"
+          data-markdown-renderer-content-value="<%= @article.variant.to_json %>"
+        ></div>
       </div>
     <% end %>
 

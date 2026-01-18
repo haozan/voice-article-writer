@@ -14,6 +14,7 @@ import BookReaderController from "./book_reader_controller"
 import ArticleMoveController from "./article_move_controller"
 import BookChaptersController from "./book_chapters_controller"
 import ArticleEditController from "./article_edit_controller"
+import MarkdownRendererController from "./markdown_renderer_controller"
 
 const application = Application.start()
 
@@ -31,5 +32,6 @@ application.register("book-reader", BookReaderController)
 application.register("article-move", ArticleMoveController)
 application.register("book-chapters", BookChaptersController)
 application.register("article-edit", ArticleEditController)
+application.register("markdown-renderer", MarkdownRendererController)
 
 window.Stimulus = application

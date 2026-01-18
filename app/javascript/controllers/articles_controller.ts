@@ -726,7 +726,9 @@ export default class extends BaseChannelController {
     
     // Update content
     this.responseContents[provider] = responseEdit.value
-    responseDiv.textContent = this.responseContents[provider]
+    // Render Markdown to HTML (same as loading from history)
+    const fixedMarkdown = fixMarkdownHeaders(this.responseContents[provider])
+    responseDiv.innerHTML = marked.parse(fixedMarkdown) as string
     
     // Switch back to view mode
     this.responseEditMode[provider] = false
