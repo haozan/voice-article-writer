@@ -585,10 +585,9 @@ export default class extends BaseChannelController {
     const target = this.getResponseTarget(provider)
     
     if (target) {
-      // Display raw Markdown text (no rendering)
-      // Why: Brainstorm phase focuses on ideas, not formatting
-      // Benefits: Zero format errors, better performance, no layout shifts
-      target.textContent = this.responseContents[provider]
+      // Render Markdown to HTML (same as save and history loading)
+      const fixedMarkdown = fixMarkdownHeaders(this.responseContents[provider])
+      target.innerHTML = marked.parse(fixedMarkdown) as string
       // Auto-scroll to bottom
       target.scrollTop = target.scrollHeight
     }
