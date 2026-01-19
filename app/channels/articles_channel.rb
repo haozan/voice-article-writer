@@ -183,10 +183,16 @@ class ArticlesChannel < ApplicationCable::Channel
     
     llm_config = get_llm_config(selected_model)
     
+    # CRITICAL: Draft generation needs longer timeout due to long prompt and content fusion
+    # - Long prompt: ~180 lines of detailed instructions
+    # - Content fusion: transcript + brainstorm content (can be 2000+ characters)
+    # - Default 120s often causes timeout, especially for slower models like Zhipu
+    llm_config_with_timeout = llm_config.merge(timeout: 240)
+    
     LlmStreamJob.perform_later(
       stream_name: "#{@stream_name}_draft",
       prompt: draft_prompt,
-      llm_config: llm_config,
+      llm_config: llm_config_with_timeout,
       article_id: article.id,
       provider: 'draft'
     )
@@ -206,10 +212,16 @@ class ArticlesChannel < ApplicationCable::Channel
     
     llm_config = get_llm_config(article.selected_model)
     
+    # CRITICAL: Final generation needs longer timeout due to long prompt and style transformation
+    # - Long prompt: ~60 lines of style-specific instructions
+    # - Long content: draft content (can be 1500+ characters)
+    # - Default 120s may cause timeout for comprehensive transformations
+    llm_config_with_timeout = llm_config.merge(timeout: 240)
+    
     LlmStreamJob.perform_later(
       stream_name: "#{@stream_name}_final",
       prompt: final_prompt,
-      llm_config: llm_config,
+      llm_config: llm_config_with_timeout,
       article_id: article.id,
       provider: 'final'
     )
