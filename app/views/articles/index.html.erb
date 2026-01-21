@@ -68,6 +68,7 @@
           </label>
           <textarea
             data-articles-target="inputText"
+            data-action="input->articles#updateCharCount"
             class="w-full px-4 py-3 text-lg border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
             rows="8"
             placeholder="💡 建议使用语音输入法（推荐豆包语音输入法）
@@ -80,6 +81,11 @@
 
 能说就能写，让表达更自然"
           ></textarea>
+          <div class="mt-2 text-right">
+            <span class="text-sm text-muted">
+              字数：<span data-articles-target="charCount" class="font-semibold text-primary">0</span>
+            </span>
+          </div>
         </div>
         
         <!-- Thinking Framework Selection -->
@@ -779,9 +785,14 @@
         <div class="card card-elevated p-6 rounded-none">
           <div class="mb-4">
             <div class="flex items-center justify-between mb-3">
-              <label class="text-lg font-semibold text-primary">
-                使用模型：<span data-articles-target="selectedModelLabel" class="text-secondary"></span>
-              </label>
+              <div class="flex items-center gap-4">
+                <label class="text-lg font-semibold text-primary">
+                  使用模型：<span data-articles-target="selectedModelLabel" class="text-secondary"></span>
+                </label>
+                <span class="text-sm text-muted">
+                  字数：<span data-articles-target="draftCharCount" class="font-semibold text-primary">0</span>
+                </span>
+              </div>
               <div class="flex gap-2">
                 <button
                   type="button"
@@ -915,11 +926,16 @@
         <div data-articles-target="finalArticleContainer" style="display: none;">
           <div class="card card-elevated p-6 rounded-none">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-bold text-primary flex items-center gap-2">
-                <%= lucide_icon "file-check", class: "w-5 h-5" %>
-                定稿结果（可编辑）
-                <span class="text-base font-normal text-muted">（风格：<span data-articles-target="finalStyleLabel"></span>）</span>
-              </h3>
+              <div class="flex items-center gap-4">
+                <h3 class="text-xl font-bold text-primary flex items-center gap-2">
+                  <%= lucide_icon "file-check", class: "w-5 h-5" %>
+                  定稿结果（可编辑）
+                  <span class="text-base font-normal text-muted">（风格：<span data-articles-target="finalStyleLabel"></span>）</span>
+                </h3>
+                <span class="text-sm text-muted">
+                  字数：<span data-articles-target="finalCharCount" class="font-semibold text-primary">0</span>
+                </span>
+              </div>
               <div class="flex gap-2">
                 <button
                   type="button"

@@ -63,6 +63,7 @@ function fixMarkdownHeaders(text: string): string {
 export default class extends BaseChannelController {
   static targets = [
     "inputText",
+    "charCount",
     "responsesContainer",
     "responseGrok",
     "responseQwen",
@@ -110,6 +111,7 @@ export default class extends BaseChannelController {
     "draftSection",
     "draftContent",
     "draftContentEdit",
+    "draftCharCount",
     "editButtonDraft",
     "saveButtonDraft",
     "copyHtmlButtonDraft",
@@ -120,6 +122,7 @@ export default class extends BaseChannelController {
     "finalArticlePreview",
     "finalArticle",
     "finalArticleEdit",
+    "finalCharCount",
     "editButtonFinal",
     "saveButtonFinal",
     "copyHtmlButtonFinal",
@@ -144,6 +147,7 @@ export default class extends BaseChannelController {
   }
 
   declare readonly inputTextTarget: HTMLTextAreaElement
+  declare readonly charCountTarget: HTMLElement
   declare readonly responsesContainerTarget: HTMLElement
   declare readonly responseGrokTarget: HTMLElement
   declare readonly responseQwenTarget: HTMLElement
@@ -160,11 +164,13 @@ export default class extends BaseChannelController {
   declare readonly draftButtonDoubaoTarget: HTMLElement
   declare readonly draftSectionTarget: HTMLElement
   declare readonly draftContentTarget: HTMLTextAreaElement
+  declare readonly draftCharCountTarget: HTMLElement
   declare readonly selectedModelLabelTarget: HTMLElement
   declare readonly finalSectionTarget: HTMLElement
   declare readonly finalArticleContainerTarget: HTMLElement
   declare readonly finalArticlePreviewTarget: HTMLElement
   declare readonly finalArticleTarget: HTMLTextAreaElement
+  declare readonly finalCharCountTarget: HTMLElement
   declare readonly finalStyleLabelTarget: HTMLElement
   declare readonly titleSectionTarget: HTMLElement
   declare readonly titleContainerTarget: HTMLElement
@@ -180,6 +186,9 @@ export default class extends BaseChannelController {
   declare readonly thinkingFrameworkTarget: HTMLInputElement
   declare readonly streamNameValue: string
   declare readonly hasInputTextTarget: boolean
+  declare readonly hasCharCountTarget: boolean
+  declare readonly hasDraftCharCountTarget: boolean
+  declare readonly hasFinalCharCountTarget: boolean
 
   private originalTranscript: string = ""
   private currentArticleId: number | null = null
@@ -216,6 +225,9 @@ export default class extends BaseChannelController {
 
   connect(): void {
     console.log("Articles controller connected")
+    
+    // Initialize character count
+    this.updateCharCount()
     
     // Check for article_id in URL params (for "Continue Editing" feature)
     this.checkArticleIdParam()
@@ -387,6 +399,37 @@ export default class extends BaseChannelController {
     } else if (data.type === 'error') {
       this.handleErrorForProvider(provider, data.message)
     }
+  }
+
+  // Update character count when user types in input textarea
+  updateCharCount(): void {
+    if (!this.hasInputTextTarget || !this.hasCharCountTarget) {
+      return
+    }
+    
+    const text = this.inputTextTarget.value
+    const charCount = text.length
+    this.charCountTarget.textContent = charCount.toString()
+  }
+
+  // Update draft character count
+  private updateDraftCharCount(): void {
+    if (!this.hasDraftCharCountTarget) {
+      return
+    }
+    
+    const charCount = this.draftContent.length
+    this.draftCharCountTarget.textContent = charCount.toString()
+  }
+
+  // Update final character count
+  private updateFinalCharCount(): void {
+    if (!this.hasFinalCharCountTarget) {
+      return
+    }
+    
+    const charCount = this.finalContent.length
+    this.finalCharCountTarget.textContent = charCount.toString()
   }
 
   // Called when user clicks "Generate" button
@@ -827,19 +870,31 @@ export default class extends BaseChannelController {
   // Handle draft chunks
   private handleDraftChunk(chunk: string): void {
     this.draftContent += chunk
-    // Update rendered view with markdown
+    // During streaming: show raw text to avoid re-rendering Markdown every time
     const draftDiv = (this as any).draftContentTarget as HTMLElement
     if (draftDiv) {
-      const fixedMarkdown = fixMarkdownHeaders(this.draftContent)
-      draftDiv.innerHTML = marked.parse(fixedMarkdown) as string
+      draftDiv.textContent = this.draftContent
       // Auto-scroll to bottom
       draftDiv.scrollTop = draftDiv.scrollHeight
     }
+    // Update character count during streaming
+    this.updateDraftCharCount()
   }
   
   // Handle draft complete
   private handleDraftComplete(): void {
     console.log("Draft generation complete")
+    
+    // Render final Markdown after streaming completes
+    const draftDiv = (this as any).draftContentTarget as HTMLElement
+    if (draftDiv) {
+      const fixedMarkdown = fixMarkdownHeaders(this.draftContent)
+      draftDiv.innerHTML = marked.parse(fixedMarkdown) as string
+    }
+    
+    // Update final character count
+    this.updateDraftCharCount()
+    
     showToast("初稿生成完成，您可以编辑后继续", "success")
     
     // Show edit, copy HTML, copy markdown buttons
@@ -933,6 +988,9 @@ export default class extends BaseChannelController {
     const fixedMarkdown = fixMarkdownHeaders(this.draftContent)
     draftDiv.innerHTML = marked.parse(fixedMarkdown) as string
     
+    // Update character count after saving
+    this.updateDraftCharCount()
+    
     // Switch back to view mode
     this.draftEditMode = false
     draftDiv.style.display = "block"
@@ -1010,19 +1068,31 @@ export default class extends BaseChannelController {
   // Handle final chunks
   private handleFinalChunk(chunk: string): void {
     this.finalContent += chunk
-    // Update rendered view with markdown
+    // During streaming: show raw text to avoid re-rendering Markdown every time
     const finalDiv = (this as any).finalArticleTarget as HTMLElement
     if (finalDiv && finalDiv.classList.contains('prose')) {
-      const fixedMarkdown = fixMarkdownHeaders(this.finalContent)
-      finalDiv.innerHTML = marked.parse(fixedMarkdown) as string
+      finalDiv.textContent = this.finalContent
       // Auto-scroll to bottom
       finalDiv.scrollTop = finalDiv.scrollHeight
     }
+    // Update character count during streaming
+    this.updateFinalCharCount()
   }
   
   // Handle final complete
   private handleFinalComplete(): void {
     console.log("Final article generation complete")
+    
+    // Render final Markdown after streaming completes
+    const finalDiv = (this as any).finalArticleTarget as HTMLElement
+    if (finalDiv && finalDiv.classList.contains('prose')) {
+      const fixedMarkdown = fixMarkdownHeaders(this.finalContent)
+      finalDiv.innerHTML = marked.parse(fixedMarkdown) as string
+    }
+    
+    // Update final character count
+    this.updateFinalCharCount()
+    
     showToast("定稿生成完成！", "success")
     
     // Show edit, copy HTML, copy markdown buttons
@@ -1135,6 +1205,9 @@ export default class extends BaseChannelController {
     this.finalContent = finalText
     const fixedMarkdown = fixMarkdownHeaders(this.finalContent)
     finalDiv.innerHTML = marked.parse(fixedMarkdown) as string
+    
+    // Update character count after saving
+    this.updateFinalCharCount()
     
     // Switch back to view mode
     this.finalEditMode = false
@@ -1287,13 +1360,106 @@ export default class extends BaseChannelController {
   }
   
   // Handle title complete
-  private handleTitleComplete(): void {
+  private handleTitleComplete(): void {  
     console.log("Title generation complete")
+    
+    // 如果没有换行符,使用智能分割
+    if (!this.titleContent.includes('\n') && this.titleContent.length > 0) {
+      console.log("Titles without line breaks detected, applying smart split")
+      const splitTitles = this.smartSplitTitles(this.titleContent)
+      
+      // 用换行符连接分割后的标题
+      this.titleContent = splitTitles.join('\n')
+      
+      // 重新渲染
+      const lines = splitTitles.filter(line => line.trim().length > 0)
+      if (lines.length > 0) {
+        this.titleListTarget.innerHTML = lines.map((title, index) => 
+          `<div class="flex items-start gap-3 p-3 bg-surface/50 hover:bg-primary/5 transition-colors rounded-none border border-border/50">
+            <span class="text-primary font-bold text-xl flex-shrink-0">${index + 1}.</span>
+            <p class="flex-1 text-foreground">${this.escapeHtml(title)}</p>
+            <button 
+              class="btn-sm btn-secondary flex-shrink-0" 
+              onclick="navigator.clipboard.writeText('${this.escapeHtml(title).replace(/'/g, "\\'")}')  
+                .then(() => window.showToast('已复制', 'success'))
+                .catch(() => window.showToast('复制失败', 'danger'))"
+            >
+              ${this.getCopyIcon()}
+            </button>
+          </div>`
+        ).join('')
+      }
+    }
+    
     showToast("标题生成完成！", "success")
     
     // Show Step 6: Variant Generation Section
     this.variantSectionTarget.style.display = "block"
     this.variantSectionTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  
+  // Smart split titles without line breaks
+  // 智能分割没有换行符的标题文本
+  private smartSplitTitles(content: string): string[] {
+    // 尝试不同的分割策略
+    
+    // 策略1: 查找常见的标题结束标记 (句号、问号、感叹号) 后跟大写/数字/中文
+    // 匹配: "...。某" "...？某" "...！某" "...」某"
+    let titles: string[] = []
+    
+    // 先尝试按照标点符号分割
+    const punctuationPattern = /([。！？」】])/g
+    const segments = content.split(punctuationPattern)
+    
+    let currentTitle = ''
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i]
+      
+      // 如果是标点符号，加到当前标题
+      if (/[。！？」】]/.test(segment)) {
+        currentTitle += segment
+        
+        // 检查标题长度是否合理 (15-40字)
+        if (currentTitle.length >= 15 && currentTitle.length <= 80) {
+          titles.push(currentTitle.trim())
+          currentTitle = ''
+        }
+      } else if (segment.trim().length > 0) {
+        // 普通文本段
+        currentTitle += segment
+      }
+    }
+    
+    // 如果还有剩余内容
+    if (currentTitle.trim().length > 0) {
+      titles.push(currentTitle.trim())
+    }
+    
+    // 如果分割结果太少或太多，使用固定长度分割
+    if (titles.length < 3 || titles.length > 15) {
+      console.warn(`Smart split produced ${titles.length} titles, using fallback`)
+      titles = this.fixedLengthSplit(content, 5)
+    }
+    
+    return titles
+  }
+  
+  // Fallback: 固定长度分割
+  private fixedLengthSplit(content: string, targetCount: number): string[] {
+    const avgLength = Math.floor(content.length / targetCount)
+    const titles: string[] = []
+    
+    for (let i = 0; i < targetCount; i++) {
+      const start = i * avgLength
+      const end = i === targetCount - 1 ? content.length : (i + 1) * avgLength
+      const segment = content.substring(start, end).trim()
+      
+      if (segment.length > 0) {
+        titles.push(segment)
+      }
+    }
+    
+    return titles
   }
   
   // Handle title error
@@ -1589,6 +1755,8 @@ export default class extends BaseChannelController {
       // Set input text
       if (this.hasInputTextTarget && article.transcript) {
         this.inputTextTarget.value = article.transcript
+        // Update character count after loading historical content
+        this.updateCharCount()
       }
       
       // Show responses container if has brainstorm
@@ -1644,6 +1812,9 @@ export default class extends BaseChannelController {
           draftDiv.innerHTML = marked.parse(fixedMarkdown) as string
         }
         
+        // Update character count for restored draft
+        this.updateDraftCharCount()
+        
         // Show edit, copyHtml, copyMarkdown buttons
         const editButtonDraft = (this as any).editButtonDraftTarget as HTMLElement
         const copyHtmlButtonDraft = (this as any).copyHtmlButtonDraftTarget as HTMLElement
@@ -1671,6 +1842,9 @@ export default class extends BaseChannelController {
           const fixedMarkdown = fixMarkdownHeaders(article.final_content)
           finalDiv.innerHTML = marked.parse(fixedMarkdown) as string
         }
+        
+        // Update character count for restored final
+        this.updateFinalCharCount()
         
         // Show edit, copyHtml, copyMarkdown buttons
         const editButtonFinal = (this as any).editButtonFinalTarget as HTMLElement

@@ -4,12 +4,25 @@ class LlmStreamJob < ApplicationJob
   # Retry strategy configuration
   retry_on Net::ReadTimeout, wait: 5.seconds, attempts: 3
   retry_on LlmService::TimeoutError, wait: 5.seconds, attempts: 3
-  # 503 (服务过载) - 等待更长时间后重试
-  retry_on LlmService::ApiError, wait: :exponentially_longer, attempts: 3 do |job, exception|
-    # 只对 503 错误重试
-    exception.message.include?('503') || exception.message.include?('overloaded')
+  
+  # 503 (服务过载) - 指数退避重试，最多3次
+  # wait: :exponentially_longer 会自动计算等待时间：5s, 25s, 125s
+  retry_on LlmService::ApiError, wait: :exponentially_longer, attempts: 3, queue: :llm do |job, exception|
+    # 只对 503/overloaded 错误重试，其他错误直接抛出
+    is_503_error = exception.message.include?('503') || exception.message.include?('overloaded')
+    
+    if is_503_error
+      Rails.logger.info "Retrying LLM job due to 503 error, attempt #{job.executions}/3"
+      # 返回 true 表示应该重试
+      true
+    else
+      # 不是503错误，不重试，直接失败
+      Rails.logger.error "LLM job failed with non-retryable error: #{exception.message}"
+      false
+    end
   end
-  # 401/400 (认证错误) - 不重试，直接失败
+  
+  # 401/400 (认证错误/请求错误) - 不重试，直接丢弃
   discard_on LlmService::ApiError do |job, exception|
     exception.message.include?('401') || exception.message.include?('400') || exception.message.include?('invalid') || exception.message.include?('Incorrect API key')
   end
@@ -412,11 +425,21 @@ class LlmStreamJob < ApplicationJob
         message: error_message
       })
       
-      # 记录错误日志
-      Rails.logger.error "LLM Stream Error (#{provider}): #{e.message}"
+      # 记录错误日志（包含完整堆栈）
+      Rails.logger.error "LLM Stream Error (#{provider}): #{e.message}\n#{e.backtrace.first(10).join("\n")}"
       
-      # 重新抛出异常让 retry_on 处理
-      raise e
+      # 检查是否是可重试的503错误
+      is_503_error = e.message.include?('503') || e.message.include?('overloaded')
+      
+      if is_503_error
+        # 503错误：重新抛出让 retry_on 处理自动重试
+        Rails.logger.info "503 error detected, will retry automatically"
+        raise e
+      else
+        # 非503错误：不重试，直接失败（但不抛出异常，避免影响其他任务）
+        Rails.logger.error "Non-retryable API error, job will not retry"
+        # 不抛出异常，任务标记为完成但失败
+      end
     end
     
     # Save to database based on provider
@@ -458,9 +481,9 @@ class LlmStreamJob < ApplicationJob
       return "#{get_provider_display_name(provider)} API密钥配置错误，请联系管理员检查配置"
     end
     
-    # 服务过载
+    # 服务过载 - 显示重试信息
     if message.include?('503') || message.include?('overloaded')
-      return "#{get_provider_display_name(provider)} 服务繁忙，正在自动重试..."
+      return "#{get_provider_display_name(provider)} 服务繁忙，系统将自动重试（最多3次，请稍候）..."
     end
     
     # 速率限制

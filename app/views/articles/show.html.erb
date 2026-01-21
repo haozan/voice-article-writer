@@ -22,10 +22,15 @@
     </div>
 
     <!-- Original Input -->
-    <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-      <div class="w-1 h-6 bg-orange-500"></div>
-      原始输入
-    </h2>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
+        <div class="w-1 h-6 bg-orange-500"></div>
+        原始输入
+      </h2>
+      <span class="text-sm text-muted">
+        字数：<span class="font-semibold text-primary"><%= (@article.transcript || '').length %></span>
+      </span>
+    </div>
     <div class="card card-elevated p-6 mb-6 rounded-none">
       <div 
         class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
@@ -149,10 +154,15 @@
 
     <!-- Draft -->
     <% if @article.draft.present? %>
-      <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-        <div class="w-1 h-6 bg-orange-500"></div>
-        初稿
-      </h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
+          <div class="w-1 h-6 bg-orange-500"></div>
+          初稿
+        </h2>
+        <span class="text-sm text-muted">
+          字数：<span class="font-semibold text-primary"><%= @article.draft.length %></span>
+        </span>
+      </div>
       <div class="card card-elevated p-6 mb-6 rounded-none">
         <div 
           class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
@@ -164,20 +174,25 @@
 
     <!-- Final Content -->
     <% if @article.final_content.present? %>
-      <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-        <div class="w-1 h-6 bg-orange-500"></div>
-        最终定稿
-        <% if @article.final_style.present? %>
-          <span class="badge badge-success">
-            <%= case @article.final_style
-                when 'pinker' then '史蒂芬·平克风格'
-                when 'luozhenyu' then '罗振宇风格'
-                when 'wangxiaobo' then '王小波风格'
-                else @article.final_style
-                end %>
-          </span>
-        <% end %>
-      </h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
+          <div class="w-1 h-6 bg-orange-500"></div>
+          最终定稿
+          <% if @article.final_style.present? %>
+            <span class="badge badge-success">
+              <%= case @article.final_style
+                  when 'pinker' then '史蒂芬·平克风格'
+                  when 'luozhenyu' then '罗振宇风格'
+                  when 'wangxiaobo' then '王小波风格'
+                  else @article.final_style
+                  end %>
+            </span>
+          <% end %>
+        </h2>
+        <span class="text-sm text-muted">
+          字数：<span class="font-semibold text-primary"><%= @article.final_content.length %></span>
+        </span>
+      </div>
       <div class="card card-elevated p-6 mb-6 rounded-none">
         <div 
           class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
