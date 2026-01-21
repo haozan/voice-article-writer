@@ -1401,47 +1401,98 @@ export default class extends BaseChannelController {
   // Smart split titles without line breaks
   // 智能分割没有换行符的标题文本
   private smartSplitTitles(content: string): string[] {
-    // 尝试不同的分割策略
+    console.log('Original content:', content)
     
-    // 策略1: 查找常见的标题结束标记 (句号、问号、感叹号) 后跟大写/数字/中文
-    // 匹配: "...。某" "...？某" "...！某" "...」某"
-    let titles: string[] = []
+    // 策略1: 查找完整的句子作为标题
+    // 标题通常以完整的句子结尾(。！？等)，且长度在15-50字之间
+    const sentencePattern = /[^。！？\n]+[。！？]/g
+    const sentences = content.match(sentencePattern)
     
-    // 先尝试按照标点符号分割
-    const punctuationPattern = /([。！？」】])/g
-    const segments = content.split(punctuationPattern)
-    
-    let currentTitle = ''
-    for (let i = 0; i < segments.length; i++) {
-      const segment = segments[i]
+    if (sentences && sentences.length >= 3) {
+      const titles = sentences
+        .map(s => s.trim())
+        .filter(s => s.length >= 10 && s.length <= 80)
       
-      // 如果是标点符号，加到当前标题
-      if (/[。！？」】]/.test(segment)) {
-        currentTitle += segment
-        
-        // 检查标题长度是否合理 (15-40字)
-        if (currentTitle.length >= 15 && currentTitle.length <= 80) {
-          titles.push(currentTitle.trim())
-          currentTitle = ''
-        }
-      } else if (segment.trim().length > 0) {
-        // 普通文本段
-        currentTitle += segment
+      if (titles.length >= 3 && titles.length <= 15) {
+        console.log(`Successfully split into ${titles.length} titles by sentences`)
+        return titles
       }
     }
     
-    // 如果还有剩余内容
-    if (currentTitle.trim().length > 0) {
-      titles.push(currentTitle.trim())
+    // 策略2: 如果句子太少，尝试识别没有标点符号结尾的标题
+    // 通过识别常见的标题起始模式
+    const heuristicTitles = this.heuristicSplit(content)
+    if (heuristicTitles.length >= 3 && heuristicTitles.length <= 15) {
+      console.log(`Split into ${heuristicTitles.length} titles by heuristics`)
+      return heuristicTitles
     }
     
-    // 如果分割结果太少或太多，使用固定长度分割
-    if (titles.length < 3 || titles.length > 15) {
-      console.warn(`Smart split produced ${titles.length} titles, using fallback`)
-      titles = this.fixedLengthSplit(content, 5)
+    // 策略3: 固定长度分割(最后的手段)
+    console.warn(`Using fallback: fixed length split`)
+    return this.fixedLengthSplit(content, 5)
+  }
+  
+  // 启发式分割:基于常见的标题起始模式
+  private heuristicSplit(content: string): string[] {
+    // 常见的标题起始模式
+    const titleStartPatterns = [
+      /\d+[年月日天]/,              // "6年", "2个月", "3天"
+      /^那些/,                       // "那些"
+      /^这些/,                       // "这些"
+      /^你以为/,                     // "你以为"
+      /^为什么/,                     // "为什么"
+      /^如何/,                       // "如何"
+      /^什么/,                       // "什么"
+      /^[^，。！？]{0,10}的我/,      // "独立开发者的我"
+      /^当[^，]{0,5}[后时]/,         // "当...后", "当...时"
+      /^从[^到]{0,8}到/,             // "从...到..."
+    ]
+    
+    // 查找所有可能的标题起始位置
+    const splitPoints: number[] = [0] // 第一个标题从0开始
+    
+    for (let i = 1; i < content.length; i++) {
+      const remaining = content.substring(i)
+      
+      // 检查当前位置是否匹配任何标题起始模式
+      for (const pattern of titleStartPatterns) {
+        if (pattern.test(remaining)) {
+          // 确保前一个字符是合理的结束点(不是句子中间)
+          const prevChar = content[i - 1]
+          const isPrevEndPoint = /[。！？了\s]|[a-zA-Z]/.test(prevChar)
+          
+          // 确保距离上一个分割点至少10个字符(避免过短的标题)
+          const lastSplit = splitPoints[splitPoints.length - 1]
+          const distance = i - lastSplit
+          
+          if (isPrevEndPoint && distance >= 10) {
+            splitPoints.push(i)
+            break
+          }
+        }
+      }
     }
     
+    // 根据分割点提取标题
+    const titles: string[] = []
+    for (let i = 0; i < splitPoints.length; i++) {
+      const start = splitPoints[i]
+      const end = i < splitPoints.length - 1 ? splitPoints[i + 1] : content.length
+      const title = content.substring(start, end).trim()
+      
+      if (title.length >= 10 && title.length <= 100) {
+        titles.push(title)
+      }
+    }
+    
+    console.log(`Heuristic split found ${titles.length} titles at positions:`, splitPoints)
     return titles
+  }
+  
+  // 检查是否是新句子的开始
+  private isNewSentenceStart(char: string): boolean {
+    // 中文字符、数字、大写字母等通常是新句子的开始
+    return /[\u4e00-\u9fa5A-Z0-9]/.test(char)
   }
   
   // Fallback: 固定长度分割
