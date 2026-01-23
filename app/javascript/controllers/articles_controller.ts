@@ -258,6 +258,25 @@ export default class extends BaseChannelController {
             showToast("标题已保存", "success")
           } else if (data.type === 'variant-saved') {
             showToast("变体已保存", "success")
+          } else if (data.type === 'regeneration-started') {
+            // Handle regeneration started event
+            const provider = data.provider
+            console.log(`Regeneration started for ${provider}`)
+            
+            // Reset content for this provider
+            this.responseContents[provider] = ""
+            this.completedModels.delete(provider)
+            
+            // Show loading state
+            const modelNames: { [key: string]: string } = {
+              grok: "Grok",
+              qwen: "千问",
+              deepseek: "DeepSeek",
+              gemini: "Gemini",
+              zhipu: "智谱",
+              doubao: "豆包"
+            }
+            this.resetResponseArea(provider, `${modelNames[provider]} 思考中...`)
           }
         }
       }
@@ -665,7 +684,7 @@ export default class extends BaseChannelController {
     const target = this.getResponseTarget(provider)
     
     if (target) {
-      // 显示友好的错误消息
+      // 显示友好的错误消息和重新生成按钮
       const errorPath = "M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 " +
         "1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 " +
         "00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -677,6 +696,18 @@ export default class extends BaseChannelController {
           <div class="flex-1">
             <p class="text-sm font-medium text-red-800 dark:text-red-200">生成失败</p>
             <p class="text-sm text-red-700 dark:text-red-300 mt-1">${message}</p>
+            <button 
+              type="button"
+              class="btn-sm btn-primary mt-2"
+              data-action="click->articles#regenerateProvider"
+              data-provider="${provider}"
+            >
+              <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              重新生成
+            </button>
           </div>
         </div>
       `
@@ -820,6 +851,32 @@ export default class extends BaseChannelController {
       console.error("Failed to copy:", err)
       showToast("复制失败", "danger")
     })
+  }
+  
+  // Regenerate a failed provider
+  regenerateProvider(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider) {
+      showToast("无法确定需要重新生成的模型", "danger")
+      return
+    }
+    
+    if (!this.currentArticleId) {
+      showToast("文章ID不存在，请重新开始", "danger")
+      return
+    }
+    
+    console.log(`Regenerating ${provider}`)
+    
+    // Call backend to regenerate this provider
+    if (this.commandSubscription) {
+      this.commandSubscription.perform("regenerate_provider", {
+        article_id: this.currentArticleId,
+        provider: provider
+      })
+    }
   }
   
   // Generate draft using selected model

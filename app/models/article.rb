@@ -4,9 +4,53 @@ class Article < ApplicationRecord
   
   before_save :calculate_word_count
   
+  # Initialize brainstorm_status if it's nil
+  after_initialize :initialize_brainstorm_status
+  
   scope :archived, -> { where(archived: true) }
   scope :unarchived, -> { where(archived: false) }
   scope :ordered_in_chapter, -> { order(:position) }
+  
+  # Providers for brainstorm
+  BRAINSTORM_PROVIDERS = %w[grok qwen deepseek gemini zhipu doubao].freeze
+  
+  def initialize_brainstorm_status
+    self.brainstorm_status ||= {}
+  end
+  
+  # Set brainstorm status for a provider
+  # status: 'pending', 'success', 'error'
+  # message: error message (optional)
+  def set_brainstorm_status(provider, status, message = nil)
+    self.brainstorm_status ||= {}
+    self.brainstorm_status[provider.to_s] = {
+      'status' => status.to_s,
+      'message' => message,
+      'updated_at' => Time.current.iso8601
+    }
+    save!
+  end
+  
+  # Get brainstorm status for a provider
+  def get_brainstorm_status(provider)
+    (brainstorm_status || {})[provider.to_s] || {}
+  end
+  
+  # Check if a provider has error
+  def brainstorm_error?(provider)
+    get_brainstorm_status(provider)['status'] == 'error'
+  end
+  
+  # Check if a provider is pending
+  def brainstorm_pending?(provider)
+    status = get_brainstorm_status(provider)['status']
+    status.nil? || status == 'pending'
+  end
+  
+  # Check if a provider is success
+  def brainstorm_success?(provider)
+    get_brainstorm_status(provider)['status'] == 'success'
+  end
   
   def calculate_word_count
     # Count Chinese characters, English words, and numbers

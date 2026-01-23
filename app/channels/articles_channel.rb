@@ -70,6 +70,9 @@ class ArticlesChannel < ApplicationCable::Channel
     providers.each do |provider|
       llm_config = get_llm_config(provider)
       
+      # Set pending status before triggering job
+      article.set_brainstorm_status(provider, 'pending')
+      
       LlmStreamJob.perform_later(
         stream_name: "#{@stream_name}_#{provider}",
         prompt: transcript,
@@ -86,6 +89,50 @@ class ArticlesChannel < ApplicationCable::Channel
       @stream_name,
       {
         type: 'article-created',
+        article_id: article.id
+      }
+    )
+  end
+  
+  # Regenerate a single provider's brainstorm
+  def regenerate_provider(data)
+    article_id = data['article_id']
+    provider = data['provider']
+    
+    unless article_id && provider
+      Rails.logger.error "Missing article_id or provider for regeneration"
+      return
+    end
+    
+    article = Article.find_by(id: article_id)
+    unless article
+      Rails.logger.error "Article not found: #{article_id}"
+      return
+    end
+    
+    # Clear previous error and set to pending
+    article.set_brainstorm_status(provider, 'pending')
+    
+    # Get LLM config for provider
+    llm_config = get_llm_config(provider)
+    
+    # Trigger job for this provider
+    LlmStreamJob.perform_later(
+      stream_name: "#{@stream_name}_#{provider}",
+      prompt: article.transcript,
+      llm_config: llm_config,
+      article_id: article.id,
+      provider: provider,
+      thinking_framework: article.thinking_framework || 'original',
+      streaming: data['streaming'] || false
+    )
+    
+    # Broadcast regeneration started
+    ActionCable.server.broadcast(
+      @stream_name,
+      {
+        type: 'regeneration-started',
+        provider: provider,
         article_id: article.id
       }
     )

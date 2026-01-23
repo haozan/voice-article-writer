@@ -425,6 +425,12 @@ class LlmStreamJob < ApplicationJob
         message: error_message
       })
       
+      # 保存错误状态到数据库
+      if article_id && provider && Article::BRAINSTORM_PROVIDERS.include?(provider.to_s)
+        article = Article.find_by(id: article_id)
+        article&.set_brainstorm_status(provider, 'error', error_message)
+      end
+      
       # 记录错误日志（包含完整堆栈）
       Rails.logger.error "LLM Stream Error (#{provider}): #{e.message}\n#{e.backtrace.first(10).join("\n")}"
       
@@ -449,16 +455,22 @@ class LlmStreamJob < ApplicationJob
         case provider
         when 'grok'
           article.update!(brainstorm_grok: full_content)
+          article.set_brainstorm_status('grok', 'success')
         when 'qwen'
           article.update!(brainstorm_qwen: full_content)
+          article.set_brainstorm_status('qwen', 'success')
         when 'deepseek'
           article.update!(brainstorm_deepseek: full_content)
+          article.set_brainstorm_status('deepseek', 'success')
         when 'gemini'
           article.update!(brainstorm_gemini: full_content)
+          article.set_brainstorm_status('gemini', 'success')
         when 'zhipu'
           article.update!(brainstorm_zhipu: full_content)
+          article.set_brainstorm_status('zhipu', 'success')
         when 'doubao'
           article.update!(brainstorm_doubao: full_content)
+          article.set_brainstorm_status('doubao', 'success')
         when 'draft'
           article.update!(draft: full_content)
         when 'final'
