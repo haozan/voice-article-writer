@@ -152,147 +152,109 @@
       </div>
     <% end %>
 
-    <!-- Draft -->
-    <% if @article.draft.present? %>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
+    <!-- Drafts (5 models) -->
+    <% if @article.has_drafts? %>
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
           <div class="w-1 h-6 bg-orange-500"></div>
-          初稿
+          AI 初稿生成
         </h2>
-        <span class="text-sm text-muted">
-          字数：<span class="font-semibold text-primary"><%= @article.draft.length %></span>
-        </span>
-      </div>
-      <div class="card card-elevated p-6 mb-6 rounded-none">
-        <div 
-          class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
-          data-controller="markdown-renderer"
-          data-markdown-renderer-content-value="<%= @article.draft.to_json %>"
-        ></div>
-      </div>
-    <% end %>
-
-    <!-- Final Content -->
-    <% if @article.final_content.present? %>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
-          <div class="w-1 h-6 bg-orange-500"></div>
-          最终定稿
-          <% if @article.final_style.present? %>
-            <span class="badge badge-success">
-              <%= case @article.final_style
-                  when 'pinker' then '史蒂芬·平克风格'
-                  when 'luozhenyu' then '罗振宇风格'
-                  when 'wangxiaobo' then '王小波风格'
-                  else @article.final_style
-                  end %>
-            </span>
-          <% end %>
-        </h2>
-        <span class="text-sm text-muted">
-          字数：<span class="font-semibold text-primary"><%= @article.final_content.length %></span>
-        </span>
-      </div>
-      <div class="card card-elevated p-6 mb-6 rounded-none">
-        <div 
-          class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
-          data-controller="markdown-renderer"
-          data-markdown-renderer-content-value="<%= @article.final_content.to_json %>"
-        ></div>
-      </div>
-    <% end %>
-    
-    <!-- Viral Title -->
-    <% if @article.title.present? %>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
-          <div class="w-1 h-6 bg-orange-500"></div>
-          爆款标题
-          <% if @article.title_style.present? %>
-            <span class="badge badge-success">
-              <%= case @article.title_style
-                  when 'mimeng' then '迷蒙体'
-                  when 'normal' then '普通风格'
-                  else @article.title_style
-                  end %>
-            </span>
-          <% end %>
-        </h2>
-        <button
-          type="button"
-          onclick="copyAllTitles()"
-          class="btn-primary btn-sm"
-        >
-          <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
-          复制全部
-        </button>
-      </div>
-      <div class="card card-elevated p-6 mb-6 rounded-none">
-        
-        <!-- Title list display -->
-        <div class="space-y-3 text-foreground text-lg leading-relaxed">
-          <% titles = @article.title.split("\n").map(&:strip).reject(&:empty?) %>
-          <% if titles.length > 1 %>
-            <% titles.each_with_index do |title, index| %>
-              <div class="flex items-start gap-3 p-3 bg-surface/50 hover:bg-primary/5 transition-colors rounded-none border border-border/50">
-                <span class="text-primary font-bold text-xl flex-shrink-0"><%= index + 1 %>.</span>
-                <p class="flex-1 text-foreground"><%= title %></p>
-                <button 
-                  class="btn-sm btn-secondary flex-shrink-0" 
-                  onclick="navigator.clipboard.writeText('<%= title.gsub("'", "\\\\'") %>').then(() => window.showToast('已复制', 'success')).catch(() => window.showToast('复制失败', 'danger'))"
-                >
-                  <%= lucide_icon "copy", class: "w-4 h-4" %>
-                </button>
+        <div class="space-y-4">
+          <% if @article.draft_grok.present? %>
+            <div class="card card-elevated p-5 rounded-none">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-primary flex items-center gap-2">
+                  <%= image_tag "grok-logo.png", class: "w-5 h-5", alt: "Grok" %>
+                  Grok 初稿
+                </h3>
+                <span class="text-sm text-muted">
+                  字数：<span class="font-semibold text-primary"><%= @article.draft_grok.length %></span>
+                </span>
               </div>
-            <% end %>
-          <% else %>
-            <!-- Fallback for legacy single-line titles -->
-            <div class="flex items-start gap-3 p-3 bg-surface/50 hover:bg-primary/5 transition-colors rounded-none border border-border/50">
-              <span class="text-primary font-bold text-xl flex-shrink-0">1.</span>
-              <p class="flex-1 text-foreground"><%= @article.title %></p>
-              <button 
-                class="btn-sm btn-secondary flex-shrink-0" 
-                onclick="navigator.clipboard.writeText('<%= @article.title.gsub("'", "\\\\'") %>').then(() => window.showToast('已复制', 'success')).catch(() => window.showToast('复制失败', 'danger'))"
-              >
-                <%= lucide_icon "copy", class: "w-4 h-4" %>
-              </button>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.draft_grok.to_json %>"
+              ></div>
+            </div>
+          <% end %>
+
+          <% if @article.draft_qwen.present? %>
+            <div class="card card-elevated p-5 rounded-none">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-primary flex items-center gap-2">
+                  <%= image_tag "qwen-logo.png", class: "w-5 h-5", alt: "千问" %>
+                  千问初稿
+                </h3>
+                <span class="text-sm text-muted">
+                  字数：<span class="font-semibold text-primary"><%= @article.draft_qwen.length %></span>
+                </span>
+              </div>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.draft_qwen.to_json %>"
+              ></div>
+            </div>
+          <% end %>
+
+          <% if @article.draft_deepseek.present? %>
+            <div class="card card-elevated p-5 rounded-none">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-primary flex items-center gap-2">
+                  <%= image_tag "deepseek-logo.png", class: "w-5 h-5", alt: "DeepSeek" %>
+                  DeepSeek 初稿
+                </h3>
+                <span class="text-sm text-muted">
+                  字数：<span class="font-semibold text-primary"><%= @article.draft_deepseek.length %></span>
+                </span>
+              </div>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.draft_deepseek.to_json %>"
+              ></div>
+            </div>
+          <% end %>
+
+          <% if @article.draft_gemini.present? %>
+            <div class="card card-elevated p-5 rounded-none">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-primary flex items-center gap-2">
+                  <%= image_tag "gemini-logo.png", class: "w-5 h-5", alt: "Gemini" %>
+                  Gemini 初稿
+                </h3>
+                <span class="text-sm text-muted">
+                  字数：<span class="font-semibold text-primary"><%= @article.draft_gemini.length %></span>
+                </span>
+              </div>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.draft_gemini.to_json %>"
+              ></div>
+            </div>
+          <% end %>
+
+          <% if @article.draft_zhipu.present? %>
+            <div class="card card-elevated p-5 rounded-none">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-primary flex items-center gap-2">
+                  <%= image_tag "zhipu-logo.png", class: "w-5 h-5", alt: "智谱" %>
+                  智谱初稿
+                </h3>
+                <span class="text-sm text-muted">
+                  字数：<span class="font-semibold text-primary"><%= @article.draft_zhipu.length %></span>
+                </span>
+              </div>
+              <div 
+                class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                data-controller="markdown-renderer"
+                data-markdown-renderer-content-value="<%= @article.draft_zhipu.to_json %>"
+              ></div>
             </div>
           <% end %>
         </div>
-        
-        <script>
-          function copyAllTitles() {
-            const titles = <%= raw titles.each_with_index.map { |t, i| "#{i + 1}. #{t}" }.to_json %>;
-            const allTitles = titles.join('\n\n');
-            navigator.clipboard.writeText(allTitles)
-              .then(() => window.showToast('所有标题已复制到剪贴板', 'success'))
-              .catch(() => window.showToast('复制失败，请手动选择并复制文本', 'danger'));
-          }
-        </script>
-      </div>
-    <% end %>
-
-    <!-- Variant -->
-    <% if @article.variant.present? %>
-      <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-        <div class="w-1 h-6 bg-orange-500"></div>
-        内容变体
-        <% if @article.variant_style.present? %>
-          <span class="badge badge-success">
-            <%= case @article.variant_style
-                when 'xiaolvshu' then '小绿书'
-                when 'xiaohongshu' then '小红书'
-                else @article.variant_style
-                end %>
-          </span>
-        <% end %>
-      </h2>
-      <div class="card card-elevated p-6 mb-6 rounded-none">
-        <div 
-          class="text-secondary text-base leading-relaxed px-4 py-3 bg-surface/50 border-2 border-primary/20 rounded-none prose prose-lg max-w-none"
-          data-controller="markdown-renderer"
-          data-markdown-renderer-content-value="<%= @article.variant.to_json %>"
-        ></div>
       </div>
     <% end %>
 

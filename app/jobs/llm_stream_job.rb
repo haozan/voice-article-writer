@@ -426,9 +426,18 @@ class LlmStreamJob < ApplicationJob
       })
       
       # 保存错误状态到数据库
-      if article_id && provider && Article::BRAINSTORM_PROVIDERS.include?(provider.to_s)
+      if article_id && provider
         article = Article.find_by(id: article_id)
-        article&.set_brainstorm_status(provider, 'error', error_message)
+        if article
+          # Handle brainstorm providers
+          if Article::BRAINSTORM_PROVIDERS.include?(provider.to_s)
+            article.set_brainstorm_status(provider, 'error', error_message)
+          # Handle draft_xxx providers
+          elsif provider.to_s.match(/^draft_(.+)$/)
+            provider_name = $1
+            article.set_draft_status(provider_name, 'error', error_message)
+          end
+        end
       end
       
       # 记录错误日志（包含完整堆栈）
@@ -473,6 +482,11 @@ class LlmStreamJob < ApplicationJob
           article.set_brainstorm_status('doubao', 'success')
         when 'draft'
           article.update!(draft: full_content)
+        when /^draft_(.+)$/
+          # Handle draft_grok, draft_qwen, draft_deepseek, draft_gemini, draft_zhipu
+          provider_name = $1
+          article.update!("draft_#{provider_name}" => full_content)
+          article.set_draft_status(provider_name, 'success')
         when 'final'
           article.update!(final_content: full_content)
         end
@@ -508,6 +522,21 @@ class LlmStreamJob < ApplicationJob
   end
   
   def get_provider_display_name(provider)
+    # Handle draft_xxx providers
+    if provider.to_s.match(/^draft_(.+)$/)
+      provider_name = $1
+      return case provider_name
+      when 'grok' then 'Grok'
+      when 'qwen' then '千问'
+      when 'deepseek' then 'DeepSeek'
+      when 'gemini' then 'Gemini'
+      when 'zhipu' then '智谱'
+      when 'doubao' then '豆包'
+      when 'chatgpt' then 'ChatGPT'
+      else provider_name.capitalize
+      end
+    end
+    
     case provider
     when 'grok' then 'Grok'
     when 'qwen' then '千问'

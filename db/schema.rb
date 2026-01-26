@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_23_155810) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_23_161812) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -95,6 +95,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_155810) do
     t.text "variant"
     t.string "variant_style"
     t.jsonb "brainstorm_status", default: {}
+    t.text "draft_grok"
+    t.text "draft_qwen"
+    t.text "draft_deepseek"
+    t.text "draft_gemini"
+    t.text "draft_zhipu"
+    t.text "draft_doubao"
+    t.jsonb "draft_status", default: {}
     t.index ["chapter_id"], name: "index_articles_on_chapter_id"
     t.index ["user_id"], name: "index_articles_on_user_id"
   end

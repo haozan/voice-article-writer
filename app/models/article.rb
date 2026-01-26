@@ -6,6 +6,7 @@ class Article < ApplicationRecord
   
   # Initialize brainstorm_status if it's nil
   after_initialize :initialize_brainstorm_status
+  after_initialize :initialize_draft_status
   
   scope :archived, -> { where(archived: true) }
   scope :unarchived, -> { where(archived: false) }
@@ -16,6 +17,10 @@ class Article < ApplicationRecord
   
   def initialize_brainstorm_status
     self.brainstorm_status ||= {}
+  end
+  
+  def initialize_draft_status
+    self.draft_status ||= {}
   end
   
   # Set brainstorm status for a provider
@@ -52,6 +57,34 @@ class Article < ApplicationRecord
     get_brainstorm_status(provider)['status'] == 'success'
   end
   
+  # Draft status management (same pattern as brainstorm)
+  def set_draft_status(provider, status, message = nil)
+    self.draft_status ||= {}
+    self.draft_status[provider.to_s] = {
+      'status' => status.to_s,
+      'message' => message,
+      'updated_at' => Time.current.iso8601
+    }
+    save!
+  end
+  
+  def get_draft_status(provider)
+    (draft_status || {})[provider.to_s] || {}
+  end
+  
+  def draft_error?(provider)
+    get_draft_status(provider)['status'] == 'error'
+  end
+  
+  def draft_pending?(provider)
+    status = get_draft_status(provider)['status']
+    status.nil? || status == 'pending'
+  end
+  
+  def draft_success?(provider)
+    get_draft_status(provider)['status'] == 'success'
+  end
+  
   def calculate_word_count
     # Count Chinese characters, English words, and numbers
     # Remove all whitespace and count remaining characters
@@ -60,7 +93,7 @@ class Article < ApplicationRecord
   
   def status_label
     return '定稿' if final_content.present?
-    return '初稿' if draft.present?
+    return '初稿' if has_drafts?
     return '脑爆' if has_brainstorm?
     '未开始'
   end
@@ -69,7 +102,7 @@ class Article < ApplicationRecord
   # 红色(danger) = 脑爆, 黄色(warning) = 初稿, 绿色(success) = 定稿
   def status_badge_class
     return 'badge-success' if final_content.present?  # 绿色 - 定稿
-    return 'badge-warning' if draft.present?          # 黄色 - 初稿
+    return 'badge-warning' if has_drafts?             # 黄色 - 初稿
     return 'badge-danger' if has_brainstorm?          # 红色 - 脑爆
     'badge-secondary'                                  # 灰色 - 未开始
   end
@@ -81,6 +114,15 @@ class Article < ApplicationRecord
     brainstorm_gemini.present? || 
     brainstorm_zhipu.present? ||
     brainstorm_doubao.present?
+  end
+  
+  def has_drafts?
+    draft_grok.present? ||
+    draft_qwen.present? ||
+    draft_deepseek.present? ||
+    draft_gemini.present? ||
+    draft_zhipu.present? ||
+    draft_doubao.present?
   end
   
   def can_archive?
