@@ -1,0 +1,42 @@
+<div class="min-h-screen flex items-center justify-center bg-surface px-6">
+  <div class="max-w-md w-full">
+    <div class="card card-elevated p-8 text-center">
+      <div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-6">
+        <%= lucide_icon "check-circle", class: "w-12 h-12 text-success" %>
+      </div>
+      
+      <h1 class="text-2xl font-bold text-primary mb-4">
+        支付成功！
+      </h1>
+      
+      <p class="text-secondary mb-8">
+        您的套餐已购买成功，文章配额已充值到您的账户。
+      </p>
+
+      <% if @payment %>
+        <div class="bg-surface-elevated rounded-lg p-4 mb-6 text-left">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-muted">订单金额</span>
+            <span class="font-semibold text-primary">¥<%= sprintf('%.2f', @payment.amount) %></span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-muted">订单状态</span>
+            <span class="badge badge-success"><%= @payment.display_status %></span>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="flex flex-col gap-3">
+        <%= link_to write_path, class: "btn-primary w-full" do %>
+          <%= lucide_icon "pencil", class: "w-5 h-5 inline-block mr-2" %>
+          开始创作
+        <% end %>
+        
+        <%= link_to profile_path, class: "btn-outline w-full" do %>
+          <%= lucide_icon "user", class: "w-5 h-5 inline-block mr-2" %>
+          查看个人中心
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

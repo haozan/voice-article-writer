@@ -34,6 +34,7 @@ class User < ApplicationRecord
   generates_token_for :password_reset, expires_in: 20.minutes
 
   has_many :sessions, dependent: :destroy
+  has_many :payments, dependent: :destroy
   has_many :articles, dependent: :nullify
   has_many :books, dependent: :nullify
 

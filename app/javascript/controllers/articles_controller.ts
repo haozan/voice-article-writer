@@ -119,13 +119,44 @@ export default class extends BaseChannelController {
     "draftCharCountDeepseek",
     "draftCharCountGemini",
     "draftCharCountZhipu",
+    "editDraftButtonGrok",
+    "editDraftButtonQwen",
+    "editDraftButtonDeepseek",
+    "editDraftButtonGemini",
+    "editDraftButtonZhipu",
+    "copyDraftHtmlButtonGrok",
+    "copyDraftHtmlButtonQwen",
+    "copyDraftHtmlButtonDeepseek",
+    "copyDraftHtmlButtonGemini",
+    "copyDraftHtmlButtonZhipu",
+    "copyDraftMarkdownButtonGrok",
+    "copyDraftMarkdownButtonQwen",
+    "copyDraftMarkdownButtonDeepseek",
+    "copyDraftMarkdownButtonGemini",
+    "copyDraftMarkdownButtonZhipu",
+    "generateAllDraftsButton",
+    "writingStyleSelector",
+    "writingStyleRadio",
+    "historyOverlay",
     "historySidebar",
     "historyList",
-    "thinkingFramework"
+    "thinkingFramework",
+    "progressContainer",
+    "progressBarGrok",
+    "progressBarQwen",
+    "progressBarDeepseek",
+    "progressBarGemini",
+    "progressBarZhipu",
+    "progressTextGrok",
+    "progressTextQwen",
+    "progressTextDeepseek",
+    "progressTextGemini",
+    "progressTextZhipu"
   ]
 
   static values = {
-    streamName: String
+    streamName: String,
+    writingStyle: { type: String, default: "original" }
   }
 
   declare readonly inputTextTarget: HTMLTextAreaElement
@@ -144,11 +175,41 @@ export default class extends BaseChannelController {
   declare readonly draftButtonGeminiTarget: HTMLElement
   declare readonly draftButtonZhipuTarget: HTMLElement
   declare readonly draftButtonDoubaoTarget: HTMLElement
+  declare readonly editDraftButtonGrokTarget: HTMLElement
+  declare readonly editDraftButtonQwenTarget: HTMLElement
+  declare readonly editDraftButtonDeepseekTarget: HTMLElement
+  declare readonly editDraftButtonGeminiTarget: HTMLElement
+  declare readonly editDraftButtonZhipuTarget: HTMLElement
+  declare readonly copyDraftHtmlButtonGrokTarget: HTMLElement
+  declare readonly copyDraftHtmlButtonQwenTarget: HTMLElement
+  declare readonly copyDraftHtmlButtonDeepseekTarget: HTMLElement
+  declare readonly copyDraftHtmlButtonGeminiTarget: HTMLElement
+  declare readonly copyDraftHtmlButtonZhipuTarget: HTMLElement
+  declare readonly copyDraftMarkdownButtonGrokTarget: HTMLElement
+  declare readonly copyDraftMarkdownButtonQwenTarget: HTMLElement
+  declare readonly copyDraftMarkdownButtonDeepseekTarget: HTMLElement
+  declare readonly copyDraftMarkdownButtonGeminiTarget: HTMLElement
+  declare readonly copyDraftMarkdownButtonZhipuTarget: HTMLElement
+  declare readonly generateAllDraftsButtonTarget: HTMLElement
+  declare readonly writingStyleSelectorTarget: HTMLElement
+  declare readonly writingStyleRadioTargets: HTMLInputElement[]
   declare readonly historyOverlayTarget: HTMLElement
   declare readonly historySidebarTarget: HTMLElement
   declare readonly historyListTarget: HTMLElement
   declare readonly thinkingFrameworkTarget: HTMLInputElement
+  declare readonly progressContainerTarget: HTMLElement
+  declare readonly progressBarGrokTarget: HTMLElement
+  declare readonly progressBarQwenTarget: HTMLElement
+  declare readonly progressBarDeepseekTarget: HTMLElement
+  declare readonly progressBarGeminiTarget: HTMLElement
+  declare readonly progressBarZhipuTarget: HTMLElement
+  declare readonly progressTextGrokTarget: HTMLElement
+  declare readonly progressTextQwenTarget: HTMLElement
+  declare readonly progressTextDeepseekTarget: HTMLElement
+  declare readonly progressTextGeminiTarget: HTMLElement
+  declare readonly progressTextZhipuTarget: HTMLElement
   declare readonly streamNameValue: string
+  declare writingStyleValue: string
   declare readonly hasInputTextTarget: boolean
   declare readonly hasCharCountTarget: boolean
   declare readonly hasDraftCharCountTarget: boolean
@@ -185,6 +246,13 @@ export default class extends BaseChannelController {
     gemini: false,
     zhipu: false,
     doubao: false
+  }
+  private modelProgress: { [key: string]: number } = {
+    grok: 0,
+    qwen: 0,
+    deepseek: 0,
+    gemini: 0,
+    zhipu: 0
   }
 
   connect(): void {
@@ -291,25 +359,6 @@ export default class extends BaseChannelController {
       )
     })
     
-    // Subscribe to draft channel
-    this.draftSubscription = consumer.subscriptions.create(
-      {
-        channel: "ArticlesChannel",
-        stream_name: `${this.streamNameValue}_draft`
-      },
-      {
-        connected: () => { console.log("Draft channel connected") },
-        disconnected: () => { console.log("Draft channel disconnected") },
-        received: (data: any) => {
-          if (data.type === 'chunk') {
-            this.handleDraftChunk(data.chunk)
-          } else if (data.type === 'complete') {
-            this.handleDraftComplete()
-          }
-        }
-      }
-    )
-    
     // Subscribe to draft channels for each provider
     const draftProviders = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
     draftProviders.forEach(provider => {
@@ -385,7 +434,7 @@ export default class extends BaseChannelController {
       return
     }
     
-    console.log('Triggering all drafts generation for article:', this.currentArticleId)
+    console.log('Triggering all drafts generation for article:', this.currentArticleId, 'with writing style:', this.writingStyleValue)
     
     // Reset draft state
     this.draftContents = {
@@ -398,10 +447,27 @@ export default class extends BaseChannelController {
     }
     this.completedDrafts.clear()
     
-    // Call backend to generate all drafts
+    // CRITICAL: Show drafts container immediately (like responsesContainer in brainstorm)
+    const draftsContainer = (this as any).draftsContainerTarget
+    if (draftsContainer) {
+      draftsContainer.style.display = 'block'
+      // Scroll to drafts section
+      draftsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+    
+    // CRITICAL: Show loading state for all draft areas immediately (like brainstorm does)
+    // This makes all 5 draft cards visible right away
+    this.resetDraftArea("grok", "Grok 初稿生成中...")
+    this.resetDraftArea("qwen", "千问初稿生成中...")
+    this.resetDraftArea("deepseek", "DeepSeek 初稿生成中...")
+    this.resetDraftArea("gemini", "Gemini 初稿生成中...")
+    this.resetDraftArea("zhipu", "智谱初稿生成中...")
+    
+    // Call backend to generate all drafts with writing style
     if (this.commandSubscription) {
       this.commandSubscription.perform("generate_all_drafts", {
-        article_id: this.currentArticleId
+        article_id: this.currentArticleId,
+        writing_style: this.writingStyleValue
       })
     }
   }
@@ -418,7 +484,7 @@ export default class extends BaseChannelController {
   }
 
 
-  // Called when user clicks "Generate" button
+  // Called when user clicks "一键生成所有脑爆和初稿" button
   generateArticle(): void {
     if (!this.hasInputTextTarget) {
       console.error("Input text target not found")
@@ -445,13 +511,16 @@ export default class extends BaseChannelController {
     // CRITICAL: Clear article_id to create a new article
     // Every "Start Conversation" click should create a NEW article
     this.currentArticleId = null
-    console.log('Starting new conversation, article_id cleared')
+    console.log('Starting new conversation with brainstorm + drafts, article_id cleared')
 
     // Get selected thinking framework
     const thinkingFramework = this.getSelectedThinkingFramework()
+    
+    // Get selected writing style
+    const writingStyle = this.writingStyleValue
 
-    // Start generation process
-    this.startAllModelsResponse(thinkingFramework)
+    // Start generation process with both brainstorm and drafts
+    this.startBrainstormAndDrafts(thinkingFramework, writingStyle)
   }
 
   private getSelectedThinkingFramework(): string {
@@ -466,8 +535,9 @@ export default class extends BaseChannelController {
     return 'original'
   }
 
-  private startAllModelsResponse(thinkingFramework: string = 'original'): void {
-    // Reset state
+  // Start brainstorm and drafts generation in one go
+  private startBrainstormAndDrafts(thinkingFramework: string = 'original', writingStyle: string = 'original'): void {
+    // Reset state for brainstorm
     this.responseContents = {
       grok: "",
       qwen: "",
@@ -477,6 +547,34 @@ export default class extends BaseChannelController {
       doubao: ""
     }
     this.completedModels.clear()
+    
+    // Reset state for drafts
+    this.draftContents = {
+      grok: "",
+      qwen: "",
+      deepseek: "",
+      gemini: "",
+      zhipu: "",
+      doubao: ""
+    }
+    this.completedDrafts.clear()
+    
+    // Reset progress for all 5 models
+    this.modelProgress = {
+      grok: 0,
+      qwen: 0,
+      deepseek: 0,
+      gemini: 0,
+      zhipu: 0
+    }
+    
+    // Show and reset progress bars
+    this.progressContainerTarget.style.display = 'block'
+    this.updateProgress('grok', 0)
+    this.updateProgress('qwen', 0)
+    this.updateProgress('deepseek', 0)
+    this.updateProgress('gemini', 0)
+    this.updateProgress('zhipu', 0)
 
     // Show responses container
     this.responsesContainerTarget.style.display = "block"
@@ -488,10 +586,21 @@ export default class extends BaseChannelController {
     this.resetResponseArea("gemini", "Gemini 思考中...")
     this.resetResponseArea("zhipu", "智谱思考中...")
     this.resetResponseArea("doubao", "豆包思考中...")
-
-    // Hide all copy buttons (edit, save, copyHtml, copyMarkdown buttons are hidden by default with style="display: none")
     
-    // Hide all draft buttons
+    // Show drafts container immediately (even before brainstorm completes)
+    const draftsContainer = (this as any).draftsContainerTarget
+    if (draftsContainer) {
+      draftsContainer.style.display = 'block'
+    }
+    
+    // Show loading state for all draft areas
+    this.resetDraftArea("grok", "等待脑爆完成后生成初稿...")
+    this.resetDraftArea("qwen", "等待脑爆完成后生成初稿...")
+    this.resetDraftArea("deepseek", "等待脑爆完成后生成初稿...")
+    this.resetDraftArea("gemini", "等待脑爆完成后生成初稿...")
+    this.resetDraftArea("zhipu", "等待脑爆完成后生成初稿...")
+
+    // Hide all buttons (they are hidden by default with style="display: none")
     this.draftButtonGrokTarget.style.display = "none"
     this.draftButtonQwenTarget.style.display = "none"
     this.draftButtonDeepseekTarget.style.display = "none"
@@ -499,12 +608,11 @@ export default class extends BaseChannelController {
     this.draftButtonZhipuTarget.style.display = "none"
     this.draftButtonDoubaoTarget.style.display = "none"
 
-    // Trigger backend job (which will start all 5 models)
-    // We only need to call this once - the backend will handle all providers
+    // Trigger backend to create new article with brainstorm + drafts
     if (this.commandSubscription) {
-      this.commandSubscription.perform("generate_response", {
+      this.commandSubscription.perform("create_new_from_existing", {
         transcript: this.originalTranscript,
-        article_id: this.currentArticleId,
+        writing_style: writingStyle,
         thinking_framework: thinkingFramework
       })
     }
@@ -627,32 +735,33 @@ export default class extends BaseChannelController {
     console.log(`${provider} response complete`)
     this.completedModels.add(provider)
     
-    // Show edit, copy HTML, copy markdown, and draft buttons
+    // Update progress to 50% (brainstorm complete, waiting for draft)
+    if (provider !== 'doubao') {
+      this.updateProgress(provider, 50)
+    }
+    
+    // Show edit, copy HTML, copy markdown buttons (but NOT draft button in new flow)
     const editButton = this.getEditButtonTarget(provider)
     const copyHtmlButton = this.getCopyHtmlButtonTarget(provider)
     const copyMarkdownButton = this.getCopyMarkdownButtonTarget(provider)
-    const draftButton = this.getDraftButtonTarget(provider)
     
     if (editButton) editButton.style.display = "inline-flex"
     if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
     if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
-    if (draftButton) draftButton.style.display = "inline-flex"
+    // Note: Draft buttons are NOT shown in new flow since drafts auto-generate
 
-    // All models complete (5 models, Doubao hidden)
-    if (this.completedModels.size === 5) {
-      // All brainstorm responses generated, auto-trigger draft generation
-      console.log('All brainstorm completed, triggering draft generation')
-      this.triggerAllDraftsGeneration()
-    }
+    // No need to show "Generate All Drafts" button since it's part of initial flow now
   }
 
   // Handle errors for a specific provider
   private handleErrorForProvider(provider: string, message: string): void {
-    console.error(`${provider} generation error:`, message)
+    console.error(`[BRAINSTORM ERROR] ${provider} generation error:`, message)
+    console.log(`[BRAINSTORM ERROR] Target check - responseTarget for ${provider}:`, this.getResponseTarget(provider))
     
     const target = this.getResponseTarget(provider)
     
     if (target) {
+      console.log(`[BRAINSTORM ERROR] Updating brainstorm area for ${provider} with error message`)
       // 显示友好的错误消息和重新生成按钮
       const errorPath = "M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 " +
         "1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 " +
@@ -687,9 +796,16 @@ export default class extends BaseChannelController {
     
     // All models complete (including errors) (5 models, Doubao hidden)
     if (this.completedModels.size === 5) {
-      // All brainstorm responses generated (including errors), auto-trigger draft generation
-      console.log('All brainstorm completed (including errors), triggering draft generation')
-      this.triggerAllDraftsGeneration()
+      // All brainstorm responses generated (including errors), show "Generate All Drafts" button and writing style selector
+      console.log('All brainstorm completed (including errors), showing generate all drafts button and writing style selector')
+      if (this.generateAllDraftsButtonTarget) {
+        this.generateAllDraftsButtonTarget.style.display = "inline-flex"
+      }
+      if (this.writingStyleSelectorTarget) {
+        this.writingStyleSelectorTarget.style.display = "block"
+        // Scroll to selector
+        this.writingStyleSelectorTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
     }
   }
   
@@ -704,6 +820,9 @@ export default class extends BaseChannelController {
   private handleDraftCompleteForProvider(provider: string): void {
     console.log(`${provider} draft generation complete`)
     this.completedDrafts.add(provider)
+    
+    // Update progress to 100% (draft complete)
+    this.updateProgress(provider, 100)
     
     // Render draft content to UI
     const target = this.getDraftTarget(provider)
@@ -723,6 +842,15 @@ export default class extends BaseChannelController {
       }
     }
     
+    // Show draft action buttons (edit, copy, copyMarkdown)
+    const editDraftButton = this.getEditDraftButtonTarget(provider)
+    const copyDraftHtmlButton = this.getCopyDraftHtmlButtonTarget(provider)
+    const copyDraftMarkdownButton = this.getCopyDraftMarkdownButtonTarget(provider)
+    
+    if (editDraftButton) editDraftButton.style.display = "inline-flex"
+    if (copyDraftHtmlButton) copyDraftHtmlButton.style.display = "inline-flex"
+    if (copyDraftMarkdownButton) copyDraftMarkdownButton.style.display = "inline-flex"
+    
     // Show drafts container after first draft completes
     const draftsContainer = (this as any).draftsContainerTarget
     if (draftsContainer && draftsContainer.style.display === 'none') {
@@ -734,11 +862,45 @@ export default class extends BaseChannelController {
   
   // Handle draft error for a specific provider
   private handleDraftErrorForProvider(provider: string, message: string): void {
-    console.error(`${provider} draft generation error:`, message)
+    console.error(`[DRAFT ERROR] ${provider} draft generation error:`, message)
+    console.log(`[DRAFT ERROR] Target check - draftTarget for ${provider}:`, this.getDraftTarget(provider))
+    console.log(`[DRAFT ERROR] Sanity check - responseTarget for ${provider}:`, this.getResponseTarget(provider))
     this.completedDrafts.add(provider)
     
-    // TODO: Show error in draft UI with regenerate button
-    // This will be done in Task 5 when we update the view
+    const target = this.getDraftTarget(provider)
+    if (target) {
+      console.log(`[DRAFT ERROR] Updating draft area for ${provider} with error message`)
+      const modelNames: { [key: string]: string } = {
+        grok: "Grok",
+        qwen: "千问",
+        deepseek: "DeepSeek",
+        gemini: "Gemini",
+        zhipu: "智谱",
+        doubao: "豆包"
+      }
+      
+      target.innerHTML = `
+        <div class="alert alert-danger">
+          <div class="flex items-center gap-2 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-circle w-5 h-5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span class="font-medium">${modelNames[provider]} 初稿生成失败</span>
+          </div>
+          <p class="text-sm text-muted mb-3">${message}</p>
+          <p class="text-xs text-warning mb-3">⚠️ 注意：这是初稿生成失败，不影响上方已生成的思考框架内容</p>
+          <button
+            type="button"
+            class="btn-sm btn-primary"
+            data-action="click->articles#retryDraft"
+            data-provider="${provider}"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw w-4 h-4 inline-block mr-1"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+            重新生成初稿
+          </button>
+        </div>
+      `
+    } else {
+      console.error(`[DRAFT ERROR] Failed to get draft target for ${provider}`)
+    }
   }
   
   // Reset draft area for a specific provider (show loading state)
@@ -774,6 +936,42 @@ export default class extends BaseChannelController {
       case 'deepseek': return (this as any).draftCharCountDeepseekTarget
       case 'gemini': return (this as any).draftCharCountGeminiTarget
       case 'zhipu': return (this as any).draftCharCountZhipuTarget
+      default: return null
+    }
+  }
+
+  // Get edit draft button target for a specific provider
+  private getEditDraftButtonTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return this.editDraftButtonGrokTarget
+      case 'qwen': return this.editDraftButtonQwenTarget
+      case 'deepseek': return this.editDraftButtonDeepseekTarget
+      case 'gemini': return this.editDraftButtonGeminiTarget
+      case 'zhipu': return this.editDraftButtonZhipuTarget
+      default: return null
+    }
+  }
+
+  // Get copy draft HTML button target for a specific provider
+  private getCopyDraftHtmlButtonTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return this.copyDraftHtmlButtonGrokTarget
+      case 'qwen': return this.copyDraftHtmlButtonQwenTarget
+      case 'deepseek': return this.copyDraftHtmlButtonDeepseekTarget
+      case 'gemini': return this.copyDraftHtmlButtonGeminiTarget
+      case 'zhipu': return this.copyDraftHtmlButtonZhipuTarget
+      default: return null
+    }
+  }
+
+  // Get copy draft Markdown button target for a specific provider
+  private getCopyDraftMarkdownButtonTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return this.copyDraftMarkdownButtonGrokTarget
+      case 'qwen': return this.copyDraftMarkdownButtonQwenTarget
+      case 'deepseek': return this.copyDraftMarkdownButtonDeepseekTarget
+      case 'gemini': return this.copyDraftMarkdownButtonGeminiTarget
+      case 'zhipu': return this.copyDraftMarkdownButtonZhipuTarget
       default: return null
     }
   }
@@ -935,6 +1133,15 @@ export default class extends BaseChannelController {
     }
   }
   
+  // Update writing style selection
+  updateWritingStyle(event: Event): void {
+    const radio = event.currentTarget as HTMLInputElement
+    if (radio.checked) {
+      this.writingStyleValue = radio.value
+      console.log('Writing style updated to:', this.writingStyleValue)
+    }
+  }
+
   // Generate draft using selected model
   generateDraft(event: Event): void {
     const button = event.currentTarget as HTMLElement
@@ -949,6 +1156,86 @@ export default class extends BaseChannelController {
       showToast("文章ID不存在，请重新开始", "danger")
       return
     }
+    
+    // Check if brainstorm content exists for this provider
+    if (!this.responseContents[provider]) {
+      showToast("请先完成AI脑爆", "warning")
+      return
+    }
+    
+    // Show loading state
+    const target = this.getDraftTarget(provider)
+    if (target) {
+      const modelNames: { [key: string]: string } = {
+        grok: "Grok",
+        qwen: "千问",
+        deepseek: "DeepSeek",
+        gemini: "Gemini",
+        zhipu: "智谱",
+        doubao: "豆包"
+      }
+      this.resetDraftArea(provider, `${modelNames[provider]} 初稿生成中...`)
+    }
+    
+    // Reset draft content
+    this.draftContents[provider] = ""
+    this.completedDrafts.delete(provider)
+    
+    // Call backend to regenerate draft for this provider with writing style
+    if (this.commandSubscription) {
+      this.commandSubscription.perform("regenerate_draft", {
+        article_id: this.currentArticleId,
+        provider: provider,
+        writing_style: this.writingStyleValue
+      })
+    }
+    
+    showToast("开始生成初稿...", "info")
+  }
+  
+  // Retry draft generation after error
+  retryDraft(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider) {
+      showToast("无法确定选择的模型", "danger")
+      return
+    }
+    
+    if (!this.currentArticleId) {
+      showToast("文章ID不存在，请重新开始", "danger")
+      return
+    }
+    
+    // Show loading state
+    const target = this.getDraftTarget(provider)
+    if (target) {
+      const modelNames: { [key: string]: string } = {
+        grok: "Grok",
+        qwen: "千问",
+        deepseek: "DeepSeek",
+        gemini: "Gemini",
+        zhipu: "智谱",
+        doubao: "豆包"
+      }
+      this.resetDraftArea(provider, `${modelNames[provider]} 重新生成中...`)
+    }
+    
+    // Reset draft content
+    this.draftContents[provider] = ""
+    this.completedDrafts.delete(provider)
+    
+    // Call backend to regenerate draft for this provider with writing style
+    if (this.commandSubscription) {
+      this.commandSubscription.perform("regenerate_draft", {
+        article_id: this.currentArticleId,
+        provider: provider,
+        writing_style: this.writingStyleValue
+      })
+    }
+    
+    showToast("重新生成中...", "info")
   }
   
   // Reset and start over
@@ -1030,7 +1317,9 @@ export default class extends BaseChannelController {
   // Load history from backend
   private async loadHistory(): Promise<void> {
     try {
-      const response = await fetch('/write/history')
+      const response = await fetch('/write/history', {
+        credentials: 'same-origin'  // Include session cookies
+      })
       if (!response.ok) {
         throw new Error('Failed to load history')
       }
@@ -1102,70 +1391,68 @@ export default class extends BaseChannelController {
     
     try {
       // Fetch article data
-      const response = await fetch(`/articles/${articleId}.json`)
+      const response = await fetch(`/articles/${articleId}.json`, {
+        credentials: 'same-origin'  // Include session cookies
+      })
       if (!response.ok) {
         throw new Error('Article not found')
       }
       
       const article = await response.json()
       
-      // Restore state
-      this.currentArticleId = article.id
+      // CRITICAL: For "Re-brainstorm" feature, we DON'T restore article_id
+      // This forces creation of a NEW article when user clicks "一键AI脑爆"
+      // this.currentArticleId = article.id  // REMOVED - don't set article_id
+      this.currentArticleId = null  // Explicitly clear to create new article
+      
+      // Only restore transcript (original input)
       this.originalTranscript = article.transcript || ""
       
-      // Set input text
+      // Set input text (only transcript, no AI-generated content)
       if (this.hasInputTextTarget && article.transcript) {
         this.inputTextTarget.value = article.transcript
         // Update character count after loading historical content
         this.updateCharCount()
       }
       
-      // Show responses container if has brainstorm
-      if (article.has_brainstorm) {
-        this.responsesContainerTarget.style.display = "block"
-        
-        // Restore brainstorm results
-        const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu', 'doubao']
-        providers.forEach(provider => {
-          const content = article[`brainstorm_${provider}`]
-          if (content) {
-            this.responseContents[provider] = content
-            this.completedModels.add(provider)
-            
-            // Update UI
-            const targetName = `response${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
-            const target = this[targetName] as HTMLElement
-            if (target) {
-              // Render Markdown for restored content with header fix
-              const fixedMarkdown = fixMarkdownHeaders(content)
-              target.innerHTML = marked.parse(fixedMarkdown) as string
-            }
-            
-            // Show buttons (edit, copyHtml, copyMarkdown, draft)
-            const editButtonName = `editButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
-            const copyHtmlButtonName = `copyHtmlButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
-            const copyMarkdownButtonName = `copyMarkdownButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
-            const draftButtonName = `draftButton${provider.charAt(0).toUpperCase() + provider.slice(1)}Target` as keyof this
-            
-            const editButton = this[editButtonName] as HTMLElement
-            const copyHtmlButton = this[copyHtmlButtonName] as HTMLElement
-            const copyMarkdownButton = this[copyMarkdownButtonName] as HTMLElement
-            const draftButton = this[draftButtonName] as HTMLElement
-            
-            if (editButton) editButton.style.display = "inline-flex"
-            if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
-            if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
-            if (draftButton) draftButton.style.display = "inline-flex"
-          }
-        })
+      // DON'T restore brainstorm results - user wants to re-brainstorm
+      // Clear all response contents
+      this.responseContents = {
+        grok: "",
+        qwen: "",
+        deepseek: "",
+        gemini: "",
+        zhipu: "",
+        doubao: ""
+      }
+      this.completedModels.clear()
+      
+      // DON'T restore draft results - start fresh
+      this.draftContents = {
+        grok: "",
+        qwen: "",
+        deepseek: "",
+        gemini: "",
+        zhipu: "",
+        doubao: ""
+      }
+      this.completedDrafts.clear()
+      
+      // Hide responses container (will show when user clicks "一键AI脑爆")
+      this.responsesContainerTarget.style.display = "none"
+      
+      // Hide drafts container
+      const draftsContainer = (this as any).draftsContainerTarget
+      if (draftsContainer) {
+        draftsContainer.style.display = "none"
       }
       
-      // Scroll to appropriate section
-      if (article.has_brainstorm) {
-        this.responsesContainerTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      // Scroll to input area (top of page)
+      if (this.hasInputTextTarget) {
+        this.inputTextTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
       
-      showToast("已加载历史文章，可继续编辑", "success")
+      showToast("已加载原始内容，可以重新脑爆", "success")
       
     } catch (error) {
       console.error('Error restoring article:', error)
@@ -1185,7 +1472,9 @@ export default class extends BaseChannelController {
 
     try {
       // Fetch available books
-      const booksResponse = await fetch('/api/books')
+      const booksResponse = await fetch('/api/books', {
+        credentials: 'same-origin'  // Include session cookies
+      })
       if (!booksResponse.ok) throw new Error('Failed to fetch books')
       const books = await booksResponse.json()
 
@@ -1258,7 +1547,9 @@ export default class extends BaseChannelController {
 
         try {
           // Fetch chapters for selected book
-          const chaptersResponse = await fetch(`/api/books/${bookId}/chapters`)
+          const chaptersResponse = await fetch(`/api/books/${bookId}/chapters`, {
+            credentials: 'same-origin'  // Include session cookies
+          })
           if (!chaptersResponse.ok) throw new Error('Failed to fetch chapters')
           const chapters = await chaptersResponse.json()
 
@@ -1322,6 +1613,7 @@ export default class extends BaseChannelController {
               'Content-Type': 'application/json',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
             },
+            credentials: 'same-origin',  // Include session cookies
             body: JSON.stringify({ chapter_id: chapterId })
           })
 
@@ -1350,5 +1642,216 @@ export default class extends BaseChannelController {
       console.error('Error showing archive modal:', error)
       showToast("显示归档窗口失败", "danger")
     }
+  }
+
+  // Edit draft content
+  editDraft(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider) return
+    
+    showToast("编辑功能开发中", "info")
+  }
+
+  // Copy draft HTML (with styles)
+  copyDraftHtml(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider) return
+    
+    const draftDiv = this.getDraftTarget(provider)
+    if (!draftDiv) return
+    
+    const htmlContent = draftDiv.innerHTML
+    
+    navigator.clipboard.writeText(htmlContent).then(() => {
+      showToast("已复制HTML", "success")
+    }).catch(err => {
+      console.error("Failed to copy:", err)
+      showToast("复制失败", "danger")
+    })
+  }
+
+  // Copy draft Markdown
+  copyDraftMarkdown(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider || !this.draftContents[provider]) return
+    
+    navigator.clipboard.writeText(this.draftContents[provider]).then(() => {
+      showToast("已复制Markdown", "success")
+    }).catch(err => {
+      console.error("Failed to copy:", err)
+      showToast("复制失败", "danger")
+    })
+  }
+
+  // Generate all drafts at once
+  generateAllDrafts(): void {
+    if (!this.currentArticleId) {
+      showToast("文章ID不存在，请重新开始", "danger")
+      return
+    }
+    
+    // Check if at least one brainstorm content exists
+    const hasAnyBrainstorm = Object.values(this.responseContents).some(content => content.length > 0)
+    if (!hasAnyBrainstorm) {
+      showToast("请先完成AI脑爆", "warning")
+      return
+    }
+    
+    // CRITICAL: Check if we're coming from a loaded historical article
+    // If yes, create a NEW article instead of reusing the current one
+    const urlParams = new URLSearchParams(window.location.search)
+    const isFromHistory = urlParams.has('article_id')
+    
+    if (isFromHistory) {
+      console.log('Creating new article from historical article:', this.currentArticleId)
+      showToast("正在创建新文章并生成初稿...", "info")
+      
+      // Clear current article_id to force creation of new article
+      this.currentArticleId = null
+      
+      // Hide the button after clicking
+      if (this.generateAllDraftsButtonTarget) {
+        this.generateAllDraftsButtonTarget.style.display = "none"
+      }
+      
+      // Reset UI state for new article generation
+      this.completedModels.clear()
+      this.completedDrafts.clear()
+      
+      // Trigger backend to create new article and generate brainstorm + drafts
+      if (this.commandSubscription) {
+        this.commandSubscription.perform("create_new_from_existing", {
+          transcript: this.originalTranscript,
+          writing_style: this.writingStyleValue,
+          thinking_framework: this.getSelectedThinkingFramework()
+        })
+      }
+    } else {
+      // Normal flow: generate drafts for current article
+      console.log('Generating all drafts for article:', this.currentArticleId)
+      showToast("开始生成所有初稿...", "info")
+      
+      // Hide the button after clicking
+      if (this.generateAllDraftsButtonTarget) {
+        this.generateAllDraftsButtonTarget.style.display = "none"
+      }
+      
+      // Call the existing triggerAllDraftsGeneration method
+      this.triggerAllDraftsGeneration()
+    }
+  }
+
+  // Update progress bar for a specific provider
+  private updateProgress(provider: string, progress: number): void {
+    // Only update for the 5 main models (not doubao)
+    if (provider === 'doubao') return
+    
+    this.modelProgress[provider] = progress
+    
+    // Update progress bar width
+    const progressBar = this.getProgressBarTarget(provider)
+    const progressText = this.getProgressTextTarget(provider)
+    
+    if (progressBar) {
+      progressBar.style.width = `${progress}%`
+    }
+    
+    if (progressText) {
+      progressText.textContent = `${progress}%`
+    }
+    
+    // Check if this model reached 100% and trigger fireworks
+    if (progress === 100) {
+      this.launchFireworks(provider)
+    }
+  }
+  
+  // Get progress bar target for a specific provider
+  private getProgressBarTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return this.progressBarGrokTarget
+      case 'qwen': return this.progressBarQwenTarget
+      case 'deepseek': return this.progressBarDeepseekTarget
+      case 'gemini': return this.progressBarGeminiTarget
+      case 'zhipu': return this.progressBarZhipuTarget
+      default: return null
+    }
+  }
+  
+  // Get progress text target for a specific provider
+  private getProgressTextTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return this.progressTextGrokTarget
+      case 'qwen': return this.progressTextQwenTarget
+      case 'deepseek': return this.progressTextDeepseekTarget
+      case 'gemini': return this.progressTextGeminiTarget
+      case 'zhipu': return this.progressTextZhipuTarget
+      default: return null
+    }
+  }
+  
+  // Launch fireworks animation when a model reaches 100%
+  private launchFireworks(provider: string): void {
+    const modelNames: { [key: string]: string } = {
+      grok: "Grok",
+      qwen: "千问",
+      deepseek: "DeepSeek",
+      gemini: "Gemini",
+      zhipu: "智谱"
+    }
+    
+    console.log(`🎆 Fireworks for ${modelNames[provider]}!`)
+    
+    // Create fireworks container
+    const fireworksContainer = document.createElement('div')
+    fireworksContainer.className = 'fixed inset-0 pointer-events-none z-50'
+    fireworksContainer.style.overflow = 'hidden'
+    document.body.appendChild(fireworksContainer)
+    
+    // Create multiple firework particles
+    const colors = [
+      '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff',
+      '#ff8800', '#88ff00', '#0088ff', '#ff0088', '#8800ff', '#00ff88'
+    ]
+    
+    const particleCount = 50
+    const centerX = Math.random() * window.innerWidth
+    const centerY = Math.random() * (window.innerHeight * 0.6) + window.innerHeight * 0.1
+    
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div')
+      particle.className = 'absolute w-2 h-2 rounded-full'
+      particle.style.left = `${centerX}px`
+      particle.style.top = `${centerY}px`
+      particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]
+      particle.style.transition = 'all 1s ease-out'
+      
+      fireworksContainer.appendChild(particle)
+      
+      // Animate particle
+      setTimeout(() => {
+        const angle = (Math.PI * 2 * i) / particleCount
+        const velocity = 100 + Math.random() * 100
+        const tx = Math.cos(angle) * velocity
+        const ty = Math.sin(angle) * velocity
+        
+        particle.style.transform = `translate(${tx}px, ${ty}px)`
+        particle.style.opacity = '0'
+      }, 10)
+    }
+    
+    // Remove fireworks container after animation
+    setTimeout(() => {
+      document.body.removeChild(fireworksContainer)
+    }, 1500)
+    
+    // Show toast notification
+    showToast(`🎉 ${modelNames[provider]} 生成完成！`, "success")
   }
 }

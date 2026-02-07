@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_23_161812) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_07_110058) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -102,6 +102,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_161812) do
     t.text "draft_zhipu"
     t.text "draft_doubao"
     t.jsonb "draft_status", default: {}
+    t.string "writing_style", default: "original"
     t.index ["chapter_id"], name: "index_articles_on_chapter_id"
     t.index ["user_id"], name: "index_articles_on_user_id"
   end
@@ -236,6 +237,34 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_161812) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
+  create_table "packages", force: :cascade do |t|
+    t.string "name"
+    t.integer "price"
+    t.integer "articles_count"
+    t.text "description"
+    t.boolean "recommended", default: false
+    t.integer "position", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "payments", force: :cascade do |t|
+    t.string "payable_type", null: false
+    t.bigint "payable_id", null: false
+    t.bigint "user_id"
+    t.decimal "amount"
+    t.string "currency", default: "usd"
+    t.string "status", default: "pending"
+    t.string "stripe_payment_intent_id"
+    t.string "stripe_checkout_session_id"
+    t.string "payment_method"
+    t.jsonb "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["payable_type", "payable_id"], name: "index_payments_on_payable"
+    t.index ["user_id"], name: "index_payments_on_user_id"
+  end
+
   create_table "personas", force: :cascade do |t|
     t.string "name"
     t.text "description"
@@ -265,6 +294,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_161812) do
     t.string "uid"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "credits", default: 30
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 

@@ -1,0 +1,59 @@
+<div class="container-xl mx-auto px-6 py-12">
+  <div class="text-center mb-12">
+    <h1 class="text-4xl font-bold text-primary mb-4">
+      选择适合您的套餐
+    </h1>
+    <p class="text-lg text-secondary max-w-2xl mx-auto">
+      一次购买，长期有效。使用完后可随时续费。
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+    <% @packages.each do |package| %>
+      <div class="card <%= package.recommended? ? 'border-2 border-primary' : 'card-elevated' %> p-6 hover:shadow-xl transition-all duration-300 flex flex-col relative">
+        <% if package.recommended? %>
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span class="badge badge-primary px-4 py-1 text-sm font-semibold">
+              <%= lucide_icon "star", class: "w-4 h-4 inline-block mr-1" %>
+              推荐
+            </span>
+          </div>
+        <% end %>
+
+        <div class="text-center mb-6">
+          <h3 class="text-xl font-bold text-primary mb-2">
+            <%= package.name %>
+          </h3>
+          <div class="flex items-baseline justify-center gap-1 mb-2">
+            <span class="text-muted text-sm">¥</span>
+            <span class="text-4xl font-bold text-primary"><%= package.price / 100 %></span>
+          </div>
+          <p class="text-secondary text-sm">
+            <%= package.articles_count %> 篇文章
+          </p>
+          <p class="text-muted text-xs mt-1">
+            单价 ¥<%= sprintf('%.2f', package.unit_price) %>/篇
+          </p>
+        </div>
+
+        <div class="flex-grow">
+          <p class="text-secondary text-sm text-center mb-6">
+            <%= package.description %>
+          </p>
+        </div>
+
+        <%= button_to purchase_package_path(package), method: :post, class: "btn-#{package.recommended? ? 'primary' : 'outline'} w-full" do %>
+          <%= lucide_icon "shopping-cart", class: "w-5 h-5 inline-block mr-2" %>
+          立即购买
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="text-center mt-12">
+    <p class="text-secondary text-sm">
+      <%= lucide_icon "shield-check", class: "w-4 h-4 inline-block mr-1" %>
+      安全支付，由 Stripe 提供支付保障
+    </p>
+  </div>
+</div>

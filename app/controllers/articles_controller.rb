@@ -45,6 +45,11 @@ class ArticlesController < ApplicationController
           brainstorm_doubao: @article.brainstorm_doubao,
           selected_model: @article.selected_model,
           draft: @article.draft,
+          draft_grok: @article.draft_grok,
+          draft_qwen: @article.draft_qwen,
+          draft_deepseek: @article.draft_deepseek,
+          draft_gemini: @article.draft_gemini,
+          draft_zhipu: @article.draft_zhipu,
           final_style: @article.final_style,
           final_content: @article.final_content,
           title: @article.title,
@@ -52,6 +57,7 @@ class ArticlesController < ApplicationController
           variant: @article.variant,
           variant_style: @article.variant_style,
           has_brainstorm: @article.has_brainstorm?,
+          has_drafts: @article.has_drafts?,
           created_at: @article.created_at
         }
       }

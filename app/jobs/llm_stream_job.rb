@@ -2,29 +2,48 @@ class LlmStreamJob < ApplicationJob
   queue_as :llm
 
   # Retry strategy configuration
+  # 对于超时错误，快速重试（5秒间隔）
   retry_on Net::ReadTimeout, wait: 5.seconds, attempts: 3
   retry_on LlmService::TimeoutError, wait: 5.seconds, attempts: 3
   
-  # 503 (服务过载) - 指数退避重试，最多3次
+  # 对于所有 API 错误（除了明确不可重试的），使用指数退避重试
   # wait: :exponentially_longer 会自动计算等待时间：5s, 25s, 125s
   retry_on LlmService::ApiError, wait: :exponentially_longer, attempts: 3, queue: :llm do |job, exception|
-    # 只对 503/overloaded 错误重试，其他错误直接抛出
-    is_503_error = exception.message.include?('503') || exception.message.include?('overloaded')
+    error_msg = exception.message
     
-    if is_503_error
-      Rails.logger.info "Retrying LLM job due to 503 error, attempt #{job.executions}/3"
-      # 返回 true 表示应该重试
-      true
+    # 不可重试的错误（认证/配置错误）
+    non_retryable_errors = [
+      '401',  # 认证失败
+      '400',  # 请求格式错误
+      '403',  # 权限不足
+      'invalid',  # 无效请求
+      'Incorrect API key',  # API密钥错误
+      'Invalid API key'  # API密钥无效
+    ]
+    
+    # 检查是否是不可重试的错误
+    is_non_retryable = non_retryable_errors.any? { |err| error_msg.include?(err) }
+    
+    if is_non_retryable
+      # 配置/认证错误：不重试，直接失败
+      Rails.logger.error "Non-retryable API error (attempt #{job.executions}): #{error_msg}"
+      false  # 返回 false 表示不重试
     else
-      # 不是503错误，不重试，直接失败
-      Rails.logger.error "LLM job failed with non-retryable error: #{exception.message}"
-      false
+      # 所有其他错误（包括503、网络问题、临时故障等）：自动重试
+      Rails.logger.info "Retrying LLM job due to transient error (attempt #{job.executions}/3): #{error_msg}"
+      true  # 返回 true 表示应该重试
     end
   end
   
-  # 401/400 (认证错误/请求错误) - 不重试，直接丢弃
+  # 认证/配置错误 - 不重试，直接丢弃
   discard_on LlmService::ApiError do |job, exception|
-    exception.message.include?('401') || exception.message.include?('400') || exception.message.include?('invalid') || exception.message.include?('Incorrect API key')
+    error_msg = exception.message
+    error_msg.include?('401') || 
+    error_msg.include?('400') || 
+    error_msg.include?('403') ||
+    error_msg.include?('invalid') || 
+    error_msg.include?('Incorrect API key') ||
+    error_msg.include?('Invalid API key')
   end
 
   # Streaming LLM responses via ActionCable for article generation
@@ -443,17 +462,18 @@ class LlmStreamJob < ApplicationJob
       # 记录错误日志（包含完整堆栈）
       Rails.logger.error "LLM Stream Error (#{provider}): #{e.message}\n#{e.backtrace.first(10).join("\n")}"
       
-      # 检查是否是可重试的503错误
-      is_503_error = e.message.include?('503') || e.message.include?('overloaded')
+      # 检查是否是不可重试的错误（认证/配置错误）
+      non_retryable_errors = ['401', '400', '403', 'invalid', 'Incorrect API key', 'Invalid API key']
+      is_non_retryable = non_retryable_errors.any? { |err| e.message.include?(err) }
       
-      if is_503_error
-        # 503错误：重新抛出让 retry_on 处理自动重试
-        Rails.logger.info "503 error detected, will retry automatically"
-        raise e
-      else
-        # 非503错误：不重试，直接失败（但不抛出异常，避免影响其他任务）
-        Rails.logger.error "Non-retryable API error, job will not retry"
+      if is_non_retryable
+        # 认证/配置错误：不重试，直接失败
+        Rails.logger.error "Non-retryable API error, job will not retry: #{e.message}"
         # 不抛出异常，任务标记为完成但失败
+      else
+        # 可重试的错误（包括503、网络问题、临时故障等）：重新抛出让 retry_on 处理
+        Rails.logger.info "Transient error detected, will retry automatically (up to 3 times): #{e.message}"
+        raise e
       end
     end
     
@@ -465,21 +485,28 @@ class LlmStreamJob < ApplicationJob
         when 'grok'
           article.update!(brainstorm_grok: full_content)
           article.set_brainstorm_status('grok', 'success')
+          # Auto-trigger draft generation if writing_style is set (from create_new_from_existing)
+          trigger_draft_after_brainstorm(article, 'grok', stream_name) if article.writing_style.present?
         when 'qwen'
           article.update!(brainstorm_qwen: full_content)
           article.set_brainstorm_status('qwen', 'success')
+          trigger_draft_after_brainstorm(article, 'qwen', stream_name) if article.writing_style.present?
         when 'deepseek'
           article.update!(brainstorm_deepseek: full_content)
           article.set_brainstorm_status('deepseek', 'success')
+          trigger_draft_after_brainstorm(article, 'deepseek', stream_name) if article.writing_style.present?
         when 'gemini'
           article.update!(brainstorm_gemini: full_content)
           article.set_brainstorm_status('gemini', 'success')
+          trigger_draft_after_brainstorm(article, 'gemini', stream_name) if article.writing_style.present?
         when 'zhipu'
           article.update!(brainstorm_zhipu: full_content)
           article.set_brainstorm_status('zhipu', 'success')
+          trigger_draft_after_brainstorm(article, 'zhipu', stream_name) if article.writing_style.present?
         when 'doubao'
           article.update!(brainstorm_doubao: full_content)
           article.set_brainstorm_status('doubao', 'success')
+          trigger_draft_after_brainstorm(article, 'doubao', stream_name) if article.writing_style.present?
         when 'draft'
           article.update!(draft: full_content)
         when /^draft_(.+)$/
@@ -503,22 +530,32 @@ class LlmStreamJob < ApplicationJob
     message = error.message
     
     # API密钥错误
-    if message.include?('Incorrect API key') || message.include?('invalid') || message.include?('401')
+    if message.include?('Incorrect API key') || message.include?('Invalid API key') || message.include?('invalid') || message.include?('401')
       return "#{get_provider_display_name(provider)} API密钥配置错误，请联系管理员检查配置"
     end
     
-    # 服务过载 - 显示重试信息
+    # 权限不足
+    if message.include?('403')
+      return "#{get_provider_display_name(provider)} 权限不足，请联系管理员检查配置"
+    end
+    
+    # 请求格式错误
+    if message.include?('400')
+      return "#{get_provider_display_name(provider)} 请求格式错误，请联系管理员"
+    end
+    
+    # 服务过载 - 显示自动重试信息
     if message.include?('503') || message.include?('overloaded')
       return "#{get_provider_display_name(provider)} 服务繁忙，系统将自动重试（最多3次，请稍候）..."
     end
     
-    # 速率限制
+    # 速率限制 - 自动重试
     if message.include?('429') || message.include?('rate limit')
-      return "#{get_provider_display_name(provider)} 请求过于频繁，请稍后再试"
+      return "#{get_provider_display_name(provider)} 请求过于频繁，系统将自动重试..."
     end
     
-    # 通用错误
-    "#{get_provider_display_name(provider)} 服务暂时不可用，请稍后再试"
+    # 通用临时错误 - 自动重试
+    "#{get_provider_display_name(provider)} 服务暂时不可用，系统将自动重试（最多3次）..."
   end
   
   def get_provider_display_name(provider)
@@ -546,6 +583,329 @@ class LlmStreamJob < ApplicationJob
     when 'doubao' then '豆包'
     when 'chatgpt' then 'ChatGPT'
     else provider.to_s.capitalize
+    end
+  end
+  
+  # Trigger draft generation after brainstorm completes
+  # This is called when writing_style is set (from create_new_from_existing)
+  def trigger_draft_after_brainstorm(article, provider, stream_name)
+    Rails.logger.info "Auto-triggering draft generation for #{provider} after brainstorm completion (article_id: #{article.id})"
+    
+    # Get brainstorm content
+    brainstorm_content = article.send("brainstorm_#{provider}")
+    return if brainstorm_content.blank?
+    
+    # Set draft status to pending
+    article.set_draft_status(provider, 'pending')
+    
+    # Get model display name
+    model_display_name = case provider
+    when 'grok' then 'Grok'
+    when 'qwen' then 'Qwen'
+    when 'deepseek' then 'DeepSeek'
+    when 'gemini' then 'Gemini'
+    when 'zhipu' then '智谱'
+    when 'doubao' then '豆包'
+    else provider.capitalize
+    end
+    
+    # Build draft prompt with writing style from article
+    draft_prompt = build_draft_prompt(article.transcript, brainstorm_content, model_display_name, article.writing_style)
+    
+    # Get LLM config for this provider
+    llm_config = get_llm_config(provider)
+    llm_config_with_timeout = llm_config.merge(timeout: 240, max_tokens: 8000)
+    
+    # Extract base stream name (remove provider suffix if exists)
+    base_stream_name = stream_name.sub(/_#{provider}$/, '')
+    
+    # Trigger draft generation job
+    LlmStreamJob.perform_later(
+      stream_name: "#{base_stream_name}_draft_#{provider}",
+      prompt: draft_prompt,
+      llm_config: llm_config_with_timeout,
+      article_id: article.id,
+      provider: "draft_#{provider}",
+      streaming: false
+    )
+    
+    Rails.logger.info "Draft generation job queued for #{provider} (article_id: #{article.id})"
+  end
+  
+  # Build draft prompt (copied from ArticlesChannel for reuse)
+  def build_draft_prompt(transcript, brainstorm_content, model_display_name, writing_style = 'original')
+    <<~PROMPT
+      ⚠️ 【核心任务】
+      你现在是作者本人，要将自己的初步想法和深度思考融合成一篇**口语化、线性表达**的文章。
+      想象你在跟朋友面对面聊天，用说话的方式写出来。
+      
+      🎯 【最重要的要求：口语化表达】
+      **什么是口语化、线性表达？**
+      - 像说话一样写：想到哪说到哪，自然流动，不追求严谨的逻辑结构
+      - 用短句、碎片化表达：避免长篇大论和复杂句式
+      - 带有停顿和转折：用"然后呢"、"但是"、"你知道吗"、"所以说"等连接词
+      - 有情绪和语气：可以用"哇"、"真的"、"其实"、"说实话"等口语化词汇
+      - 不完美的表达：可以有省略、重复、自我纠正（像真实对话）
+      
+      **口语化 vs 书面语对比：**
+      - ❌ 书面语："通过深入分析，我们可以得出以下结论..."
+      - ✅ 口语化："我琢磨了半天，发现一个事儿..."
+      
+      - ❌ 书面语："该系统具有以下三个核心特点：首先...其次...最后..."
+      - ✅ 口语化："这东西有意思的地方呢，主要是三点。第一个是...然后第二个...还有就是..."
+      
+      - ❌ 书面语："基于上述观察，本文将阐述..."
+      - ✅ 口语化："我就想聊聊这个事儿..."
+      
+      - ❌ 书面语："综上所述，我们可以认为..."
+      - ✅ 口语化："所以你看，其实就是..."
+      
+      🚫 【绝对禁止】（违反任何一条都算失败）
+      1. 禁止书面语结构：不要用"首先、其次、最后"、"综上所述"、"基于"、"通过"等书面表达
+      2. 禁止学术腔：不要用"本文"、"笔者"、"阐述"、"论证"、"分析表明"等学术词汇
+      3. 禁止第三方视角：不能出现"有人说"、"根据XX"、"XX提到"、"分析认为"等旁观者表述
+      4. 禁止介绍性语气：不能用"这个系统"、"这套方法"等介绍已有事物的口吻
+      5. 禁止正式标题：不要用"引言"、"背景"、"核心要点"、"总结"这类章节标题
+      6. 禁止可见拼接：不能让读者感觉是两段内容拼在一起
+      7. 禁止引用原文：不能直接引用下面素材的原话，要彻底消化后重新表达
+      8. **禁止内容扩展**：不能添加素材中没有的信息、案例、细节（这是最严重的违规！）
+      9. **禁止详细展开**：如果素材只是提到，就不要详细描述
+      
+      ✅ 【必须做到】
+      1. **纯口语化表达**：像在播客、Vlog、语音消息中说话一样写
+      2. **线性思维流**：想到哪写到哪，不刻意组织结构，自然过渡
+      3. **短句为主**：多用短句，避免复杂从句，像说话时的停顿
+      4. **口语化连接词**：多用"然后"、"但是"、"所以"、"你看"、"其实"、"说白了"等
+      5. **直接对话感**：用"你想啊"、"你知道吗"、"对吧"、"是不是"等拉近距离
+      6. **情绪化表达**：可以用"哇"、"真的"、"挺有意思"、"超级"、"特别"等带情绪的词
+      7. **保持 #{model_display_name} 风格**：直接、深刻、有洞见、不套话
+      8. **严格控制长度**：融合结果应该在（素材1字数 + 素材2字数）× 1.5 倍以内，绝不超过
+      9. **只整合已有信息**：素材提到什么就写什么，不提到的一律不写，不脑补，不举例
+      
+      ⚡ 【关键原则：口语化 ≠ 不专业】
+      - ✅ 口语化 = 说话的方式表达专业内容（轻松但有深度）
+      - ❌ 口语化 ≠ 啰嗦、废话、没重点
+      - 举例说明：
+        - ❌ 书面语："通过对比分析发现，该方法在实际应用中展现出显著优势"
+        - ✅ 口语化："我试了一下，发现这方法确实好用"
+      
+      📝 【格式要求 - 轻量化 Markdown】
+      你**必须**使用 Markdown 格式，但要保持口语化：
+      - **标题**：用 ## 和 ### 标题，但标题也要口语化（如：## 我最近发现的一个事儿）
+      - **重点强调**：用 **加粗** 标记关键词
+      - **列表**：少用列表，多用自然段落；必须用列表时也要口语化
+      - **段落分隔**：多分段，一段话不要太长，像说话时的停顿
+      
+      示例格式：
+      ```
+      ## 我最近在想一个问题
+      
+      就是那种...你知道吗，我发现了一个挺有意思的事儿。
+      
+      就是这样的，最近我在做XX的时候，突然意识到一个问题。然后我就开始琢磨，为什么会这样呢？
+      
+      你可能也遇到过类似的情况，对吧？就是那种...怎么说呢，**特别矛盾**的感觉。
+      
+      ### 后来我就尝试了一下
+      
+      然后呢，我就试了几个办法。第一个是...但是发现不太行。后来又换了个思路，这次好多了。
+      
+      所以你看，其实关键就在于...
+      ```
+      
+      📝 【写作指南】
+      - **语气**：像在录播客、录Vlog、发语音消息，想到什么说什么
+      - **节奏**：快慢结合，重要的地方慢下来说，过渡的地方快速带过
+      - **真实感**：可以有犹豫、自我纠正、补充说明（如："不对，应该说是..."、"或者说..."）
+      - **互动感**：经常用"你"来称呼读者，像在对话
+      - **情绪起伏**：可以有惊讶、疑惑、恍然大悟的情绪变化
+      - **内容取舍**：只能删减、重组、换说法，绝不能扩展、举例、详述
+      - **长度控制**：写完立即停止，不要为了凑字数而啰嗦
+      
+      ⚠️ 【特别提醒：避免这些书面语痕迹】
+      - ❌ 不要用："本文"、"笔者"、"我们"、"读者"
+      - ❌ 不要用："首先、其次、再次、最后"
+      - ❌ 不要用："综上所述"、"总而言之"、"由此可见"
+      - ❌ 不要用："基于"、"通过"、"关于"、"针对"
+      - ❌ 不要用："具有"、"呈现"、"展现"、"体现"
+      - ✅ 改用："我"、"你"、"然后"、"但是"、"所以"、"其实"、"说白了"、"就是"
+      
+      ─────────────────────────
+      【素材1：初步想法】
+      #{transcript}
+      
+      【素材2：深度思考】
+      #{brainstorm_content}
+      ─────────────────────────
+      
+      现在，以第一人称、使用 Markdown 格式写出融合后的完整文章（直接开始，不要前言）：
+      
+      #{writing_style == 'luo_style' ? build_luo_zhenyu_framework : ''}
+      
+      ⚠️ 【最终提醒】
+      - 想象你在录播客或发语音，想到哪说到哪，自然流动
+      - 多用短句、口语词、情绪词，少用书面语、复杂句
+      - 只整合素材中的信息，不扩展，不详述，不举例
+      - 字数控制在素材总字数的1.5倍以内
+      - 写完立即停止，不要为了达到某个字数而继续
+      - **必须使用 Markdown 格式**：标题、加粗、列表等
+    PROMPT
+  end
+  
+  # Build Luo Zhenyu framework prompt
+  def build_luo_zhenyu_framework
+    # NOTE: This is identical to the version in CreateDraftsAfterBrainstormJob
+    # We keep a copy here to avoid circular dependencies
+    <<~FRAMEWORK
+      
+      ℹ️ 【罗振宇口语化表达框架】
+      
+      📌 【核心原则：对象化思维 + 线性交付】
+      
+      **1. 对象化思维（以使用者为中心）**
+      - 不是写给自己看，而是**为对方交付知识**
+      - 每句话都要问："对方能听懂吗？"
+      - 不能自说自话，要让对方**全程跟上你的节奏**
+      - 像导游带路："你现在在A点，我要带你去B点"
+      
+      **2. 线性交付（有起点和终点）**
+      - 必须有**明确的起点**：从对方熟悉的东西开始
+      - 必须有**明确的终点**：到底要交付什么？
+      - 中间过程必须**一步步递进**，不能跳跃
+      - 像爬山：从山脚到山顶，中间不能空降
+      
+      🔥 【四种信息势能模型】
+      
+      选择其中一种作为主线，贯穿全文：
+      
+      **模型1：难→易（复杂问题简单化）**
+      - 起点：对方觉得"这事太难了"
+      - 终点："原来这么简单！"
+      - 过程：把复杂概念**拆解成大白话**
+      - 例子："量子力学很难？其实就像..."
+      
+      **模型2：低→高（从现象到规律）**
+      - 起点：对方看到的零散现象
+      - 终点：背后的**底层逻辑**
+      - 过程：从具体案例→抽象规律
+      - 例子："你看这三个事儿，背后其实是同一个道理"
+      
+      **模型3：无→有（从已知到未知）**
+      - 起点：对方已经知道的东西
+      - 终点：对方不知道的新知识
+      - 过程：用**熟悉的事物**类比新概念
+      - 例子："你知道XX吧？这个其实和那个很像"
+      
+      **模型4：非→是（颠覆认知）**
+      - 起点：对方的固有认知
+      - 终点：**推翻旧认知**，建立新认知
+      - 过程：先认同→再质疑→最后颠覆
+      - 例子："大家都觉得XX，但其实恰恰相反"
+      
+      💡 【三大写作心法】
+      
+      **心法1：弹幕（自我解说）**
+      - 像直播时的弹幕，**给自己的内容加注释**
+      - 用"你注意看"、"这里很关键"、"划重点"等提示
+      - 不断提醒读者："现在讲到哪了？接下来要讲什么？"
+      - 例子："接下来这个例子，特别能说明问题"
+      
+      **心法2：投影（故事和比喻）**
+      - 不是直接讲抽象概念，而是**投影到具体故事上**
+      - 用类比、比喻、案例让抽象变具体
+      - 像电影屏幕：把知识**投影**给观众看
+      - 例子："这就像你去超市买东西..."
+      
+      **心法3：欲望（真情实感）**
+      - 必须有**真实的交付欲望**，不能为写而写
+      - 要有"我必须让你懂"的紧迫感
+      - 文字要带着情绪和温度
+      - 禁忌：机械堆砌、无病呻吟、空洞说教
+      
+      🎯 【罗式黄金句型】
+      
+      多用这些口语化连接词：
+      - **铺垫**："你想啊"、"你想想看"、"咱们假设"
+      - **转折**："但问题是"、"关键在于"、"有意思的来了"
+      - **强调**："注意啊"、"划重点"、"这个很重要"
+      - **类比**："就像"、"比如说"、"打个比方"
+      - **总结**："说白了"、"换句话说"、"简单来说"
+      - **推进**："那接下来"、"再往下看"、"然后呢"
+      
+      🚫 【罗式禁忌】
+      
+      绝对不能出现：
+      1. 学术腔："本文"、"笔者"、"综上所述"
+      2. 官方话："据悉"、"有关部门"、"相关人士"
+      3. 空话套话："众所周知"、"不言而喻"、"显而易见"
+      4. 自嗨式排比：连续三个以上"是...是...是..."
+      5. 跳跃式论述：没有过渡直接跳到下一个话题
+      6. 第三方视角："有人说"、"XX认为"（要用第一人称）
+      
+      ✅ 【验证标准】
+      
+      写完后自检：
+      1. ✅ 是否有明确的起点和终点？
+      2. ✅ 每句话读者能否跟上？
+      3. ✅ 是否像在跟朋友聊天？
+      4. ✅ 是否用了具体故事/比喻？
+      5. ✅ 是否有"弹幕式"提示？
+      6. ✅ 是否体现真实的交付欲望？
+      
+      ⚠️ **应用要求：**
+      - 在原有提示词基础上，**叠加**罗振宇框架
+      - 选择一个最适合的信息势能模型
+      - 全文贯穿三大心法：弹幕、投影、欲望
+      - 使用罗式黄金句型，避免所有禁忌
+      - 最后用验证标准自检
+    FRAMEWORK
+  end
+  
+  # Get LLM config for a provider
+  def get_llm_config(provider)
+    case provider.to_s
+    when 'qwen'
+      {
+        base_url: ENV.fetch('QWEN_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('QWEN_API_KEY_OPTIONAL'),
+        model: ENV.fetch('QWEN_MODEL_OPTIONAL')
+      }
+    when 'deepseek'
+      {
+        base_url: ENV.fetch('DEEPSEEK_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('DEEPSEEK_API_KEY_OPTIONAL'),
+        model: ENV.fetch('DEEPSEEK_MODEL_OPTIONAL')
+      }
+    when 'gemini'
+      {
+        base_url: ENV.fetch('GEMINI_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('GEMINI_API_KEY_OPTIONAL'),
+        model: ENV.fetch('GEMINI_MODEL_OPTIONAL')
+      }
+    when 'zhipu'
+      {
+        base_url: ENV.fetch('ZHIPU_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('ZHIPU_API_KEY_OPTIONAL'),
+        model: ENV.fetch('ZHIPU_MODEL_OPTIONAL')
+      }
+    when 'doubao'
+      {
+        base_url: ENV.fetch('DOUBAO_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('DOUBAO_API_KEY_OPTIONAL'),
+        model: ENV.fetch('DOUBAO_MODEL_OPTIONAL')
+      }
+    when 'chatgpt'
+      {
+        base_url: ENV.fetch('CHATGPT_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('CHATGPT_API_KEY_OPTIONAL'),
+        model: ENV.fetch('CHATGPT_MODEL_OPTIONAL')
+      }
+    else # grok or default
+      {
+        base_url: ENV.fetch('LLM_BASE_URL'),
+        api_key: ENV.fetch('LLM_API_KEY'),
+        model: ENV.fetch('LLM_MODEL')
+      }
     end
   end
 end

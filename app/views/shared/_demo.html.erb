@@ -32,7 +32,7 @@
       <!-- Product Hero Image -->
       <div class="relative max-w-5xl mx-auto">
         <div class="rounded-xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-500">
-          <%= image_tag "hero.jpg", alt: "顶尖思考框架 + 顶尖 AI 大模型 + 顶尖作家风格，服务您一人", class: "w-full h-auto" %>
+          <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&h=800&fit=crop" alt="顶尖思考框架 + 顶尖 AI 大模型 + 顶尖作家风格，服务您一人" class="w-full h-auto" />
         </div>
         <!-- Caption below image -->
         <p class="text-center text-secondary text-sm mt-4">
@@ -78,15 +78,15 @@
         <h3 class="text-xl font-bold text-primary mb-4">5 大顶尖 AI 同步脑爆</h3>
         <p class="text-secondary leading-relaxed">
           <span class="flex flex-wrap items-center gap-2 mb-3">
-            <%= image_tag "grok-logo.png", class: "w-6 h-6", alt: "Grok" %>
+            <%= lucide_icon "sparkle", class: "w-6 h-6 text-primary" %>
             <span class="font-semibold">Grok</span>
-            <%= image_tag "qwen-logo.png", class: "w-6 h-6", alt: "千问" %>
+            <%= lucide_icon "sparkle", class: "w-6 h-6 text-secondary" %>
             <span class="font-semibold">千问</span>
-            <%= image_tag "deepseek-logo.png", class: "w-6 h-6", alt: "DeepSeek" %>
+            <%= lucide_icon "sparkle", class: "w-6 h-6 text-primary" %>
             <span class="font-semibold">DeepSeek</span>
-            <%= image_tag "gemini-logo.png", class: "w-6 h-6", alt: "Gemini" %>
+            <%= lucide_icon "sparkle", class: "w-6 h-6 text-secondary" %>
             <span class="font-semibold">Gemini</span>
-            <%= image_tag "zhipu-logo.png", class: "w-6 h-6", alt: "智谱" %>
+            <%= lucide_icon "sparkle", class: "w-6 h-6 text-primary" %>
             <span class="font-semibold">智谱</span>
           </span>
           体验不同的 AI 思考风格，获得专业建议和创意灵感。<span class="text-muted font-medium">（持续增加中）</span>
@@ -302,6 +302,76 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="py-20 bg-gradient-to-br from-primary/5 via-surface to-secondary/5">
+  <div class="container-xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl lg:text-5xl font-bold text-primary mb-4">
+        简单透明的定价
+      </h2>
+      <p class="text-lg text-secondary max-w-2xl mx-auto">
+        一次购买，长期有效。使用完后可随时续费。
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+      <% Package.ordered.each do |package| %>
+        <div class="card <%= package.recommended? ? 'border-2 border-primary shadow-xl' : 'card-elevated' %> p-6 hover:shadow-2xl transition-all duration-300 flex flex-col relative group hover:-translate-y-2">
+          <% if package.recommended? %>
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span class="badge badge-primary px-4 py-1 text-sm font-semibold shadow-lg">
+                <%= lucide_icon "star", class: "w-4 h-4 inline-block mr-1" %>
+                推荐
+              </span>
+            </div>
+          <% end %>
+
+          <div class="text-center mb-6">
+            <h3 class="text-xl font-bold text-primary mb-3">
+              <%= package.name %>
+            </h3>
+            <div class="flex items-baseline justify-center gap-1 mb-2">
+              <span class="text-muted text-sm">¥</span>
+              <span class="text-5xl font-bold text-primary"><%= package.price / 100 %></span>
+            </div>
+            <p class="text-secondary font-medium mb-1">
+              <%= package.articles_count %> 篇文章
+            </p>
+            <p class="text-muted text-xs">
+              单价 ¥<%= sprintf('%.2f', package.unit_price) %>/篇
+            </p>
+          </div>
+
+          <div class="flex-grow mb-6">
+            <p class="text-secondary text-sm text-center leading-relaxed">
+              <%= package.description %>
+            </p>
+          </div>
+
+          <% if user_signed_in? %>
+            <%= button_to purchase_package_path(package), method: :post, class: "btn-#{package.recommended? ? 'primary' : 'outline'} w-full" do %>
+              <%= lucide_icon "shopping-cart", class: "w-5 h-5 inline-block mr-2" %>
+              立即购买
+            <% end %>
+          <% else %>
+            <%= link_to sign_up_path, class: "btn-#{package.recommended? ? 'primary' : 'outline'} w-full text-center" do %>
+              <%= lucide_icon "user-plus", class: "w-5 h-5 inline-block mr-2" %>
+              注册后购买
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="text-center mt-12">
+      <p class="text-secondary text-sm flex items-center justify-center gap-2">
+        <%= lucide_icon "shield-check", class: "w-5 h-5 text-success" %>
+        安全支付，由 Stripe 提供支付保障
+      </p>
     </div>
   </div>
 </section>

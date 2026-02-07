@@ -440,6 +440,7 @@ GEM
       activerecord (>= 7.2)
       railties (>= 7.2)
     stringio (3.2.0)
+    stripe (12.6.0)
     thor (1.4.0)
     timeout (0.6.0)
     tsort (0.2.0)
@@ -511,6 +512,7 @@ DEPENDENCIES
   rubocop-rails-omakase
   selenium-webdriver
   solid_cable (~> 3.0)
+  stripe (~> 12.0)
   turbo-rails (~> 2.0)
   tzinfo-data
 

@@ -6,6 +6,36 @@
   >
     <!-- Header -->
     <div class="mb-8">
+      <!-- Credits Banner -->
+      <% if current_user %>
+        <div class="card card-elevated p-4 mb-6 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10">
+          <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-4">
+              <%= lucide_icon "file-text", class: "w-8 h-8 text-primary" %>
+              <div>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-3xl font-bold text-primary"><%= current_user.credits %></span>
+                  <span class="text-sm text-secondary">篇文章配额</span>
+                </div>
+                <p class="text-xs text-muted mt-1">
+                  <% if current_user.credits > 0 %>
+                    可继续创作 <%= current_user.credits %> 篇文章
+                  <% else %>
+                    配额已用完，请购买套餐后继续创作
+                  <% end %>
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <%= link_to packages_path, class: "btn-primary btn-sm" do %>
+                <%= lucide_icon "shopping-cart", class: "w-4 h-4 inline-block mr-1" %>
+                购买套餐
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      
       <div class="text-center mb-3 lg:relative">
         <h1 class="text-4xl lg:text-5xl font-bold text-primary mb-4 lg:mb-0">
           最小阻力写作
@@ -92,17 +122,10 @@
         <div class="mb-6">
           <label class="block text-lg font-semibold text-primary mb-3">
             <%= lucide_icon "brain-circuit", class: "w-5 h-5 inline-block mr-2" %>
-            思考框架
+            决策框架
           </label>
           
-          <!-- 写作类框架 -->
-          <div class="mb-6">
-            <div class="flex items-center gap-2 mb-3">
-              <%= lucide_icon "pen-tool", class: "w-4 h-4 text-blue-600" %>
-              <span class="text-sm font-semibold text-blue-600">写作框架</span>
-              <span class="text-xs text-muted">· 优化表达与内容创作</span>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-2 gap-3">
             <!-- 原汁原味 (可用) -->
             <label class="relative cursor-pointer">
               <input
@@ -113,7 +136,7 @@
                 class="peer sr-only"
                 checked
               />
-              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:shadow-md border-border bg-surface hover:border-blue-500/50">
+              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
                 <span class="text-base font-medium text-foreground">原汁原味</span>
               </div>
             </label>
@@ -127,7 +150,7 @@
                 data-articles-target="thinkingFramework"
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:shadow-md border-border bg-surface hover:border-blue-500/50">
+              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
                 <span class="text-base font-medium text-foreground">最小化读者脑力消耗</span>
               </div>
             </label>
@@ -141,7 +164,7 @@
                 data-articles-target="thinkingFramework"
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:shadow-md border-border bg-surface hover:border-blue-500/50">
+              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
                 <span class="text-base font-medium text-foreground">OmniThink写作引擎</span>
               </div>
             </label>
@@ -155,21 +178,10 @@
                 data-articles-target="thinkingFramework"
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:shadow-md border-border bg-surface hover:border-blue-500/50">
+              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
                 <span class="text-base font-medium text-foreground">咪蒙式NLP情绪操控框架</span>
               </div>
             </label>
-            </div>
-          </div>
-          
-          <!-- 决策类框架 -->
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <%= lucide_icon "lightbulb", class: "w-4 h-4 text-purple-600" %>
-              <span class="text-sm font-semibold text-purple-600">决策框架</span>
-              <span class="text-xs text-muted">· 分析问题与战略思考</span>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
 
             <!-- 第一性原理暴力拆解 (可用) -->
             <label class="relative cursor-pointer">
@@ -180,7 +192,7 @@
                 data-articles-target="thinkingFramework"
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-purple-500 peer-checked:bg-purple-500/10 peer-checked:shadow-md border-border bg-surface hover:border-purple-500/50">
+              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
                 <span class="text-base font-medium text-foreground">第一性原理暴力拆解</span>
               </div>
             </label>
@@ -194,7 +206,7 @@
                 data-articles-target="thinkingFramework"
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-purple-500 peer-checked:bg-purple-500/10 peer-checked:shadow-md border-border bg-surface hover:border-purple-500/50">
+              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
                 <span class="text-base font-medium text-foreground">快速决策与破局</span>
               </div>
             </label>
@@ -208,7 +220,7 @@
                 data-articles-target="thinkingFramework"
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-purple-500 peer-checked:bg-purple-500/10 peer-checked:shadow-md border-border bg-surface hover:border-purple-500/50">
+              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
                 <span class="text-base font-medium text-foreground">贝索斯6页叙事备忘录</span>
               </div>
             </label>
@@ -222,7 +234,7 @@
                 data-articles-target="thinkingFramework"
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-purple-500 peer-checked:bg-purple-500/10 peer-checked:shadow-md border-border bg-surface hover:border-purple-500/50">
+              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
                 <span class="text-base font-medium text-foreground">遗憾最小化框架</span>
               </div>
             </label>
@@ -236,11 +248,53 @@
                 data-articles-target="thinkingFramework"
                 class="peer sr-only"
               />
-              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-purple-500 peer-checked:bg-purple-500/10 peer-checked:shadow-md border-border bg-surface hover:border-purple-500/50">
+              <div class="px-4 py-2.5 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
                 <span class="text-base font-medium text-foreground">系统思考</span>
               </div>
             </label>
-            </div>
+          </div>
+        </div>
+        
+        <!-- Writing Style Selection -->
+        <div class="mb-6">
+          <label class="block text-lg font-semibold text-primary mb-3">
+            <%= lucide_icon "pen-tool", class: "w-5 h-5 inline-block mr-2" %>
+            写作风格
+          </label>
+          
+          <div class="grid grid-cols-1 gap-3">
+            <!-- Original Style -->
+            <label class="relative cursor-pointer">
+              <input
+                type="radio"
+                name="writing_style"
+                value="original"
+                checked
+                data-articles-target="writingStyleRadio"
+                data-action="change->articles#updateWritingStyle"
+                class="peer sr-only"
+              />
+              <div class="px-4 py-3 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
+                <div class="font-semibold text-foreground mb-1">原始风格</div>
+                <div class="text-sm text-muted">使用系统默认的口语化、线性表达风格</div>
+              </div>
+            </label>
+            
+            <!-- Luo Zhenyu Style -->
+            <label class="relative cursor-pointer">
+              <input
+                type="radio"
+                name="writing_style"
+                value="luo_style"
+                data-articles-target="writingStyleRadio"
+                data-action="change->articles#updateWritingStyle"
+                class="peer sr-only"
+              />
+              <div class="px-4 py-3 border-2 rounded-none transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:shadow-md border-border bg-surface hover:border-primary/50">
+                <div class="font-semibold text-foreground mb-1">罗振宇口语化表达风格</div>
+                <div class="text-sm text-muted">基于对象化思维和线性交付的自然语言表达，适合深度知识传递</div>
+              </div>
+            </label>
           </div>
         </div>
         
@@ -250,9 +304,104 @@
             data-action="click->articles#generateArticle"
             class="btn-primary btn-lg px-12"
           >
-            <%= lucide_icon "sparkles", class: "w-5 h-5 inline-block mr-2" %>
-            开始对话
+            <%= lucide_icon "zap", class: "w-5 h-5 inline-block mr-2" %>
+            一键生成所有脑爆和初稿
           </button>
+        </div>
+
+        <!-- Progress Bars for 5 Models -->
+        <div data-articles-target="progressContainer" class="mt-8" style="display: none;">
+          <h3 class="text-lg font-semibold text-primary mb-4 text-center">生成进度</h3>
+          
+          <!-- Grok Progress -->
+          <div class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <%= image_tag "grok-logo.png", class: "w-4 h-4", alt: "Grok" %>
+                <span class="text-sm font-medium text-foreground">Grok</span>
+              </div>
+              <span data-articles-target="progressTextGrok" class="text-sm font-semibold text-primary">0%</span>
+            </div>
+            <div class="w-full h-2 bg-surface border border-border rounded-full overflow-hidden">
+              <div 
+                data-articles-target="progressBarGrok" 
+                class="h-full bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-300 ease-out"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Qwen Progress -->
+          <div class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <%= image_tag "qwen-logo.png", class: "w-4 h-4", alt: "千问" %>
+                <span class="text-sm font-medium text-foreground">千问</span>
+              </div>
+              <span data-articles-target="progressTextQwen" class="text-sm font-semibold text-primary">0%</span>
+            </div>
+            <div class="w-full h-2 bg-surface border border-border rounded-full overflow-hidden">
+              <div 
+                data-articles-target="progressBarQwen" 
+                class="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-300 ease-out"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- DeepSeek Progress -->
+          <div class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <%= image_tag "deepseek-logo.png", class: "w-4 h-4", alt: "DeepSeek" %>
+                <span class="text-sm font-medium text-foreground">DeepSeek</span>
+              </div>
+              <span data-articles-target="progressTextDeepseek" class="text-sm font-semibold text-primary">0%</span>
+            </div>
+            <div class="w-full h-2 bg-surface border border-border rounded-full overflow-hidden">
+              <div 
+                data-articles-target="progressBarDeepseek" 
+                class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300 ease-out"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Gemini Progress -->
+          <div class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <%= image_tag "gemini-logo.png", class: "w-4 h-4", alt: "Gemini" %>
+                <span class="text-sm font-medium text-foreground">Gemini</span>
+              </div>
+              <span data-articles-target="progressTextGemini" class="text-sm font-semibold text-primary">0%</span>
+            </div>
+            <div class="w-full h-2 bg-surface border border-border rounded-full overflow-hidden">
+              <div 
+                data-articles-target="progressBarGemini" 
+                class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300 ease-out"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Zhipu Progress -->
+          <div class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <%= image_tag "zhipu-logo.png", class: "w-4 h-4", alt: "智谱" %>
+                <span class="text-sm font-medium text-foreground">智谱</span>
+              </div>
+              <span data-articles-target="progressTextZhipu" class="text-sm font-semibold text-primary">0%</span>
+            </div>
+            <div class="w-full h-2 bg-surface border border-border rounded-full overflow-hidden">
+              <div 
+                data-articles-target="progressBarZhipu" 
+                class="h-full bg-gradient-to-r from-green-500 to-teal-500 transition-all duration-300 ease-out"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -775,11 +924,13 @@
         </div>
       </div>
 
+
+
       <!-- Step 3: Drafts (5 models) -->
       <div data-articles-target="draftsContainer" style="display: none;" class="mt-8">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
           <div class="w-1 h-6 bg-orange-500"></div>
-          步骤 3：AI 初稿生成
+          步骤 3：初稿生成结果
         </h2>
         
         <div class="grid md:grid-cols-1 gap-4">
@@ -790,9 +941,46 @@
                 <%= image_tag "grok-logo.png", class: "w-5 h-5", alt: "Grok" %>
                 Grok 初稿
               </h3>
-              <span class="text-sm text-muted" data-articles-target="draftCharCountGrok">
-                字数：<span class="font-semibold text-primary">0</span>
-              </span>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-muted" data-articles-target="draftCharCountGrok">
+                  字数：<span class="font-semibold text-primary">0</span>
+                </span>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    data-action="click->articles#editDraft"
+                    data-provider="grok"
+                    data-articles-target="editDraftButtonGrok"
+                    class="btn-secondary btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
+                    编辑
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#copyDraftHtml"
+                    data-provider="grok"
+                    data-articles-target="copyDraftHtmlButtonGrok"
+                    class="btn-primary btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                    复制
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#copyDraftMarkdown"
+                    data-provider="grok"
+                    data-articles-target="copyDraftMarkdownButtonGrok"
+                    class="btn-outline btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                    复制Markdown
+                  </button>
+                </div>
+              </div>
             </div>
             <div 
               data-articles-target="draftGrok"
@@ -809,9 +997,46 @@
                 <%= image_tag "qwen-logo.png", class: "w-5 h-5", alt: "千问" %>
                 千问初稿
               </h3>
-              <span class="text-sm text-muted" data-articles-target="draftCharCountQwen">
-                字数：<span class="font-semibold text-primary">0</span>
-              </span>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-muted" data-articles-target="draftCharCountQwen">
+                  字数：<span class="font-semibold text-primary">0</span>
+                </span>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    data-action="click->articles#editDraft"
+                    data-provider="qwen"
+                    data-articles-target="editDraftButtonQwen"
+                    class="btn-secondary btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
+                    编辑
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#copyDraftHtml"
+                    data-provider="qwen"
+                    data-articles-target="copyDraftHtmlButtonQwen"
+                    class="btn-primary btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                    复制
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#copyDraftMarkdown"
+                    data-provider="qwen"
+                    data-articles-target="copyDraftMarkdownButtonQwen"
+                    class="btn-outline btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                    复制Markdown
+                  </button>
+                </div>
+              </div>
             </div>
             <div 
               data-articles-target="draftQwen"
@@ -828,9 +1053,46 @@
                 <%= image_tag "deepseek-logo.png", class: "w-5 h-5", alt: "DeepSeek" %>
                 DeepSeek 初稿
               </h3>
-              <span class="text-sm text-muted" data-articles-target="draftCharCountDeepseek">
-                字数：<span class="font-semibold text-primary">0</span>
-              </span>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-muted" data-articles-target="draftCharCountDeepseek">
+                  字数：<span class="font-semibold text-primary">0</span>
+                </span>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    data-action="click->articles#editDraft"
+                    data-provider="deepseek"
+                    data-articles-target="editDraftButtonDeepseek"
+                    class="btn-secondary btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
+                    编辑
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#copyDraftHtml"
+                    data-provider="deepseek"
+                    data-articles-target="copyDraftHtmlButtonDeepseek"
+                    class="btn-primary btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                    复制
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#copyDraftMarkdown"
+                    data-provider="deepseek"
+                    data-articles-target="copyDraftMarkdownButtonDeepseek"
+                    class="btn-outline btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                    复制Markdown
+                  </button>
+                </div>
+              </div>
             </div>
             <div 
               data-articles-target="draftDeepseek"
@@ -847,9 +1109,46 @@
                 <%= image_tag "gemini-logo.png", class: "w-5 h-5", alt: "Gemini" %>
                 Gemini 初稿
               </h3>
-              <span class="text-sm text-muted" data-articles-target="draftCharCountGemini">
-                字数：<span class="font-semibold text-primary">0</span>
-              </span>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-muted" data-articles-target="draftCharCountGemini">
+                  字数：<span class="font-semibold text-primary">0</span>
+                </span>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    data-action="click->articles#editDraft"
+                    data-provider="gemini"
+                    data-articles-target="editDraftButtonGemini"
+                    class="btn-secondary btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
+                    编辑
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#copyDraftHtml"
+                    data-provider="gemini"
+                    data-articles-target="copyDraftHtmlButtonGemini"
+                    class="btn-primary btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                    复制
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#copyDraftMarkdown"
+                    data-provider="gemini"
+                    data-articles-target="copyDraftMarkdownButtonGemini"
+                    class="btn-outline btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                    复制Markdown
+                  </button>
+                </div>
+              </div>
             </div>
             <div 
               data-articles-target="draftGemini"
@@ -866,9 +1165,46 @@
                 <%= image_tag "zhipu-logo.png", class: "w-5 h-5", alt: "智谱" %>
                 智谱初稿
               </h3>
-              <span class="text-sm text-muted" data-articles-target="draftCharCountZhipu">
-                字数：<span class="font-semibold text-primary">0</span>
-              </span>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-muted" data-articles-target="draftCharCountZhipu">
+                  字数：<span class="font-semibold text-primary">0</span>
+                </span>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    data-action="click->articles#editDraft"
+                    data-provider="zhipu"
+                    data-articles-target="editDraftButtonZhipu"
+                    class="btn-secondary btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
+                    编辑
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#copyDraftHtml"
+                    data-provider="zhipu"
+                    data-articles-target="copyDraftHtmlButtonZhipu"
+                    class="btn-primary btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                    复制
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#copyDraftMarkdown"
+                    data-provider="zhipu"
+                    data-articles-target="copyDraftMarkdownButtonZhipu"
+                    class="btn-outline btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                    复制Markdown
+                  </button>
+                </div>
+              </div>
             </div>
             <div 
               data-articles-target="draftZhipu"
@@ -919,12 +1255,7 @@
         </div>
 
         <!-- Sidebar Footer -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-surface">
-          <%= link_to my_books_path, class: "btn-primary w-full" do %>
-            <%= lucide_icon "book", class: "w-5 h-5 inline-block mr-2" %>
-            我的书籍
-          <% end %>
-        </div>
+
 
       </div>
     </div>

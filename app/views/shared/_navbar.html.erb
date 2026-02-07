@@ -44,7 +44,7 @@ Additional Effects:
         <div class="flex items-center space-x-8">
           <!-- Logo -->
           <%= link_to root_path, class: "flex items-center gap-2 text-xl font-bold text-primary hover:opacity-80 transition-opacity" do %>
-            <%= image_tag "app-logo.png", class: "w-8 h-8" %>
+            <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=64&h=64&fit=crop" alt="Logo" class="w-8 h-8 rounded" />
             <span><%= Rails.application.config.x.appname %></span>
           <% end %>
           <span class="badge badge-sm bg-primary/10 text-primary">V.1.0.3</span>
@@ -58,6 +58,13 @@ Additional Effects:
         <!-- Right section: User menu -->
         <div class="hidden md:flex items-center space-x-4">
           <% if current_user %>
+            <!-- Credits Badge -->
+            <%= link_to packages_path, class: "flex items-center gap-2 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors group" do %>
+              <%= lucide_icon "file-text", class: "w-4 h-4 text-primary" %>
+              <span class="text-sm font-semibold text-primary"><%= current_user.credits %></span>
+              <span class="text-xs text-secondary">篇</span>
+            <% end %>
+            
             <%= render 'shared/user_dropdown' %>
           <% else %>
             <%= link_to "登录", sign_in_path, class: "btn-ghost btn-sm" %>
@@ -93,6 +100,13 @@ Additional Effects:
         <!-- Mobile user menu -->
         <div class="pt-4">
           <% if current_user %>
+            <!-- Credits Badge (Mobile) -->
+            <%= link_to packages_path, class: "flex items-center justify-center gap-2 px-4 py-3 mb-4 bg-primary/10 rounded-lg" do %>
+              <%= lucide_icon "file-text", class: "w-5 h-5 text-primary" %>
+              <span class="text-lg font-semibold text-primary"><%= current_user.credits %></span>
+              <span class="text-sm text-secondary">篇文章配额</span>
+            <% end %>
+            
             <%= render 'shared/user_dropdown' %>
           <% else %>
             <div class="flex flex-col space-y-2">
