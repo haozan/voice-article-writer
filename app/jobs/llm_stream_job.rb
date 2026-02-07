@@ -189,13 +189,13 @@ class LlmStreamJob < ApplicationJob
     # Frameworks that need longer generation time (2000-3000+ characters)
     case framework
     when 'bezos_memo', 'regret_minimization', 'systems_thinking'
-      180 # 3 minutes for long-form content
+      240 # 4 minutes for long-form content
     when 'omnithink', 'first_principles'
-      150  # 2.5 minutes for multi-step analysis
+      210  # 3.5 minutes for multi-step analysis
     when 'mimeng_nlp', 'rapid_decision'
-      120  # 2 minutes for structured frameworks
+      180  # 3 minutes for structured frameworks
     else
-      nil # Use default (smart_timeout_for_model: 120s for standard, 240s for reasoners)
+      180 # Default: 3 minutes (increased from 120s to handle longer content)
     end
   end
   
@@ -434,6 +434,36 @@ class LlmStreamJob < ApplicationJob
           chunk: full_content
         })
       end
+    rescue LlmService::TimeoutError => e
+      # 超时错误：特殊处理（增加超时时间或显示友好提示）
+      error_message = "#{get_provider_display_name(provider)} 生成超时（可能内容较长），系统将自动重试..."
+      
+      # 广播错误到前端
+      ActionCable.server.broadcast(stream_name, {
+        type: 'error',
+        message: error_message
+      })
+      
+      # 保存错误状态到数据库
+      if article_id && provider
+        article = Article.find_by(id: article_id)
+        if article
+          # Handle brainstorm providers
+          if Article::BRAINSTORM_PROVIDERS.include?(provider.to_s)
+            article.set_brainstorm_status(provider, 'error', error_message)
+          # Handle draft_xxx providers
+          elsif provider.to_s.match(/^draft_(.+)$/)
+            provider_name = $1
+            article.set_draft_status(provider_name, 'error', error_message)
+          end
+        end
+      end
+      
+      # 记录错误日志
+      Rails.logger.error "LLM Timeout Error (#{provider}): #{e.message}"
+      
+      # 重新抛出让 retry_on 处理
+      raise e
     rescue LlmService::ApiError => e
       # 友好的错误消息
       error_message = parse_error_message(e, provider)

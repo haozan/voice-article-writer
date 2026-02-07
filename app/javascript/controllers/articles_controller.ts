@@ -254,6 +254,20 @@ export default class extends BaseChannelController {
     gemini: 0,
     zhipu: 0
   }
+  private progressIntervals: { [key: string]: number | null } = {
+    grok: null,
+    qwen: null,
+    deepseek: null,
+    gemini: null,
+    zhipu: null
+  }
+  private progressTargets: { [key: string]: number } = {
+    grok: 45,
+    qwen: 45,
+    deepseek: 45,
+    gemini: 45,
+    zhipu: 45
+  }
 
   connect(): void {
     console.log("Articles controller connected")
@@ -483,6 +497,80 @@ export default class extends BaseChannelController {
     this.charCountTarget.textContent = charCount.toString()
   }
 
+  // Confirm regenerate action with article quota warning
+  confirmRegenerate(event: Event): void {
+    event.preventDefault()
+    const link = event.currentTarget as HTMLElement
+    const articleId = link.dataset.articlesArticleIdValue
+    
+    if (!articleId) {
+      showToast("文章ID缺失", "danger")
+      return
+    }
+    
+    // Create elegant confirmation modal
+    const modal = document.createElement('div')
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'
+    modal.innerHTML = `
+      <div class="card bg-white dark:bg-gray-800 max-w-md w-full rounded-lg shadow-2xl">
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+              <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                </path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-50">重新生成确认</h3>
+            </div>
+          </div>
+          
+          <div class="space-y-3 mb-6 text-gray-700 dark:text-gray-300">
+            <p class="flex items-start gap-2">
+              <span class="text-xl">💡</span>
+              <span>重新生成将创建一篇新文章</span>
+            </p>
+            <p class="flex items-start gap-2">
+              <span class="text-xl">📊</span>
+              <span class="font-semibold text-orange-600 dark:text-orange-400">会消耗 1 篇额度</span>
+            </p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">原始内容将被保留，但会重新生成所有AI脑爆和初稿。</p>
+          </div>
+          
+          <div class="flex gap-3">
+            <button class="btn-ghost flex-1" data-action="click">
+              取消
+            </button>
+            <button class="btn-primary flex-1" data-action="click">
+              确定继续
+            </button>
+          </div>
+        </div>
+      </div>
+    `
+    
+    document.body.appendChild(modal)
+    
+    // Handle button clicks
+    const buttons = modal.querySelectorAll('button')
+    buttons[0].addEventListener('click', () => {
+      document.body.removeChild(modal)
+    })
+    buttons[1].addEventListener('click', () => {
+      document.body.removeChild(modal)
+      window.location.href = `/write?article_id=${articleId}`
+    })
+    
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal)
+      }
+    })
+  }
+
 
   // Called when user clicks "一键生成所有脑爆和初稿" button
   generateArticle(): void {
@@ -575,6 +663,14 @@ export default class extends BaseChannelController {
     this.updateProgress('deepseek', 0)
     this.updateProgress('gemini', 0)
     this.updateProgress('zhipu', 0)
+    
+    // Start smooth progress animation for all 5 models (phase 1: 0% to 45%)
+    this.progressTargets = { grok: 45, qwen: 45, deepseek: 45, gemini: 45, zhipu: 45 }
+    this.startSmoothProgress('grok')
+    this.startSmoothProgress('qwen')
+    this.startSmoothProgress('deepseek')
+    this.startSmoothProgress('gemini')
+    this.startSmoothProgress('zhipu')
 
     // Show responses container
     this.responsesContainerTarget.style.display = "block"
@@ -735,9 +831,13 @@ export default class extends BaseChannelController {
     console.log(`${provider} response complete`)
     this.completedModels.add(provider)
     
-    // Update progress to 50% (brainstorm complete, waiting for draft)
+    // Stop smooth progress and set to 50% (brainstorm complete, waiting for draft)
     if (provider !== 'doubao') {
+      this.stopSmoothProgress(provider)
       this.updateProgress(provider, 50)
+      // Start smooth progress again from 50% to 95% for draft phase
+      this.progressTargets[provider] = 95
+      this.startSmoothProgress(provider)
     }
     
     // Show edit, copy HTML, copy markdown buttons (but NOT draft button in new flow)
@@ -757,6 +857,11 @@ export default class extends BaseChannelController {
   private handleErrorForProvider(provider: string, message: string): void {
     console.error(`[BRAINSTORM ERROR] ${provider} generation error:`, message)
     console.log(`[BRAINSTORM ERROR] Target check - responseTarget for ${provider}:`, this.getResponseTarget(provider))
+    
+    // Stop progress bar animation on error
+    if (provider !== 'doubao') {
+      this.stopSmoothProgress(provider)
+    }
     
     const target = this.getResponseTarget(provider)
     
@@ -821,7 +926,8 @@ export default class extends BaseChannelController {
     console.log(`${provider} draft generation complete`)
     this.completedDrafts.add(provider)
     
-    // Update progress to 100% (draft complete)
+    // Stop smooth progress and set to 100% (draft complete)
+    this.stopSmoothProgress(provider)
     this.updateProgress(provider, 100)
     
     // Render draft content to UI
@@ -866,6 +972,11 @@ export default class extends BaseChannelController {
     console.log(`[DRAFT ERROR] Target check - draftTarget for ${provider}:`, this.getDraftTarget(provider))
     console.log(`[DRAFT ERROR] Sanity check - responseTarget for ${provider}:`, this.getResponseTarget(provider))
     this.completedDrafts.add(provider)
+    
+    // Stop progress bar animation on draft error
+    if (provider !== 'doubao') {
+      this.stopSmoothProgress(provider)
+    }
     
     const target = this.getDraftTarget(provider)
     if (target) {
@@ -1402,13 +1513,12 @@ export default class extends BaseChannelController {
       
       // CRITICAL: For "Re-brainstorm" feature, we DON'T restore article_id
       // This forces creation of a NEW article when user clicks "一键AI脑爆"
-      // this.currentArticleId = article.id  // REMOVED - don't set article_id
       this.currentArticleId = null  // Explicitly clear to create new article
       
-      // Only restore transcript (original input)
+      // Restore transcript (original input)
       this.originalTranscript = article.transcript || ""
       
-      // Set input text (only transcript, no AI-generated content)
+      // Set input text
       if (this.hasInputTextTarget && article.transcript) {
         this.inputTextTarget.value = article.transcript
         // Update character count after loading historical content
@@ -1447,12 +1557,28 @@ export default class extends BaseChannelController {
         draftsContainer.style.display = "none"
       }
       
+      // Hide progress container
+      this.progressContainerTarget.style.display = 'none'
+      
+      // Clear all response display areas
+      const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu', 'doubao']
+      providers.forEach(provider => {
+        const target = this.getResponseTarget(provider)
+        if (target) {
+          target.innerHTML = ''
+        }
+        const draftTarget = this.getDraftTarget(provider)
+        if (draftTarget) {
+          draftTarget.innerHTML = ''
+        }
+      })
+      
       // Scroll to input area (top of page)
       if (this.hasInputTextTarget) {
         this.inputTextTarget.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
       
-      showToast("已加载原始内容，可以重新脑爆", "success")
+      showToast("已加载原始内容，可以开始重新脑爆", "success")
       
     } catch (error) {
       console.error('Error restoring article:', error)
@@ -1763,12 +1889,52 @@ export default class extends BaseChannelController {
     }
     
     if (progressText) {
-      progressText.textContent = `${progress}%`
+      progressText.textContent = `${Math.floor(progress)}%`
     }
     
     // Check if this model reached 100% and trigger fireworks
-    if (progress === 100) {
+    if (progress >= 100) {
       this.launchFireworks(provider)
+    }
+  }
+  
+  // Start smooth progress animation
+  private startSmoothProgress(provider: string): void {
+    // Clear any existing interval
+    this.stopSmoothProgress(provider)
+    
+    const targetProgress = this.progressTargets[provider]
+    const currentProgress = this.modelProgress[provider]
+    
+    // Don't start if already at or above target
+    if (currentProgress >= targetProgress) return
+    
+    // Random duration between 15-30 seconds to reach target
+    const duration = 15000 + Math.random() * 15000
+    const steps = duration / 100 // Update every 100ms
+    const increment = (targetProgress - currentProgress) / steps
+    
+    this.progressIntervals[provider] = window.setInterval(() => {
+      const current = this.modelProgress[provider]
+      const target = this.progressTargets[provider]
+      
+      if (current < target) {
+        // Add some randomness to make it look more natural
+        const randomIncrement = increment * (0.8 + Math.random() * 0.4)
+        const newProgress = Math.min(current + randomIncrement, target)
+        this.updateProgress(provider, newProgress)
+      } else {
+        // Stop when reaching target
+        this.stopSmoothProgress(provider)
+      }
+    }, 100)
+  }
+  
+  // Stop smooth progress animation
+  private stopSmoothProgress(provider: string): void {
+    if (this.progressIntervals[provider]) {
+      window.clearInterval(this.progressIntervals[provider]!)
+      this.progressIntervals[provider] = null
     }
   }
   
