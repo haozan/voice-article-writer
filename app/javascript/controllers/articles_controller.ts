@@ -322,7 +322,7 @@ export default class extends BaseChannelController {
               zhipu: "智谱",
               doubao: "豆包"
             }
-            this.resetResponseArea(provider, `${modelNames[provider]} 思考中...`)
+            this.resetResponseArea(provider, `${modelNames[provider]} 等待AI响应...`)
           } else if (data.type === 'all-drafts-started') {
             console.log('All drafts generation started')
             // Draft generation will be handled by individual draft_xxx subscriptions
@@ -343,7 +343,7 @@ export default class extends BaseChannelController {
               zhipu: "智谱",
               doubao: "豆包"
             }
-            this.resetDraftArea(provider, `${modelNames[provider]} 初稿生成中...`)
+            this.resetDraftArea(provider, `${modelNames[provider]} 等待AI响应...`)
           }
         }
       }
@@ -471,11 +471,11 @@ export default class extends BaseChannelController {
     
     // CRITICAL: Show loading state for all draft areas immediately (like brainstorm does)
     // This makes all 5 draft cards visible right away
-    this.resetDraftArea("grok", "Grok 初稿生成中...")
-    this.resetDraftArea("qwen", "千问初稿生成中...")
-    this.resetDraftArea("deepseek", "DeepSeek 初稿生成中...")
-    this.resetDraftArea("gemini", "Gemini 初稿生成中...")
-    this.resetDraftArea("zhipu", "智谱初稿生成中...")
+    this.resetDraftArea("grok", "Grok 等待AI响应...")
+    this.resetDraftArea("qwen", "千问等待AI响应...")
+    this.resetDraftArea("deepseek", "DeepSeek 等待AI响应...")
+    this.resetDraftArea("gemini", "Gemini 等待AI响应...")
+    this.resetDraftArea("zhipu", "智谱等待AI响应...")
     
     // Call backend to generate all drafts with writing style
     if (this.commandSubscription) {
@@ -675,13 +675,13 @@ export default class extends BaseChannelController {
     // Show responses container
     this.responsesContainerTarget.style.display = "block"
 
-    // Reset all response areas to loading state
-    this.resetResponseArea("grok", "Grok 思考中...")
-    this.resetResponseArea("qwen", "千问思考中...")
-    this.resetResponseArea("deepseek", "DeepSeek 思考中...")
-    this.resetResponseArea("gemini", "Gemini 思考中...")
-    this.resetResponseArea("zhipu", "智谱思考中...")
-    this.resetResponseArea("doubao", "豆包思考中...")
+    // Reset all response areas to "等待响应" state
+    this.resetResponseArea("grok", "Grok 等待AI响应...")
+    this.resetResponseArea("qwen", "千问等待AI响应...")
+    this.resetResponseArea("deepseek", "DeepSeek 等待AI响应...")
+    this.resetResponseArea("gemini", "Gemini 等待AI响应...")
+    this.resetResponseArea("zhipu", "智谱等待AI响应...")
+    this.resetResponseArea("doubao", "豆包等待AI响应...")
     
     // Show drafts container immediately (even before brainstorm completes)
     const draftsContainer = (this as any).draftsContainerTarget
@@ -814,6 +814,19 @@ export default class extends BaseChannelController {
 
   // Handle streaming chunks for a specific provider
   private handleChunkForProvider(provider: string, chunk: string): void {
+    // If this is the first chunk, update status to "正在生成"
+    if (this.responseContents[provider] === "") {
+      const modelNames: { [key: string]: string } = {
+        grok: "Grok",
+        qwen: "千问",
+        deepseek: "DeepSeek",
+        gemini: "Gemini",
+        zhipu: "智谱",
+        doubao: "豆包"
+      }
+      this.resetResponseArea(provider, `${modelNames[provider]} 正在生成...`)
+    }
+    
     this.responseContents[provider] += chunk
     const target = this.getResponseTarget(provider)
     
@@ -839,6 +852,17 @@ export default class extends BaseChannelController {
       this.progressTargets[provider] = 95
       this.startSmoothProgress(provider)
     }
+    
+    // Update draft areas to "等待AI响应" state (brainstorm complete, draft job queued)
+    const modelNames: { [key: string]: string } = {
+      grok: "Grok",
+      qwen: "千问",
+      deepseek: "DeepSeek",
+      gemini: "Gemini",
+      zhipu: "智谱",
+      doubao: "豆包"
+    }
+    this.resetDraftArea(provider, `${modelNames[provider]} 等待AI响应...`)
     
     // Show edit, copy HTML, copy markdown buttons (but NOT draft button in new flow)
     const editButton = this.getEditButtonTarget(provider)
@@ -916,6 +940,19 @@ export default class extends BaseChannelController {
   
   // Handle draft chunk for a specific provider
   private handleDraftChunkForProvider(provider: string, chunk: string): void {
+    // If this is the first chunk, update status to "正在生成"
+    if (this.draftContents[provider] === "") {
+      const modelNames: { [key: string]: string } = {
+        grok: "Grok",
+        qwen: "千问",
+        deepseek: "DeepSeek",
+        gemini: "Gemini",
+        zhipu: "智谱",
+        doubao: "豆包"
+      }
+      this.resetDraftArea(provider, `${modelNames[provider]} 正在生成初稿...`)
+    }
+    
     this.draftContents[provider] += chunk
     // For now, we don't render chunks - we wait for complete
     // If you want real-time rendering, add rendering logic here
