@@ -13,7 +13,7 @@ class Article < ApplicationRecord
   scope :ordered_in_chapter, -> { order(:position) }
   
   # Providers for brainstorm
-  BRAINSTORM_PROVIDERS = %w[grok qwen deepseek gemini zhipu doubao].freeze
+  BRAINSTORM_PROVIDERS = %w[grok qwen deepseek gemini doubao doubao].freeze
   
   def initialize_brainstorm_status
     self.brainstorm_status ||= {}
@@ -112,7 +112,7 @@ class Article < ApplicationRecord
     brainstorm_qwen.present? || 
     brainstorm_deepseek.present? || 
     brainstorm_gemini.present? || 
-    brainstorm_zhipu.present? ||
+    brainstorm_doubao.present? ||
     brainstorm_doubao.present?
   end
   
@@ -121,7 +121,6 @@ class Article < ApplicationRecord
     draft_qwen.present? ||
     draft_deepseek.present? ||
     draft_gemini.present? ||
-    draft_zhipu.present? ||
     draft_doubao.present?
   end
   

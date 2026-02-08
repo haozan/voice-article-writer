@@ -16,7 +16,7 @@ class CreateDraftsAfterBrainstormJob < ApplicationJob
     Rails.logger.info "Starting draft generation for article #{article_id} with writing_style: #{writing_style}"
 
     # List of all available providers
-    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
+    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'doubao']
 
     # Generate drafts for all providers that have completed brainstorm
     providers.each do |provider|
@@ -38,7 +38,7 @@ class CreateDraftsAfterBrainstormJob < ApplicationJob
       when 'qwen' then 'Qwen'
       when 'deepseek' then 'DeepSeek'
       when 'gemini' then 'Gemini'
-      when 'zhipu' then '智谱'
+      when 'doubao' then '豆包'
       else provider.capitalize
       end
 
@@ -321,12 +321,6 @@ class CreateDraftsAfterBrainstormJob < ApplicationJob
         base_url: ENV.fetch('GEMINI_BASE_URL_OPTIONAL'),
         api_key: ENV.fetch('GEMINI_API_KEY_OPTIONAL'),
         model: ENV.fetch('GEMINI_MODEL_OPTIONAL')
-      }
-    when 'zhipu'
-      {
-        base_url: ENV.fetch('ZHIPU_BASE_URL_OPTIONAL'),
-        api_key: ENV.fetch('ZHIPU_API_KEY_OPTIONAL'),
-        model: ENV.fetch('ZHIPU_MODEL_OPTIONAL')
       }
     when 'doubao'
       {

@@ -30,8 +30,9 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for Apache
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
-  # Store uploaded files on the cloud storage bucket (S3/GCS)
-  config.active_storage.service = :storage_bucket
+  # Store uploaded files on local disk (recommended for self-hosted deployments)
+  # Change to :storage_bucket if using S3-compatible storage
+  config.active_storage.service = :local
 
   # Mount Action Cable outside main process or domain.
   config.action_cable.disable_request_forgery_protection = true

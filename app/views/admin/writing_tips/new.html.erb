@@ -1,0 +1,48 @@
+<% content_for :title, "New Writing tip" %>
+
+<div class="container-md">
+  <div class="flex items-center space-x-4">
+    <%= link_to admin_writing_tips_path, class: "btn-ghost text-sm py-1 px-3" do %>
+      <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+      Back to Writing tips
+    <% end %>
+  </div>
+
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mt-4 mb-8">Create New Writing tip</h1>
+
+  <!-- Form -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <%= form_with model: [:admin, @writing_tip], local: true, class: "space-y-6" do |form| %>
+        <!-- Content -->
+        <div class="form-group">
+          <%= form.label :content %>
+          <%= form.text_area :content, rows: 5, placeholder: "Enter content..." %>
+        </div>
+
+        <!-- Active -->
+        <div class="mb-4">
+          <label class="flex items-center cursor-pointer">
+            <%= form.check_box :active, 
+                  class: "mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700" %>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Active</span>
+          </label>
+        </div>
+
+        <!-- Position -->
+        <div class="form-group">
+          <%= form.label :position %>
+          <%= form.number_field :position, placeholder: "Enter position..." %>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3">
+          <%= link_to admin_writing_tips_path, class: "btn-ghost" do %>
+            Cancel
+          <% end %>
+          <%= form.submit "Create Writing tip", class: "btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

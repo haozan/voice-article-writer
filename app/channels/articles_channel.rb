@@ -275,7 +275,7 @@ class ArticlesChannel < ApplicationCable::Channel
     article = Article.find(article_id)
     
     # List of all available providers (5 models displayed)
-    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
+    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'doubao']
     
     # Trigger draft generation for all providers concurrently
     providers.each do |provider|
@@ -294,7 +294,6 @@ class ArticlesChannel < ApplicationCable::Channel
       when 'qwen' then 'Qwen'
       when 'deepseek' then 'DeepSeek'
       when 'gemini' then 'Gemini'
-      when 'zhipu' then '智谱'
       when 'doubao' then '豆包'
       else provider.capitalize
       end
@@ -358,7 +357,6 @@ class ArticlesChannel < ApplicationCable::Channel
     when 'qwen' then 'Qwen'
     when 'deepseek' then 'DeepSeek'
     when 'gemini' then 'Gemini'
-    when 'zhipu' then '智谱'
     when 'doubao' then '豆包'
     else provider.capitalize
     end
@@ -461,8 +459,8 @@ class ArticlesChannel < ApplicationCable::Channel
                 article
               end
     
-    # List of all available providers (Doubao hidden)
-    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
+    # List of all available providers (5 models displayed)
+    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'doubao']
     
     # Trigger jobs for all providers concurrently
     providers.each do |provider|
@@ -539,7 +537,7 @@ class ArticlesChannel < ApplicationCable::Channel
     )
     
     # List of all available providers
-    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
+    providers = ['grok', 'qwen', 'deepseek', 'gemini', 'doubao']
     
     # Step 1: Generate brainstorm for all providers
     providers.each do |provider|
@@ -627,8 +625,6 @@ class ArticlesChannel < ApplicationCable::Channel
       article.brainstorm_deepseek
     when 'gemini'
       article.brainstorm_gemini
-    when 'zhipu'
-      article.brainstorm_zhipu
     when 'doubao'
       article.brainstorm_doubao
     else
@@ -641,7 +637,6 @@ class ArticlesChannel < ApplicationCable::Channel
     when 'qwen' then 'Qwen'
     when 'deepseek' then 'DeepSeek'
     when 'gemini' then 'Gemini'
-    when 'zhipu' then '智谱'
     when 'doubao' then '豆包'
     else 'Grok'
     end
@@ -767,7 +762,7 @@ class ArticlesChannel < ApplicationCable::Channel
     # CRITICAL: Draft generation needs longer timeout due to long prompt and content fusion
     # - Long prompt: ~180 lines of detailed instructions
     # - Content fusion: transcript + brainstorm content (can be 2000+ characters)
-    # - Default 120s often causes timeout, especially for slower models like Zhipu
+    # - Default 120s often causes timeout, especially for slower models
     # Also increase max_tokens to allow longer output (fusion of multiple contents)
     llm_config_with_timeout = llm_config.merge(timeout: 240, max_tokens: 8000)
     
@@ -802,12 +797,6 @@ class ArticlesChannel < ApplicationCable::Channel
         base_url: ENV.fetch('GEMINI_BASE_URL_OPTIONAL'),
         api_key: ENV.fetch('GEMINI_API_KEY_OPTIONAL'),
         model: ENV.fetch('GEMINI_MODEL_OPTIONAL')
-      }
-    when 'zhipu'
-      {
-        base_url: ENV.fetch('ZHIPU_BASE_URL_OPTIONAL'),
-        api_key: ENV.fetch('ZHIPU_API_KEY_OPTIONAL'),
-        model: ENV.fetch('ZHIPU_MODEL_OPTIONAL')
       }
     when 'chatgpt'
       {

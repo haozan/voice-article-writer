@@ -1,6 +1,6 @@
 class Persona < ApplicationRecord
   # LLM Provider validation
-  validates :llm_provider, inclusion: { in: %w[grok qwen deepseek gemini zhipu chatgpt doubao], message: "%{value} is not a valid LLM provider" }, allow_nil: false
+  validates :llm_provider, inclusion: { in: %w[grok qwen deepseek gemini doubao chatgpt], message: "%{value} is not a valid LLM provider" }, allow_nil: false
   
   # Get LLM configuration based on provider
   def llm_config
@@ -23,11 +23,11 @@ class Persona < ApplicationRecord
         api_key: ENV.fetch('GEMINI_API_KEY_OPTIONAL'),
         model: ENV.fetch('GEMINI_MODEL_OPTIONAL')
       }
-    when 'zhipu'
+    when 'doubao'
       {
-        base_url: ENV.fetch('ZHIPU_BASE_URL_OPTIONAL'),
-        api_key: ENV.fetch('ZHIPU_API_KEY_OPTIONAL'),
-        model: ENV.fetch('ZHIPU_MODEL_OPTIONAL')
+        base_url: ENV.fetch('DOUBAO_BASE_URL_OPTIONAL'),
+        api_key: ENV.fetch('DOUBAO_API_KEY_OPTIONAL'),
+        model: ENV.fetch('DOUBAO_MODEL_OPTIONAL')
       }
     when 'chatgpt'
       {
@@ -66,12 +66,10 @@ class Persona < ApplicationRecord
       'DeepSeek'
     when 'gemini'
       'Google Gemini'
-    when 'zhipu'
-      '智谱 GLM'
-    when 'chatgpt'
-      'ChatGPT'
     when 'doubao'
       '豆包'
+    when 'chatgpt'
+      'ChatGPT'
     when 'grok'
       'Grok AI'
     else

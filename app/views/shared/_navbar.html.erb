@@ -44,10 +44,10 @@ Additional Effects:
         <div class="flex items-center space-x-8">
           <!-- Logo -->
           <%= link_to root_path, class: "flex items-center gap-2 text-xl font-bold text-primary hover:opacity-80 transition-opacity" do %>
-            <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=64&h=64&fit=crop" alt="Logo" class="w-8 h-8 rounded" />
+            <%= image_tag "logo.png", alt: "Logo", class: "w-8 h-8 rounded" %>
             <span><%= Rails.application.config.x.appname %></span>
           <% end %>
-          <span class="badge badge-sm bg-primary/10 text-primary">V.1.0.3</span>
+          <span class="badge badge-sm bg-primary/10 text-primary">v 1.0.6</span>
 
           <!-- Desktop navigation -->
           <div class="hidden lg:flex items-center space-x-6">

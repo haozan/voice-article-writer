@@ -54,7 +54,7 @@ QWEN_MODEL_OPTIONAL: '<%= ENV.fetch("QWEN_MODEL", "qwen3-max") %>'
 # DeepSeek Configuration
 DEEPSEEK_BASE_URL_OPTIONAL: '<%= ENV.fetch("DEEPSEEK_BASE_URL", "https://api.deepseek.com") %>'
 DEEPSEEK_API_KEY_OPTIONAL: '<%= ENV.fetch("DEEPSEEK_API_KEY", "") %>'
-DEEPSEEK_MODEL_OPTIONAL: '<%= ENV.fetch("DEEPSEEK_MODEL", "deepseek-reasoner") %>'
+DEEPSEEK_MODEL_OPTIONAL: '<%= ENV.fetch("DEEPSEEK_MODEL", "deepseek-chat") %>'
 # DeepSeek Configuration end
 
 # Gemini (Google) Configuration

@@ -55,3 +55,6 @@ packages_data.each do |package_data|
 end
 
 puts "Packages created successfully!"
+
+# Load writing tips seeds
+load Rails.root.join('db', 'seeds', 'writing_tips.rb')

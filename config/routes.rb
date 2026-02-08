@@ -17,6 +17,7 @@ Rails.application.routes.draw do
   # End routes for packages
 
   namespace :admin do
+    resources :writing_tips
     resources :payments, only: [:index, :show]
   end
   resources :payments, only: [] do

@@ -13,6 +13,7 @@ import VoiceRecorderController from "./voice_recorder_controller"
 import BookReaderController from "./book_reader_controller"
 import BookChaptersController from "./book_chapters_controller"
 import MarkdownRendererController from "./markdown_renderer_controller"
+import WritingTipController from "./writing_tip_controller"
 
 const application = Application.start()
 
@@ -29,5 +30,6 @@ application.register("voice-recorder", VoiceRecorderController)
 application.register("book-reader", BookReaderController)
 application.register("book-chapters", BookChaptersController)
 application.register("markdown-renderer", MarkdownRendererController)
+application.register("writing-tip", WritingTipController)
 
 window.Stimulus = application

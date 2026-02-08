@@ -6,7 +6,7 @@ FactoryBot.define do
     brainstorm_qwen { "MyText" }
     brainstorm_deepseek { "MyText" }
     brainstorm_gemini { "MyText" }
-    brainstorm_zhipu { "MyText" }
+    brainstorm_doubao { "MyText" }
     selected_model { "MyString" }
     draft { "MyText" }
     final_style { "MyString" }

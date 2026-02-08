@@ -85,7 +85,7 @@ class LlmStreamJob < ApplicationJob
     return 'Qwen' if base_url&.include?('dashscope')
     return 'DeepSeek' if base_url&.include?('deepseek')
     return 'Gemini' if base_url&.include?('generativelanguage')
-    return 'Zhipu' if base_url&.include?('bigmodel')
+    return 'Doubao' if base_url&.include?('bigmodel')
     return 'ChatGPT' if base_url&.include?('openai')
     return 'Doubao' if base_url&.include?('volces') || base_url&.include?('doubao')
     'Grok'
@@ -142,9 +142,9 @@ class LlmStreamJob < ApplicationJob
         
         直接输出你的回应，不要加任何解释或套话。
       PROMPT
-    when 'Zhipu'
+    when 'Doubao'
       <<~PROMPT.strip
-        你是智谱 GLM，来自智谱 AI。用户会分享他的想法、观点或内容。
+        你是豆包，来自字节跳动。用户会分享他的想法、观点或内容。
         
         #{framework_prompt}
         
@@ -155,16 +155,6 @@ class LlmStreamJob < ApplicationJob
     when 'ChatGPT'
       <<~PROMPT.strip
         你是 ChatGPT，来自 OpenAI。用户会分享他的想法、观点或内容。
-        
-        #{framework_prompt}
-        
-        #{markdown_requirements}
-        
-        直接输出你的回应，不要加任何解释或套话。
-      PROMPT
-    when 'Doubao'
-      <<~PROMPT.strip
-        你是豆包，来自字节跳动。用户会分享他的想法、观点或内容。
         
         #{framework_prompt}
         
@@ -529,10 +519,6 @@ class LlmStreamJob < ApplicationJob
           article.update!(brainstorm_gemini: full_content)
           article.set_brainstorm_status('gemini', 'success')
           trigger_draft_after_brainstorm(article, 'gemini', stream_name) if article.writing_style.present?
-        when 'zhipu'
-          article.update!(brainstorm_zhipu: full_content)
-          article.set_brainstorm_status('zhipu', 'success')
-          trigger_draft_after_brainstorm(article, 'zhipu', stream_name) if article.writing_style.present?
         when 'doubao'
           article.update!(brainstorm_doubao: full_content)
           article.set_brainstorm_status('doubao', 'success')
@@ -540,7 +526,7 @@ class LlmStreamJob < ApplicationJob
         when 'draft'
           article.update!(draft: full_content)
         when /^draft_(.+)$/
-          # Handle draft_grok, draft_qwen, draft_deepseek, draft_gemini, draft_zhipu
+          # Handle draft_grok, draft_qwen, draft_deepseek, draft_gemini, draft_doubao
           provider_name = $1
           article.update!("draft_#{provider_name}" => full_content)
           article.set_draft_status(provider_name, 'success')
@@ -597,7 +583,6 @@ class LlmStreamJob < ApplicationJob
       when 'qwen' then '千问'
       when 'deepseek' then 'DeepSeek'
       when 'gemini' then 'Gemini'
-      when 'zhipu' then '智谱'
       when 'doubao' then '豆包'
       when 'chatgpt' then 'ChatGPT'
       else provider_name.capitalize
@@ -609,7 +594,6 @@ class LlmStreamJob < ApplicationJob
     when 'qwen' then '千问'
     when 'deepseek' then 'DeepSeek'
     when 'gemini' then 'Gemini'
-    when 'zhipu' then '智谱'
     when 'doubao' then '豆包'
     when 'chatgpt' then 'ChatGPT'
     else provider.to_s.capitalize
@@ -634,7 +618,6 @@ class LlmStreamJob < ApplicationJob
     when 'qwen' then 'Qwen'
     when 'deepseek' then 'DeepSeek'
     when 'gemini' then 'Gemini'
-    when 'zhipu' then '智谱'
     when 'doubao' then '豆包'
     else provider.capitalize
     end
@@ -911,12 +894,6 @@ class LlmStreamJob < ApplicationJob
         base_url: ENV.fetch('GEMINI_BASE_URL_OPTIONAL'),
         api_key: ENV.fetch('GEMINI_API_KEY_OPTIONAL'),
         model: ENV.fetch('GEMINI_MODEL_OPTIONAL')
-      }
-    when 'zhipu'
-      {
-        base_url: ENV.fetch('ZHIPU_BASE_URL_OPTIONAL'),
-        api_key: ENV.fetch('ZHIPU_API_KEY_OPTIONAL'),
-        model: ENV.fetch('ZHIPU_MODEL_OPTIONAL')
       }
     when 'doubao'
       {

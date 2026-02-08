@@ -118,19 +118,19 @@
             </div>
           <% end %>
 
-          <% if @article.brainstorm_zhipu.present? %>
+          <% if @article.brainstorm_doubao.present? %>
             <div class="card card-elevated p-5 rounded-none">
               <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
-                <%= image_tag "zhipu-logo.png", class: "w-5 h-5", alt: "智谱" %>
-                智谱
-                <% if @article.selected_model == 'zhipu' %>
+                <%= image_tag "doubao-logo.png", class: "w-5 h-5", alt: "豆包" %>
+                豆包
+                <% if @article.selected_model == 'doubao' %>
                   <span class="badge badge-success text-xs">已选择</span>
                 <% end %>
               </h3>
               <div 
                 class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
                 data-controller="markdown-renderer"
-                data-markdown-renderer-content-value="<%= @article.brainstorm_zhipu.to_json %>"
+                data-markdown-renderer-content-value="<%= @article.brainstorm_doubao.to_json %>"
               ></div>
             </div>
           <% end %>
@@ -239,21 +239,21 @@
             </div>
           <% end %>
 
-          <% if @article.draft_zhipu.present? %>
+          <% if @article.draft_doubao.present? %>
             <div class="card card-elevated p-5 rounded-none">
               <div class="flex items-center justify-between mb-3">
                 <h3 class="font-bold text-primary flex items-center gap-2">
-                  <%= image_tag "zhipu-logo.png", class: "w-5 h-5", alt: "智谱" %>
-                  智谱初稿
+                  <%= image_tag "doubao-logo.png", class: "w-5 h-5", alt: "豆包" %>
+                  豆包初稿
                 </h3>
                 <span class="text-sm text-muted">
-                  字数：<span class="font-semibold text-primary"><%= @article.draft_zhipu.length %></span>
+                  字数：<span class="font-semibold text-primary"><%= @article.draft_doubao.length %></span>
                 </span>
               </div>
               <div 
                 class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
                 data-controller="markdown-renderer"
-                data-markdown-renderer-content-value="<%= @article.draft_zhipu.to_json %>"
+                data-markdown-renderer-content-value="<%= @article.draft_doubao.to_json %>"
               ></div>
             </div>
           <% end %>

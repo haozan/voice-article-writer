@@ -44,10 +44,9 @@ function fixMarkdownHeaders(text: string): string {
  * Targets:
  * - inputText: Text input area
  * - responsesContainer: Container for all model responses
- * - responseGrok/Qwen/Deepseek/Gemini/Zhipu: Display areas for each model
- * - copyHtmlButtonGrok/Qwen/Deepseek/Gemini/Zhipu: Copy HTML buttons for each model
- * - copyMarkdownButtonGrok/Qwen/Deepseek/Gemini/Zhipu: Copy Markdown buttons for each model
- * - draftButtonGrok/Qwen/Deepseek/Gemini/Zhipu: Draft generation buttons
+ * - responseGrok/Qwen/Deepseek/Gemini/Doubao: Display areas for each model
+ * - copyHtmlButtonGrok/Qwen/Deepseek/Gemini/Doubao: Copy HTML buttons for each model
+ * - copyMarkdownButtonGrok/Qwen/Deepseek/Gemini/Doubao: Copy Markdown buttons for each model
  * - draftSection: Draft editing section
  * - draftContent: Draft textarea
  * - selectedModelLabel: Shows selected model name
@@ -69,71 +68,64 @@ export default class extends BaseChannelController {
     "responseQwen",
     "responseDeepseek",
     "responseGemini",
-    "responseZhipu",
     "responseDoubao",
     "responseGrokEdit",
     "responseQwenEdit",
     "responseDeepseekEdit",
     "responseGeminiEdit",
-    "responseZhipuEdit",
     "responseDoubaoEdit",
-    "editButtonGrok",
-    "editButtonQwen",
-    "editButtonDeepseek",
-    "editButtonGemini",
-    "editButtonZhipu",
-    "editButtonDoubao",
     "saveButtonGrok",
     "saveButtonQwen",
     "saveButtonDeepseek",
     "saveButtonGemini",
-    "saveButtonZhipu",
     "saveButtonDoubao",
     "copyHtmlButtonGrok",
     "copyHtmlButtonQwen",
     "copyHtmlButtonDeepseek",
     "copyHtmlButtonGemini",
-    "copyHtmlButtonZhipu",
     "copyHtmlButtonDoubao",
     "copyMarkdownButtonGrok",
     "copyMarkdownButtonQwen",
     "copyMarkdownButtonDeepseek",
     "copyMarkdownButtonGemini",
-    "copyMarkdownButtonZhipu",
     "copyMarkdownButtonDoubao",
 
-    "draftButtonGrok",
-    "draftButtonQwen",
-    "draftButtonDeepseek",
-    "draftButtonGemini",
-    "draftButtonZhipu",
-    "draftButtonDoubao",
     "draftsContainer",
     "draftGrok",
     "draftQwen",
     "draftDeepseek",
     "draftGemini",
-    "draftZhipu",
+    "draftDoubao",
     "draftCharCountGrok",
     "draftCharCountQwen",
     "draftCharCountDeepseek",
     "draftCharCountGemini",
-    "draftCharCountZhipu",
+    "draftCharCountDoubao",
     "editDraftButtonGrok",
     "editDraftButtonQwen",
     "editDraftButtonDeepseek",
     "editDraftButtonGemini",
-    "editDraftButtonZhipu",
+    "editDraftButtonDoubao",
+    "saveDraftButtonGrok",
+    "saveDraftButtonQwen",
+    "saveDraftButtonDeepseek",
+    "saveDraftButtonGemini",
+    "saveDraftButtonDoubao",
+    "draftGrokEdit",
+    "draftQwenEdit",
+    "draftDeepseekEdit",
+    "draftGeminiEdit",
+    "draftDoubaoEdit",
     "copyDraftHtmlButtonGrok",
     "copyDraftHtmlButtonQwen",
     "copyDraftHtmlButtonDeepseek",
     "copyDraftHtmlButtonGemini",
-    "copyDraftHtmlButtonZhipu",
+    "copyDraftHtmlButtonDoubao",
     "copyDraftMarkdownButtonGrok",
     "copyDraftMarkdownButtonQwen",
     "copyDraftMarkdownButtonDeepseek",
     "copyDraftMarkdownButtonGemini",
-    "copyDraftMarkdownButtonZhipu",
+    "copyDraftMarkdownButtonDoubao",
     "generateAllDraftsButton",
     "writingStyleSelector",
     "writingStyleRadio",
@@ -146,12 +138,12 @@ export default class extends BaseChannelController {
     "progressBarQwen",
     "progressBarDeepseek",
     "progressBarGemini",
-    "progressBarZhipu",
+    "progressBarDoubao",
     "progressTextGrok",
     "progressTextQwen",
     "progressTextDeepseek",
     "progressTextGemini",
-    "progressTextZhipu"
+    "progressTextDoubao"
   ]
 
   static values = {
@@ -166,30 +158,33 @@ export default class extends BaseChannelController {
   declare readonly responseQwenTarget: HTMLElement
   declare readonly responseDeepseekTarget: HTMLElement
   declare readonly responseGeminiTarget: HTMLElement
-  declare readonly responseZhipuTarget: HTMLElement
   declare readonly responseDoubaoTarget: HTMLElement
 
-  declare readonly draftButtonGrokTarget: HTMLElement
-  declare readonly draftButtonQwenTarget: HTMLElement
-  declare readonly draftButtonDeepseekTarget: HTMLElement
-  declare readonly draftButtonGeminiTarget: HTMLElement
-  declare readonly draftButtonZhipuTarget: HTMLElement
-  declare readonly draftButtonDoubaoTarget: HTMLElement
   declare readonly editDraftButtonGrokTarget: HTMLElement
   declare readonly editDraftButtonQwenTarget: HTMLElement
   declare readonly editDraftButtonDeepseekTarget: HTMLElement
   declare readonly editDraftButtonGeminiTarget: HTMLElement
-  declare readonly editDraftButtonZhipuTarget: HTMLElement
+  declare readonly editDraftButtonDoubaoTarget: HTMLElement
+  declare readonly saveDraftButtonGrokTarget: HTMLElement
+  declare readonly saveDraftButtonQwenTarget: HTMLElement
+  declare readonly saveDraftButtonDeepseekTarget: HTMLElement
+  declare readonly saveDraftButtonGeminiTarget: HTMLElement
+  declare readonly saveDraftButtonDoubaoTarget: HTMLElement
+  declare readonly draftGrokEditTarget: HTMLTextAreaElement
+  declare readonly draftQwenEditTarget: HTMLTextAreaElement
+  declare readonly draftDeepseekEditTarget: HTMLTextAreaElement
+  declare readonly draftGeminiEditTarget: HTMLTextAreaElement
+  declare readonly draftDoubaoEditTarget: HTMLTextAreaElement
   declare readonly copyDraftHtmlButtonGrokTarget: HTMLElement
   declare readonly copyDraftHtmlButtonQwenTarget: HTMLElement
   declare readonly copyDraftHtmlButtonDeepseekTarget: HTMLElement
   declare readonly copyDraftHtmlButtonGeminiTarget: HTMLElement
-  declare readonly copyDraftHtmlButtonZhipuTarget: HTMLElement
+  declare readonly copyDraftHtmlButtonDoubaoTarget: HTMLElement
   declare readonly copyDraftMarkdownButtonGrokTarget: HTMLElement
   declare readonly copyDraftMarkdownButtonQwenTarget: HTMLElement
   declare readonly copyDraftMarkdownButtonDeepseekTarget: HTMLElement
   declare readonly copyDraftMarkdownButtonGeminiTarget: HTMLElement
-  declare readonly copyDraftMarkdownButtonZhipuTarget: HTMLElement
+  declare readonly copyDraftMarkdownButtonDoubaoTarget: HTMLElement
   declare readonly generateAllDraftsButtonTarget: HTMLElement
   declare readonly writingStyleSelectorTarget: HTMLElement
   declare readonly writingStyleRadioTargets: HTMLInputElement[]
@@ -202,12 +197,12 @@ export default class extends BaseChannelController {
   declare readonly progressBarQwenTarget: HTMLElement
   declare readonly progressBarDeepseekTarget: HTMLElement
   declare readonly progressBarGeminiTarget: HTMLElement
-  declare readonly progressBarZhipuTarget: HTMLElement
+  declare readonly progressBarDoubaoTarget: HTMLElement
   declare readonly progressTextGrokTarget: HTMLElement
   declare readonly progressTextQwenTarget: HTMLElement
   declare readonly progressTextDeepseekTarget: HTMLElement
   declare readonly progressTextGeminiTarget: HTMLElement
-  declare readonly progressTextZhipuTarget: HTMLElement
+  declare readonly progressTextDoubaoTarget: HTMLElement
   declare readonly streamNameValue: string
   declare writingStyleValue: string
   declare readonly hasInputTextTarget: boolean
@@ -221,7 +216,6 @@ export default class extends BaseChannelController {
     qwen: "",
     deepseek: "",
     gemini: "",
-    zhipu: "",
     doubao: ""
   }
   private completedModels: Set<string> = new Set()
@@ -230,7 +224,6 @@ export default class extends BaseChannelController {
     qwen: "",
     deepseek: "",
     gemini: "",
-    zhipu: "",
     doubao: ""
   }
   private completedDrafts: Set<string> = new Set()
@@ -244,7 +237,13 @@ export default class extends BaseChannelController {
     qwen: false,
     deepseek: false,
     gemini: false,
-    zhipu: false,
+    doubao: false
+  }
+  private draftEditMode: { [key: string]: boolean } = {
+    grok: false,
+    qwen: false,
+    deepseek: false,
+    gemini: false,
     doubao: false
   }
   private modelProgress: { [key: string]: number } = {
@@ -252,21 +251,21 @@ export default class extends BaseChannelController {
     qwen: 0,
     deepseek: 0,
     gemini: 0,
-    zhipu: 0
+    doubao: 0
   }
   private progressIntervals: { [key: string]: number | null } = {
     grok: null,
     qwen: null,
     deepseek: null,
     gemini: null,
-    zhipu: null
+    doubao: null
   }
   private progressTargets: { [key: string]: number } = {
     grok: 45,
     qwen: 45,
     deepseek: 45,
     gemini: 45,
-    zhipu: 45
+    doubao: 45
   }
 
   connect(): void {
@@ -296,6 +295,8 @@ export default class extends BaseChannelController {
           if (data.type === 'article-created') {
             this.currentArticleId = data.article_id
             console.log('Article created with ID:', this.currentArticleId)
+            // Check if there's already saved content in database that wasn't rendered
+            this.loadSavedContentIfExists()
           } else if (data.type === 'final-saved') {
             showToast("定稿已保存", "success")
           } else if (data.type === 'draft-saved') {
@@ -319,7 +320,6 @@ export default class extends BaseChannelController {
               qwen: "千问",
               deepseek: "DeepSeek",
               gemini: "Gemini",
-              zhipu: "智谱",
               doubao: "豆包"
             }
             this.resetResponseArea(provider, `${modelNames[provider]} 等待AI响应...`)
@@ -340,7 +340,6 @@ export default class extends BaseChannelController {
               qwen: "千问",
               deepseek: "DeepSeek",
               gemini: "Gemini",
-              zhipu: "智谱",
               doubao: "豆包"
             }
             this.resetDraftArea(provider, `${modelNames[provider]} 等待AI响应...`)
@@ -350,7 +349,7 @@ export default class extends BaseChannelController {
     )
 
     // Subscribe to WebSocket channels for all 6 models (for receiving responses)
-    const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu', 'doubao']
+    const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'doubao']
     
     providers.forEach(provider => {
       const streamName = `${this.streamNameValue}_${provider}`
@@ -374,7 +373,7 @@ export default class extends BaseChannelController {
     })
     
     // Subscribe to draft channels for each provider
-    const draftProviders = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu']
+    const draftProviders = ['grok', 'qwen', 'deepseek', 'gemini', 'doubao']
     draftProviders.forEach(provider => {
       const streamName = `${this.streamNameValue}_draft_${provider}`
       this.draftSubscriptions[provider] = consumer.subscriptions.create(
@@ -395,6 +394,13 @@ export default class extends BaseChannelController {
         }
       )
     })
+    
+    // CRITICAL FIX: Check for saved content after all subscriptions are set up
+    // This handles the case where WebSocket 'complete' messages were missed
+    // but content was already saved to database
+    setTimeout(() => {
+      this.loadSavedContentIfExists()
+    }, 500) // Small delay to ensure DOM is ready and article_id might be set
   }
 
   disconnect(): void {
@@ -456,7 +462,6 @@ export default class extends BaseChannelController {
       qwen: "",
       deepseek: "",
       gemini: "",
-      zhipu: "",
       doubao: ""
     }
     this.completedDrafts.clear()
@@ -475,7 +480,7 @@ export default class extends BaseChannelController {
     this.resetDraftArea("qwen", "千问等待AI响应...")
     this.resetDraftArea("deepseek", "DeepSeek 等待AI响应...")
     this.resetDraftArea("gemini", "Gemini 等待AI响应...")
-    this.resetDraftArea("zhipu", "智谱等待AI响应...")
+    this.resetDraftArea("doubao", "豆包等待AI响应...")
     
     // Call backend to generate all drafts with writing style
     if (this.commandSubscription) {
@@ -631,7 +636,6 @@ export default class extends BaseChannelController {
       qwen: "",
       deepseek: "",
       gemini: "",
-      zhipu: "",
       doubao: ""
     }
     this.completedModels.clear()
@@ -642,7 +646,6 @@ export default class extends BaseChannelController {
       qwen: "",
       deepseek: "",
       gemini: "",
-      zhipu: "",
       doubao: ""
     }
     this.completedDrafts.clear()
@@ -653,7 +656,7 @@ export default class extends BaseChannelController {
       qwen: 0,
       deepseek: 0,
       gemini: 0,
-      zhipu: 0
+      doubao: 0
     }
     
     // Show and reset progress bars
@@ -662,15 +665,15 @@ export default class extends BaseChannelController {
     this.updateProgress('qwen', 0)
     this.updateProgress('deepseek', 0)
     this.updateProgress('gemini', 0)
-    this.updateProgress('zhipu', 0)
+    this.updateProgress('doubao', 0)
     
     // Start smooth progress animation for all 5 models (phase 1: 0% to 45%)
-    this.progressTargets = { grok: 45, qwen: 45, deepseek: 45, gemini: 45, zhipu: 45 }
+    this.progressTargets = { grok: 45, qwen: 45, deepseek: 45, gemini: 45, doubao: 45 }
     this.startSmoothProgress('grok')
     this.startSmoothProgress('qwen')
     this.startSmoothProgress('deepseek')
     this.startSmoothProgress('gemini')
-    this.startSmoothProgress('zhipu')
+    this.startSmoothProgress('doubao')
 
     // Show responses container
     this.responsesContainerTarget.style.display = "block"
@@ -680,7 +683,6 @@ export default class extends BaseChannelController {
     this.resetResponseArea("qwen", "千问等待AI响应...")
     this.resetResponseArea("deepseek", "DeepSeek 等待AI响应...")
     this.resetResponseArea("gemini", "Gemini 等待AI响应...")
-    this.resetResponseArea("zhipu", "智谱等待AI响应...")
     this.resetResponseArea("doubao", "豆包等待AI响应...")
     
     // Show drafts container immediately (even before brainstorm completes)
@@ -694,15 +696,7 @@ export default class extends BaseChannelController {
     this.resetDraftArea("qwen", "等待脑爆完成后生成初稿...")
     this.resetDraftArea("deepseek", "等待脑爆完成后生成初稿...")
     this.resetDraftArea("gemini", "等待脑爆完成后生成初稿...")
-    this.resetDraftArea("zhipu", "等待脑爆完成后生成初稿...")
-
-    // Hide all buttons (they are hidden by default with style="display: none")
-    this.draftButtonGrokTarget.style.display = "none"
-    this.draftButtonQwenTarget.style.display = "none"
-    this.draftButtonDeepseekTarget.style.display = "none"
-    this.draftButtonGeminiTarget.style.display = "none"
-    this.draftButtonZhipuTarget.style.display = "none"
-    this.draftButtonDoubaoTarget.style.display = "none"
+    this.resetDraftArea("doubao", "等待脑爆完成后生成初稿...")
 
     // Trigger backend to create new article with brainstorm + drafts
     if (this.commandSubscription) {
@@ -732,25 +726,11 @@ export default class extends BaseChannelController {
       case 'qwen': return this.responseQwenTarget
       case 'deepseek': return this.responseDeepseekTarget
       case 'gemini': return this.responseGeminiTarget
-      case 'zhipu': return this.responseZhipuTarget
       case 'doubao': return this.responseDoubaoTarget
       default: return null
     }
   }
 
-
-  
-  private getEditButtonTarget(provider: string): HTMLElement | null {
-    switch (provider) {
-      case 'grok': return (this as any).editButtonGrokTarget
-      case 'qwen': return (this as any).editButtonQwenTarget
-      case 'deepseek': return (this as any).editButtonDeepseekTarget
-      case 'gemini': return (this as any).editButtonGeminiTarget
-      case 'zhipu': return (this as any).editButtonZhipuTarget
-      case 'doubao': return (this as any).editButtonDoubaoTarget
-      default: return null
-    }
-  }
   
   private getSaveButtonTarget(provider: string): HTMLElement | null {
     switch (provider) {
@@ -758,7 +738,6 @@ export default class extends BaseChannelController {
       case 'qwen': return (this as any).saveButtonQwenTarget
       case 'deepseek': return (this as any).saveButtonDeepseekTarget
       case 'gemini': return (this as any).saveButtonGeminiTarget
-      case 'zhipu': return (this as any).saveButtonZhipuTarget
       case 'doubao': return (this as any).saveButtonDoubaoTarget
       default: return null
     }
@@ -770,7 +749,6 @@ export default class extends BaseChannelController {
       case 'qwen': return (this as any).copyHtmlButtonQwenTarget
       case 'deepseek': return (this as any).copyHtmlButtonDeepseekTarget
       case 'gemini': return (this as any).copyHtmlButtonGeminiTarget
-      case 'zhipu': return (this as any).copyHtmlButtonZhipuTarget
       case 'doubao': return (this as any).copyHtmlButtonDoubaoTarget
       default: return null
     }
@@ -782,7 +760,6 @@ export default class extends BaseChannelController {
       case 'qwen': return (this as any).copyMarkdownButtonQwenTarget
       case 'deepseek': return (this as any).copyMarkdownButtonDeepseekTarget
       case 'gemini': return (this as any).copyMarkdownButtonGeminiTarget
-      case 'zhipu': return (this as any).copyMarkdownButtonZhipuTarget
       case 'doubao': return (this as any).copyMarkdownButtonDoubaoTarget
       default: return null
     }
@@ -794,20 +771,7 @@ export default class extends BaseChannelController {
       case 'qwen': return (this as any).responseQwenEditTarget
       case 'deepseek': return (this as any).responseDeepseekEditTarget
       case 'gemini': return (this as any).responseGeminiEditTarget
-      case 'zhipu': return (this as any).responseZhipuEditTarget
       case 'doubao': return (this as any).responseDoubaoEditTarget
-      default: return null
-    }
-  }
-  
-  private getDraftButtonTarget(provider: string): HTMLElement | null {
-    switch (provider) {
-      case 'grok': return this.draftButtonGrokTarget
-      case 'qwen': return this.draftButtonQwenTarget
-      case 'deepseek': return this.draftButtonDeepseekTarget
-      case 'gemini': return this.draftButtonGeminiTarget
-      case 'zhipu': return this.draftButtonZhipuTarget
-      case 'doubao': return this.draftButtonDoubaoTarget
       default: return null
     }
   }
@@ -821,7 +785,6 @@ export default class extends BaseChannelController {
         qwen: "千问",
         deepseek: "DeepSeek",
         gemini: "Gemini",
-        zhipu: "智谱",
         doubao: "豆包"
       }
       this.resetResponseArea(provider, `${modelNames[provider]} 正在生成...`)
@@ -845,13 +808,11 @@ export default class extends BaseChannelController {
     this.completedModels.add(provider)
     
     // Stop smooth progress and set to 50% (brainstorm complete, waiting for draft)
-    if (provider !== 'doubao') {
-      this.stopSmoothProgress(provider)
-      this.updateProgress(provider, 50)
-      // Start smooth progress again from 50% to 95% for draft phase
-      this.progressTargets[provider] = 95
-      this.startSmoothProgress(provider)
-    }
+    this.stopSmoothProgress(provider)
+    this.updateProgress(provider, 50)
+    // Start smooth progress again from 50% to 95% for draft phase
+    this.progressTargets[provider] = 95
+    this.startSmoothProgress(provider)
     
     // Update draft areas to "等待AI响应" state (brainstorm complete, draft job queued)
     const modelNames: { [key: string]: string } = {
@@ -859,17 +820,14 @@ export default class extends BaseChannelController {
       qwen: "千问",
       deepseek: "DeepSeek",
       gemini: "Gemini",
-      zhipu: "智谱",
       doubao: "豆包"
     }
     this.resetDraftArea(provider, `${modelNames[provider]} 等待AI响应...`)
     
-    // Show edit, copy HTML, copy markdown buttons (but NOT draft button in new flow)
-    const editButton = this.getEditButtonTarget(provider)
+    // Show copy HTML, copy markdown buttons (but NOT edit button in brainstorm)
     const copyHtmlButton = this.getCopyHtmlButtonTarget(provider)
     const copyMarkdownButton = this.getCopyMarkdownButtonTarget(provider)
     
-    if (editButton) editButton.style.display = "inline-flex"
     if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
     if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
     // Note: Draft buttons are NOT shown in new flow since drafts auto-generate
@@ -883,9 +841,7 @@ export default class extends BaseChannelController {
     console.log(`[BRAINSTORM ERROR] Target check - responseTarget for ${provider}:`, this.getResponseTarget(provider))
     
     // Stop progress bar animation on error
-    if (provider !== 'doubao') {
-      this.stopSmoothProgress(provider)
-    }
+    this.stopSmoothProgress(provider)
     
     const target = this.getResponseTarget(provider)
     
@@ -947,15 +903,13 @@ export default class extends BaseChannelController {
         qwen: "千问",
         deepseek: "DeepSeek",
         gemini: "Gemini",
-        zhipu: "智谱",
         doubao: "豆包"
       }
       this.resetDraftArea(provider, `${modelNames[provider]} 正在生成初稿...`)
     }
     
     this.draftContents[provider] += chunk
-    // For now, we don't render chunks - we wait for complete
-    // If you want real-time rendering, add rendering logic here
+    // Accumulate chunks, render only on 'complete' message
   }
   
   // Handle draft complete for a specific provider
@@ -1023,7 +977,6 @@ export default class extends BaseChannelController {
         qwen: "千问",
         deepseek: "DeepSeek",
         gemini: "Gemini",
-        zhipu: "智谱",
         doubao: "豆包"
       }
       
@@ -1071,7 +1024,7 @@ export default class extends BaseChannelController {
       case 'qwen': return (this as any).draftQwenTarget
       case 'deepseek': return (this as any).draftDeepseekTarget
       case 'gemini': return (this as any).draftGeminiTarget
-      case 'zhipu': return (this as any).draftZhipuTarget
+      case 'doubao': return (this as any).draftDoubaoTarget
       default: return null
     }
   }
@@ -1083,7 +1036,7 @@ export default class extends BaseChannelController {
       case 'qwen': return (this as any).draftCharCountQwenTarget
       case 'deepseek': return (this as any).draftCharCountDeepseekTarget
       case 'gemini': return (this as any).draftCharCountGeminiTarget
-      case 'zhipu': return (this as any).draftCharCountZhipuTarget
+      case 'doubao': return (this as any).draftCharCountDoubaoTarget
       default: return null
     }
   }
@@ -1095,7 +1048,31 @@ export default class extends BaseChannelController {
       case 'qwen': return this.editDraftButtonQwenTarget
       case 'deepseek': return this.editDraftButtonDeepseekTarget
       case 'gemini': return this.editDraftButtonGeminiTarget
-      case 'zhipu': return this.editDraftButtonZhipuTarget
+      case 'doubao': return this.editDraftButtonDoubaoTarget
+      default: return null
+    }
+  }
+
+  // Get save draft button target for a specific provider
+  private getSaveDraftButtonTarget(provider: string): HTMLElement | null {
+    switch (provider) {
+      case 'grok': return this.saveDraftButtonGrokTarget
+      case 'qwen': return this.saveDraftButtonQwenTarget
+      case 'deepseek': return this.saveDraftButtonDeepseekTarget
+      case 'gemini': return this.saveDraftButtonGeminiTarget
+      case 'doubao': return this.saveDraftButtonDoubaoTarget
+      default: return null
+    }
+  }
+
+  // Get draft edit textarea target for a specific provider
+  private getDraftEditTarget(provider: string): HTMLTextAreaElement | null {
+    switch (provider) {
+      case 'grok': return this.draftGrokEditTarget
+      case 'qwen': return this.draftQwenEditTarget
+      case 'deepseek': return this.draftDeepseekEditTarget
+      case 'gemini': return this.draftGeminiEditTarget
+      case 'doubao': return this.draftDoubaoEditTarget
       default: return null
     }
   }
@@ -1107,7 +1084,7 @@ export default class extends BaseChannelController {
       case 'qwen': return this.copyDraftHtmlButtonQwenTarget
       case 'deepseek': return this.copyDraftHtmlButtonDeepseekTarget
       case 'gemini': return this.copyDraftHtmlButtonGeminiTarget
-      case 'zhipu': return this.copyDraftHtmlButtonZhipuTarget
+      case 'doubao': return this.copyDraftHtmlButtonDoubaoTarget
       default: return null
     }
   }
@@ -1119,7 +1096,7 @@ export default class extends BaseChannelController {
       case 'qwen': return this.copyDraftMarkdownButtonQwenTarget
       case 'deepseek': return this.copyDraftMarkdownButtonDeepseekTarget
       case 'gemini': return this.copyDraftMarkdownButtonGeminiTarget
-      case 'zhipu': return this.copyDraftMarkdownButtonZhipuTarget
+      case 'doubao': return this.copyDraftMarkdownButtonDoubaoTarget
       default: return null
     }
   }
@@ -1160,11 +1137,9 @@ export default class extends BaseChannelController {
     
     const responseDiv = this.getResponseTarget(provider)
     const responseEdit = this.getResponseEditTarget(provider)
-    const editButton = this.getEditButtonTarget(provider)
     const saveButton = this.getSaveButtonTarget(provider)
     const copyHtmlButton = this.getCopyHtmlButtonTarget(provider)
     const copyMarkdownButton = this.getCopyMarkdownButtonTarget(provider)
-    const draftButton = this.getDraftButtonTarget(provider)
     
     if (!responseDiv || !responseEdit) return
     
@@ -1175,11 +1150,9 @@ export default class extends BaseChannelController {
     responseEdit.value = this.responseContents[provider]
     
     // Switch buttons
-    if (editButton) editButton.style.display = "none"
     if (saveButton) saveButton.style.display = "inline-flex"
     if (copyHtmlButton) copyHtmlButton.style.display = "none"
     if (copyMarkdownButton) copyMarkdownButton.style.display = "none"
-    if (draftButton) draftButton.style.display = "none"
   }
   
   // Save edited response
@@ -1191,11 +1164,9 @@ export default class extends BaseChannelController {
     
     const responseDiv = this.getResponseTarget(provider)
     const responseEdit = this.getResponseEditTarget(provider)
-    const editButton = this.getEditButtonTarget(provider)
     const saveButton = this.getSaveButtonTarget(provider)
     const copyHtmlButton = this.getCopyHtmlButtonTarget(provider)
     const copyMarkdownButton = this.getCopyMarkdownButtonTarget(provider)
-    const draftButton = this.getDraftButtonTarget(provider)
     
     if (!responseDiv || !responseEdit) return
     
@@ -1211,11 +1182,9 @@ export default class extends BaseChannelController {
     responseEdit.style.display = "none"
     
     // Switch buttons
-    if (editButton) editButton.style.display = "inline-flex"
     if (saveButton) saveButton.style.display = "none"
     if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
     if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
-    if (draftButton) draftButton.style.display = "inline-flex"
     
     showToast("已保存", "success")
   }
@@ -1319,7 +1288,6 @@ export default class extends BaseChannelController {
         qwen: "千问",
         deepseek: "DeepSeek",
         gemini: "Gemini",
-        zhipu: "智谱",
         doubao: "豆包"
       }
       this.resetDraftArea(provider, `${modelNames[provider]} 初稿生成中...`)
@@ -1364,7 +1332,6 @@ export default class extends BaseChannelController {
         qwen: "千问",
         deepseek: "DeepSeek",
         gemini: "Gemini",
-        zhipu: "智谱",
         doubao: "豆包"
       }
       this.resetDraftArea(provider, `${modelNames[provider]} 重新生成中...`)
@@ -1396,7 +1363,6 @@ export default class extends BaseChannelController {
       qwen: "",
       deepseek: "",
       gemini: "",
-      zhipu: "",
       doubao: ""
     }
     this.completedModels.clear()
@@ -1408,21 +1374,13 @@ export default class extends BaseChannelController {
 
     // Hide all sections
     this.responsesContainerTarget.style.display = "none"
-    
-    // Hide all draft buttons (other buttons are hidden by default with style="display: none")
-    this.draftButtonGrokTarget.style.display = "none"
-    this.draftButtonQwenTarget.style.display = "none"
-    this.draftButtonDeepseekTarget.style.display = "none"
-    this.draftButtonGeminiTarget.style.display = "none"
-    this.draftButtonZhipuTarget.style.display = "none"
-    this.draftButtonDoubaoTarget.style.display = "none"
 
     // Reset all response texts
     this.responseGrokTarget.innerHTML = ""
     this.responseQwenTarget.innerHTML = ""
     this.responseDeepseekTarget.innerHTML = ""
     this.responseGeminiTarget.innerHTML = ""
-    this.responseZhipuTarget.innerHTML = ""
+    this.responseDoubaoTarget.innerHTML = ""
     this.responseDoubaoTarget.innerHTML = ""
 
     // Scroll to top
@@ -1569,7 +1527,6 @@ export default class extends BaseChannelController {
         qwen: "",
         deepseek: "",
         gemini: "",
-        zhipu: "",
         doubao: ""
       }
       this.completedModels.clear()
@@ -1580,7 +1537,6 @@ export default class extends BaseChannelController {
         qwen: "",
         deepseek: "",
         gemini: "",
-        zhipu: "",
         doubao: ""
       }
       this.completedDrafts.clear()
@@ -1598,7 +1554,7 @@ export default class extends BaseChannelController {
       this.progressContainerTarget.style.display = 'none'
       
       // Clear all response display areas
-      const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'zhipu', 'doubao']
+      const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'doubao', 'doubao']
       providers.forEach(provider => {
         const target = this.getResponseTarget(provider)
         if (target) {
@@ -1620,6 +1576,149 @@ export default class extends BaseChannelController {
     } catch (error) {
       console.error('Error restoring article:', error)
       showToast("加载文章失败", "danger")
+    }
+  }
+  
+  // CRITICAL FIX: Load saved content from database if exists but not rendered
+  // This fixes the issue where WebSocket 'complete' messages are missed
+  // but content was already saved to database
+  private async loadSavedContentIfExists(): Promise<void> {
+    // Only check if we have a current article ID
+    if (!this.currentArticleId) {
+      console.log('[loadSavedContentIfExists] No currentArticleId, skipping check')
+      return
+    }
+    
+    console.log('[loadSavedContentIfExists] Checking for saved content for article:', this.currentArticleId)
+    
+    try {
+      // Fetch article data from backend
+      const response = await fetch(`/articles/${this.currentArticleId}.json`, {
+        credentials: 'same-origin'
+      })
+      
+      if (!response.ok) {
+        console.error('[loadSavedContentIfExists] Failed to fetch article')
+        return
+      }
+      
+      const article = await response.json()
+      console.log('[loadSavedContentIfExists] Article data fetched:', article)
+      
+      const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'doubao', 'doubao']
+      
+      // Check and render brainstorm contents
+      providers.forEach(provider => {
+        const dbContent = article[`brainstorm_${provider}`]
+        const frontendContent = this.responseContents[provider]
+        
+        console.log(`[loadSavedContentIfExists] Checking ${provider} brainstorm:`, {
+          dbContentExists: !!dbContent,
+          dbContentLength: dbContent?.length || 0,
+          frontendContentExists: !!frontendContent,
+          frontendContentLength: frontendContent?.length || 0
+        })
+        
+        // If database has content but frontend doesn't (or is empty), render it
+        if (dbContent && !frontendContent) {
+          console.log(`[loadSavedContentIfExists] ✅ Found saved brainstorm for ${provider}, rendering now`)
+          
+          // Update frontend state
+          this.responseContents[provider] = dbContent
+          this.completedModels.add(provider)
+          
+          // Render to UI
+          const target = this.getResponseTarget(provider)
+          if (target) {
+            const fixedMarkdown = fixMarkdownHeaders(dbContent)
+            target.innerHTML = marked.parse(fixedMarkdown) as string
+            
+            // Show brainstorm action buttons
+            const copyHtmlButton = this.getCopyHtmlButtonTarget(provider)
+            const copyMarkdownButton = this.getCopyMarkdownButtonTarget(provider)
+            if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
+            if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
+            
+            // Show responses container
+            if (this.responsesContainerTarget.style.display === 'none') {
+              this.responsesContainerTarget.style.display = 'block'
+            }
+          }
+        }
+      })
+      
+      // Check and render draft contents (only for grok, qwen, deepseek, gemini, doubao)
+      const draftProviders = ['grok', 'qwen', 'deepseek', 'gemini', 'doubao']
+      let hasDrafts = false
+      
+      draftProviders.forEach(provider => {
+        const dbContent = article[`draft_${provider}`]
+        const frontendContent = this.draftContents[provider]
+        
+        console.log(`[loadSavedContentIfExists] Checking ${provider} draft:`, {
+          dbContentExists: !!dbContent,
+          dbContentLength: dbContent?.length || 0,
+          frontendContentExists: !!frontendContent,
+          frontendContentLength: frontendContent?.length || 0
+        })
+        
+        // If database has content but frontend doesn't (or is empty), render it
+        if (dbContent && !frontendContent) {
+          console.log(`[loadSavedContentIfExists] ✅ Found saved draft for ${provider}, rendering now`)
+          
+          hasDrafts = true
+          
+          // Update frontend state
+          this.draftContents[provider] = dbContent
+          this.completedDrafts.add(provider)
+          
+          // Render to UI
+          const target = this.getDraftTarget(provider)
+          const charCountTarget = this.getDraftCharCountTarget(provider)
+          
+          if (target) {
+            const fixedMarkdown = fixMarkdownHeaders(dbContent)
+            target.innerHTML = marked.parse(fixedMarkdown) as string
+            
+            // Update character count
+            if (charCountTarget) {
+              const charCount = dbContent.length
+              const countSpan = charCountTarget.querySelector('.font-semibold')
+              if (countSpan) {
+                countSpan.textContent = charCount.toString()
+              }
+            }
+            
+            // Show draft action buttons
+            const editDraftButton = this.getEditDraftButtonTarget(provider)
+            const copyDraftHtmlButton = this.getCopyDraftHtmlButtonTarget(provider)
+            const copyDraftMarkdownButton = this.getCopyDraftMarkdownButtonTarget(provider)
+            
+            if (editDraftButton) editDraftButton.style.display = "inline-flex"
+            if (copyDraftHtmlButton) copyDraftHtmlButton.style.display = "inline-flex"
+            if (copyDraftMarkdownButton) copyDraftMarkdownButton.style.display = "inline-flex"
+            
+            // Set progress to 100%
+            if (provider !== 'doubao') {
+              this.updateProgress(provider, 100)
+            }
+          }
+        }
+      })
+      
+      // Show drafts container if any drafts were rendered
+      if (hasDrafts) {
+        const draftsContainer = (this as any).draftsContainerTarget
+        if (draftsContainer && draftsContainer.style.display === 'none') {
+          draftsContainer.style.display = 'block'
+          console.log('[loadSavedContentIfExists] Showing drafts container')
+        }
+      }
+      
+      console.log('[loadSavedContentIfExists] Content check complete')
+      
+    } catch (error) {
+      console.error('[loadSavedContentIfExists] Error loading saved content:', error)
     }
   }
 
@@ -1814,7 +1913,72 @@ export default class extends BaseChannelController {
     
     if (!provider) return
     
-    showToast("编辑功能开发中", "info")
+    const draftDiv = this.getDraftTarget(provider)
+    const draftEdit = this.getDraftEditTarget(provider)
+    const editDraftButton = this.getEditDraftButtonTarget(provider)
+    const saveDraftButton = this.getSaveDraftButtonTarget(provider)
+    const copyHtmlButton = this.getCopyDraftHtmlButtonTarget(provider)
+    const copyMarkdownButton = this.getCopyDraftMarkdownButtonTarget(provider)
+    
+    if (!draftDiv || !draftEdit) return
+    
+    // Switch to edit mode
+    this.draftEditMode[provider] = true
+    draftDiv.style.display = "none"
+    draftEdit.style.display = "block"
+    draftEdit.value = this.draftContents[provider]
+    
+    // Switch buttons
+    if (editDraftButton) editDraftButton.style.display = "none"
+    if (saveDraftButton) saveDraftButton.style.display = "inline-flex"
+    if (copyHtmlButton) copyHtmlButton.style.display = "none"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "none"
+  }
+
+  // Save edited draft
+  saveDraft(event: Event): void {
+    const button = event.currentTarget as HTMLElement
+    const provider = button.dataset.provider
+    
+    if (!provider) return
+    
+    const draftDiv = this.getDraftTarget(provider)
+    const draftEdit = this.getDraftEditTarget(provider)
+    const editDraftButton = this.getEditDraftButtonTarget(provider)
+    const saveDraftButton = this.getSaveDraftButtonTarget(provider)
+    const copyHtmlButton = this.getCopyDraftHtmlButtonTarget(provider)
+    const copyMarkdownButton = this.getCopyDraftMarkdownButtonTarget(provider)
+    
+    if (!draftDiv || !draftEdit) return
+    
+    // Update content
+    this.draftContents[provider] = draftEdit.value
+    // Render Markdown to HTML
+    const fixedMarkdown = fixMarkdownHeaders(this.draftContents[provider])
+    draftDiv.innerHTML = marked.parse(fixedMarkdown) as string
+    
+    // Update character count
+    const charCountTarget = this.getDraftCharCountTarget(provider)
+    if (charCountTarget) {
+      const charCount = this.draftContents[provider].length
+      const countSpan = charCountTarget.querySelector('.font-semibold')
+      if (countSpan) {
+        countSpan.textContent = charCount.toString()
+      }
+    }
+    
+    // Switch back to view mode
+    this.draftEditMode[provider] = false
+    draftDiv.style.display = "block"
+    draftEdit.style.display = "none"
+    
+    // Switch buttons
+    if (editDraftButton) editDraftButton.style.display = "inline-flex"
+    if (saveDraftButton) saveDraftButton.style.display = "none"
+    if (copyHtmlButton) copyHtmlButton.style.display = "inline-flex"
+    if (copyMarkdownButton) copyMarkdownButton.style.display = "inline-flex"
+    
+    showToast("已保存", "success")
   }
 
   // Copy draft HTML (with styles)
@@ -1911,10 +2075,7 @@ export default class extends BaseChannelController {
   }
 
   // Update progress bar for a specific provider
-  private updateProgress(provider: string, progress: number): void {
-    // Only update for the 5 main models (not doubao)
-    if (provider === 'doubao') return
-    
+  private updateProgress(provider: string, progress: number): void {    
     this.modelProgress[provider] = progress
     
     // Update progress bar width
@@ -1982,7 +2143,7 @@ export default class extends BaseChannelController {
       case 'qwen': return this.progressBarQwenTarget
       case 'deepseek': return this.progressBarDeepseekTarget
       case 'gemini': return this.progressBarGeminiTarget
-      case 'zhipu': return this.progressBarZhipuTarget
+      case 'doubao': return this.progressBarDoubaoTarget
       default: return null
     }
   }
@@ -1994,7 +2155,7 @@ export default class extends BaseChannelController {
       case 'qwen': return this.progressTextQwenTarget
       case 'deepseek': return this.progressTextDeepseekTarget
       case 'gemini': return this.progressTextGeminiTarget
-      case 'zhipu': return this.progressTextZhipuTarget
+      case 'doubao': return this.progressTextDoubaoTarget
       default: return null
     }
   }
@@ -2006,7 +2167,7 @@ export default class extends BaseChannelController {
       qwen: "千问",
       deepseek: "DeepSeek",
       gemini: "Gemini",
-      zhipu: "智谱"
+      doubao: "豆包"
     }
     
     console.log(`🎆 Fireworks for ${modelNames[provider]}!`)

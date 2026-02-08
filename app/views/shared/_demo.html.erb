@@ -32,7 +32,7 @@
       <!-- Product Hero Image -->
       <div class="relative max-w-5xl mx-auto">
         <div class="rounded-xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-500">
-          <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&h=800&fit=crop" alt="顶尖思考框架 + 顶尖 AI 大模型 + 顶尖作家风格，服务您一人" class="w-full h-auto" />
+          <%= image_tag "hero.jpg", alt: "顶尖思考框架 + 顶尖 AI 大模型 + 顶尖作家风格，服务您一人", class: "w-full h-auto" %>
         </div>
         <!-- Caption below image -->
         <p class="text-center text-secondary text-sm mt-4">
@@ -61,12 +61,9 @@
         <div class="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
           <%= lucide_icon "brain", class: "w-8 h-8 text-primary" %>
         </div>
-        <h3 class="text-xl font-bold text-primary mb-4">9 大顶尖思考框架</h3>
-        <p class="text-secondary leading-relaxed mb-3">
-          <span class="font-semibold text-primary">写作框架：</span>原汁原味、最小化读者脑力消耗、OmniThink写作引擎、咪蒙式NLP情绪操控框架
-        </p>
+        <h3 class="text-xl font-bold text-primary mb-4">顶尖决策框架</h3>
         <p class="text-secondary leading-relaxed">
-          <span class="font-semibold text-primary">决策框架：</span>第一性原理暴力拆解、快速决策与破局、贝索斯6页叙事备忘录、遗憾最小化框架、系统思考<span class="text-muted font-medium">（持续增加中）</span>
+          原汁原味、最小化读者脑力消耗、OmniThink写作引擎、咪蒙式NLP情绪操控框架、第一性原理暴力拆解、快速决策与破局、贝索斯6页叙事备忘录、遗憾最小化框架、系统思考<span class="text-muted font-medium">（持续增加中）</span>
         </p>
       </div>
 
@@ -78,16 +75,16 @@
         <h3 class="text-xl font-bold text-primary mb-4">5 大顶尖 AI 同步脑爆</h3>
         <p class="text-secondary leading-relaxed">
           <span class="flex flex-wrap items-center gap-2 mb-3">
-            <%= lucide_icon "sparkle", class: "w-6 h-6 text-primary" %>
+            <%= image_tag "grok-logo.png", class: "w-6 h-6", alt: "Grok" %>
             <span class="font-semibold">Grok</span>
-            <%= lucide_icon "sparkle", class: "w-6 h-6 text-secondary" %>
+            <%= image_tag "qwen-logo.png", class: "w-6 h-6", alt: "千问" %>
             <span class="font-semibold">千问</span>
-            <%= lucide_icon "sparkle", class: "w-6 h-6 text-primary" %>
+            <%= image_tag "deepseek-logo.png", class: "w-6 h-6", alt: "DeepSeek" %>
             <span class="font-semibold">DeepSeek</span>
-            <%= lucide_icon "sparkle", class: "w-6 h-6 text-secondary" %>
+            <%= image_tag "gemini-logo.png", class: "w-6 h-6", alt: "Gemini" %>
             <span class="font-semibold">Gemini</span>
-            <%= lucide_icon "sparkle", class: "w-6 h-6 text-primary" %>
-            <span class="font-semibold">智谱</span>
+            <%= image_tag "doubao-logo.png", class: "w-6 h-6", alt: "豆包" %>
+            <span class="font-semibold">豆包</span>
           </span>
           体验不同的 AI 思考风格，获得专业建议和创意灵感。<span class="text-muted font-medium">（持续增加中）</span>
         </p>
@@ -98,42 +95,9 @@
         <div class="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
           <%= lucide_icon "sparkles", class: "w-8 h-8 text-primary" %>
         </div>
-        <h3 class="text-xl font-bold text-primary mb-4">有人味的文章</h3>
+        <h3 class="text-xl font-bold text-primary mb-4">有人味的顶尖写作风格</h3>
         <p class="text-secondary leading-relaxed">
-          自动融合你的原意和 AI 建议，生成自然流畅、有温度、有个性的完整文章。
-        </p>
-      </div>
-
-      <!-- Feature 4 -->
-      <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
-        <div class="w-16 h-16 bg-secondary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-secondary/20 transition-colors">
-          <%= lucide_icon "zap", class: "w-8 h-8 text-secondary" %>
-        </div>
-        <h3 class="text-xl font-bold text-primary mb-4">快速高效</h3>
-        <p class="text-secondary leading-relaxed">
-          从语音输入到最终文章，全程自动化。几分钟完成过去需要几小时的写作任务。
-        </p>
-      </div>
-
-      <!-- Feature 5 -->
-      <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
-        <div class="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
-          <%= lucide_icon "copy", class: "w-8 h-8 text-primary" %>
-        </div>
-        <h3 class="text-xl font-bold text-primary mb-4">一键复制发布</h3>
-        <p class="text-secondary leading-relaxed">
-          生成的文章可直接复制，马上发布到博客、公众号、社交媒体，省时省力。
-        </p>
-      </div>
-
-      <!-- Feature 6 -->
-      <div class="card card-elevated p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
-        <div class="w-16 h-16 bg-secondary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-secondary/20 transition-colors">
-          <%= lucide_icon "shield-check", class: "w-8 h-8 text-secondary" %>
-        </div>
-        <h3 class="text-xl font-bold text-primary mb-4">隐私安全</h3>
-        <p class="text-secondary leading-relaxed">
-          语音在浏览器本地识别，无需上传音频。不保存任何内容，无需登录，保护你的隐私。
+          自动融合你的原意和 AI 建议，生成自然流畅、有温度、有个性的完整文章。提供<span class="font-semibold text-primary">罗振宇口语化、王小波自由洒脱、史蒂芬·平克精准优雅</span>等多种风格供你选择。<span class="text-muted font-medium">（持续增加中）</span>
         </p>
       </div>
     </div>
@@ -145,7 +109,7 @@
   <div class="container-xl mx-auto px-6">
     <div class="text-center mb-16">
       <h2 class="text-3xl lg:text-5xl font-bold text-primary mb-4">
-        三步创作，简单高效
+        3 步创作，简单高效
       </h2>
       <p class="text-lg text-secondary max-w-2xl mx-auto">
         从想法到成稿，只需三步，让创作变得轻松愉快
@@ -161,7 +125,7 @@
           </div>
           <h3 class="text-2xl font-bold text-primary mb-4">说出想法</h3>
           <p class="text-secondary leading-relaxed mb-6">
-            长按麦克风按钮，像和朋友聊天一样说出你的思路、观点、经历或想写的主题。可以连续说几分钟。
+            像和朋友聊天一样说出你的思路、观点、经历或想写的主题。可以连续说几分钟。
           </p>
           <div class="rounded-lg overflow-hidden mt-auto">
             <img 
@@ -397,14 +361,6 @@
         </p>
       </div>
 
-      <!-- FAQ Item 2 -->
-      <div class="card card-elevated p-6">
-        <h3 class="text-xl font-bold text-primary mb-3">语音识别准确度高吗？</h3>
-        <p class="text-secondary leading-relaxed">
-          我们使用浏览器原生的 Web Speech API，支持中文普通话识别，准确度较高。建议在安静环境下使用，吐字清晰效果更好。
-        </p>
-      </div>
-
       <!-- FAQ Item 3 -->
       <div class="card card-elevated p-6">
         <h3 class="text-xl font-bold text-primary mb-3">我的语音和内容会被保存吗？</h3>
@@ -449,7 +405,7 @@
       </h2>
       <p class="text-xl text-secondary mb-10 leading-relaxed">
         让 AI 成为你的写作助手，将想法转化为优质文章。<br/>
-        注册后即可开始使用，完全免费。
+        注册后即可开始使用，免费撰写 30 篇文章。
       </p>
       <% if user_signed_in? %>
         <%= link_to write_path, class: "btn-primary btn-xl px-12 py-6 text-2xl inline-flex items-center gap-3 shadow-xl hover:shadow-2xl transition-all" do %>
@@ -472,33 +428,13 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
       <!-- Brand Column -->
       <div class="col-span-1 md:col-span-2">
-        <h3 class="text-2xl font-bold text-primary mb-4">语音文章写作达人</h3>
+        <h3 class="text-2xl font-bold text-primary mb-4">最小阻力写作</h3>
         <p class="text-secondary leading-relaxed mb-4">
-          结合语音输入和 AI 智能，让每个人都能轻松创作高质量文章。
+          能说就能写，写出影响力
         </p>
         <p class="text-muted text-sm">
-          © 2024 语音文章写作达人. All rights reserved.
+          © 2026 最小阻力写作. All rights reserved.
         </p>
-      </div>
-
-      <!-- Quick Links -->
-      <div>
-        <h4 class="text-lg font-bold text-primary mb-4">快速链接</h4>
-        <ul class="space-y-2">
-          <li><a href="#features" class="text-secondary hover:text-primary transition-colors">功能特点</a></li>
-          <li><a href="#how-it-works" class="text-secondary hover:text-primary transition-colors">使用方法</a></li>
-          <li><a href="#faq" class="text-secondary hover:text-primary transition-colors">常见问题</a></li>
-        </ul>
-      </div>
-
-      <!-- Support -->
-      <div>
-        <h4 class="text-lg font-bold text-primary mb-4">支持</h4>
-        <ul class="space-y-2">
-          <li><%= link_to "使用帮助", help_path, class: "text-secondary hover:text-primary transition-colors" %></li>
-          <li><%= link_to "隐私政策", privacy_path, class: "text-secondary hover:text-primary transition-colors" %></li>
-          <li><%= link_to "服务条款", terms_path, class: "text-secondary hover:text-primary transition-colors" %></li>
-        </ul>
       </div>
     </div>
 

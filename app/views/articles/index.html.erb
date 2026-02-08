@@ -116,6 +116,9 @@
               字数：<span data-articles-target="charCount" class="font-semibold text-primary">0</span>
             </span>
           </div>
+          
+          <!-- Writing Tips Banner -->
+          <%= render 'shared/writing_tip_banner' %>
         </div>
         
         <!-- Thinking Framework Selection -->
@@ -385,18 +388,18 @@
             </div>
           </div>
 
-          <!-- Zhipu Progress -->
+          <!-- Doubao Progress -->
           <div class="mb-4">
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
-                <%= image_tag "zhipu-logo.png", class: "w-4 h-4", alt: "智谱" %>
-                <span class="text-sm font-medium text-foreground">智谱</span>
+                <%= image_tag "doubao-logo.png", class: "w-4 h-4", alt: "豆包" %>
+                <span class="text-sm font-medium text-foreground">豆包</span>
               </div>
-              <span data-articles-target="progressTextZhipu" class="text-sm font-semibold text-primary">0%</span>
+              <span data-articles-target="progressTextDoubao" class="text-sm font-semibold text-primary">0%</span>
             </div>
             <div class="w-full h-2 bg-surface border border-border rounded-full overflow-hidden">
               <div 
-                data-articles-target="progressBarZhipu" 
+                data-articles-target="progressBarDoubao" 
                 class="h-full bg-gradient-to-r from-green-500 to-teal-500 transition-all duration-300 ease-out"
                 style="width: 0%"
               ></div>
@@ -422,17 +425,6 @@
               <span class="text-sm font-normal text-muted">grok-4-1-fast-reasoning</span>
             </h3>
             <div class="flex gap-2">
-              <button
-                type="button"
-                data-action="click->articles#editResponse"
-                data-provider="grok"
-                data-articles-target="editButtonGrok"
-                class="btn-secondary btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
-                编辑
-              </button>
               <button
                 type="button"
                 data-action="click->articles#saveResponse"
@@ -466,17 +458,7 @@
                 <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
                 复制Markdown
               </button>
-              <button
-                type="button"
-                data-action="click->articles#generateDraft"
-                data-provider="grok"
-                data-articles-target="draftButtonGrok"
-                class="btn-success btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "file-edit", class: "w-4 h-4 inline-block mr-1" %>
-                生成初稿
-              </button>
+
             </div>
           </div>
           <div class="card-body">
@@ -507,17 +489,6 @@
               <span class="text-sm font-normal text-muted">qwen3-max</span>
             </h3>
             <div class="flex gap-2">
-              <button
-                type="button"
-                data-action="click->articles#editResponse"
-                data-provider="qwen"
-                data-articles-target="editButtonQwen"
-                class="btn-secondary btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
-                编辑
-              </button>
               <button
                 type="button"
                 data-action="click->articles#saveResponse"
@@ -551,17 +522,7 @@
                 <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
                 复制Markdown
               </button>
-              <button
-                type="button"
-                data-action="click->articles#generateDraft"
-                data-provider="qwen"
-                data-articles-target="draftButtonQwen"
-                class="btn-success btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "file-edit", class: "w-4 h-4 inline-block mr-1" %>
-                生成初稿
-              </button>
+
             </div>
           </div>
           <div class="card-body">
@@ -592,17 +553,6 @@
               <span class="text-sm font-normal text-muted">deepseek-reasoner</span>
             </h3>
             <div class="flex gap-2">
-              <button
-                type="button"
-                data-action="click->articles#editResponse"
-                data-provider="deepseek"
-                data-articles-target="editButtonDeepseek"
-                class="btn-secondary btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
-                编辑
-              </button>
               <button
                 type="button"
                 data-action="click->articles#saveResponse"
@@ -636,17 +586,7 @@
                 <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
                 复制Markdown
               </button>
-              <button
-                type="button"
-                data-action="click->articles#generateDraft"
-                data-provider="deepseek"
-                data-articles-target="draftButtonDeepseek"
-                class="btn-success btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "file-edit", class: "w-4 h-4 inline-block mr-1" %>
-                生成初稿
-              </button>
+
             </div>
           </div>
           <div class="card-body">
@@ -677,17 +617,6 @@
               <span class="text-sm font-normal text-muted">gemini-3-flash-preview</span>
             </h3>
             <div class="flex gap-2">
-              <button
-                type="button"
-                data-action="click->articles#editResponse"
-                data-provider="gemini"
-                data-articles-target="editButtonGemini"
-                class="btn-secondary btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
-                编辑
-              </button>
               <button
                 type="button"
                 data-action="click->articles#saveResponse"
@@ -721,17 +650,7 @@
                 <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
                 复制Markdown
               </button>
-              <button
-                type="button"
-                data-action="click->articles#generateDraft"
-                data-provider="gemini"
-                data-articles-target="draftButtonGemini"
-                class="btn-success btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "file-edit", class: "w-4 h-4 inline-block mr-1" %>
-                生成初稿
-              </button>
+
             </div>
           </div>
           <div class="card-body">
@@ -753,111 +672,15 @@
           </div>
         </div>
 
-        <!-- Zhipu Response -->
+        <!-- Doubao Response -->
         <div class="card card-elevated mb-4 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-none">
           <div class="card-header border-b border-border flex items-center justify-between rounded-none">
             <h3 class="text-lg font-bold text-primary flex items-center gap-2">
-              <%= image_tag "zhipu-logo.png", class: "w-5 h-5", alt: "智谱" %>
-              智谱
-              <span class="text-sm font-normal text-muted">GLM-4.7</span>
-            </h3>
-            <div class="flex gap-2">
-              <button
-                type="button"
-                data-action="click->articles#editResponse"
-                data-provider="zhipu"
-                data-articles-target="editButtonZhipu"
-                class="btn-secondary btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
-                编辑
-              </button>
-              <button
-                type="button"
-                data-action="click->articles#saveResponse"
-                data-provider="zhipu"
-                data-articles-target="saveButtonZhipu"
-                class="btn-success btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
-                保存
-              </button>
-              <button
-                type="button"
-                data-action="click->articles#copyResponseHtml"
-                data-provider="zhipu"
-                data-articles-target="copyHtmlButtonZhipu"
-                class="btn-primary btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
-                复制
-              </button>
-              <button
-                type="button"
-                data-action="click->articles#copyResponseMarkdown"
-                data-provider="zhipu"
-                data-articles-target="copyMarkdownButtonZhipu"
-                class="btn-outline btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
-                复制Markdown
-              </button>
-              <button
-                type="button"
-                data-action="click->articles#generateDraft"
-                data-provider="zhipu"
-                data-articles-target="draftButtonZhipu"
-                class="btn-success btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "file-edit", class: "w-4 h-4 inline-block mr-1" %>
-                生成初稿
-              </button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div 
-              data-articles-target="responseZhipu"
-              class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert p-4 rounded-none min-h-[150px] max-h-[400px] overflow-y-auto"
-            >
-              <div class="flex items-center gap-2 text-muted">
-                <div class="loading-spinner w-4 h-4"></div>
-                <span>智谱思考中...</span>
-              </div>
-            </div>
-            <textarea
-              data-articles-target="responseZhipuEdit"
-              class="w-full px-4 py-3 text-base border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
-              rows="15"
-              style="display: none;"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- Doubao Response - HIDDEN -->
-        <div class="card card-elevated mb-4 bg-gradient-to-br from-orange-500/5 to-red-500/5 rounded-none" style="display: none;">
-          <div class="card-header border-b border-border flex items-center justify-between rounded-none">
-            <h3 class="text-lg font-bold text-primary flex items-center gap-2">
-              <%= lucide_icon "flame", class: "w-5 h-5 text-orange-600" %>
+              <%= image_tag "doubao-logo.png", class: "w-5 h-5", alt: "豆包" %>
               豆包
-              <span class="text-sm font-normal text-muted">doubao-seed-1-8-251228</span>
+              <span class="text-sm font-normal text-muted">doubao-seed-1-6-flash-250828</span>
             </h3>
             <div class="flex gap-2">
-              <button
-                type="button"
-                data-action="click->articles#editResponse"
-                data-provider="doubao"
-                data-articles-target="editButtonDoubao"
-                class="btn-secondary btn-sm"
-                style="display: none;"
-              >
-                <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
-                编辑
-              </button>
               <button
                 type="button"
                 data-action="click->articles#saveResponse"
@@ -891,17 +714,71 @@
                 <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
                 复制Markdown
               </button>
+
+            </div>
+          </div>
+          <div class="card-body">
+            <div 
+              data-articles-target="responseDoubao"
+              class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert p-4 rounded-none min-h-[150px] max-h-[400px] overflow-y-auto"
+            >
+              <div class="flex items-center gap-2 text-muted">
+                <div class="loading-spinner w-4 h-4"></div>
+                <span>豆包思考中...</span>
+              </div>
+            </div>
+            <textarea
+              data-articles-target="responseDoubaoEdit"
+              class="w-full px-4 py-3 text-base border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
+              rows="15"
+              style="display: none;"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Doubao Response - HIDDEN -->
+        <div class="card card-elevated mb-4 bg-gradient-to-br from-orange-500/5 to-red-500/5 rounded-none" style="display: none;">
+          <div class="card-header border-b border-border flex items-center justify-between rounded-none">
+            <h3 class="text-lg font-bold text-primary flex items-center gap-2">
+              <%= lucide_icon "flame", class: "w-5 h-5 text-orange-600" %>
+              豆包
+              <span class="text-sm font-normal text-muted">doubao-seed-1-8-251228</span>
+            </h3>
+            <div class="flex gap-2">
               <button
                 type="button"
-                data-action="click->articles#generateDraft"
+                data-action="click->articles#saveResponse"
                 data-provider="doubao"
-                data-articles-target="draftButtonDoubao"
+                data-articles-target="saveButtonDoubao"
                 class="btn-success btn-sm"
                 style="display: none;"
               >
-                <%= lucide_icon "file-edit", class: "w-4 h-4 inline-block mr-1" %>
-                生成初稿
+                <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
+                保存
               </button>
+              <button
+                type="button"
+                data-action="click->articles#copyResponseHtml"
+                data-provider="doubao"
+                data-articles-target="copyHtmlButtonDoubao"
+                class="btn-primary btn-sm"
+                style="display: none;"
+              >
+                <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                复制
+              </button>
+              <button
+                type="button"
+                data-action="click->articles#copyResponseMarkdown"
+                data-provider="doubao"
+                data-articles-target="copyMarkdownButtonDoubao"
+                class="btn-outline btn-sm"
+                style="display: none;"
+              >
+                <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                复制Markdown
+              </button>
+
             </div>
           </div>
           <div class="card-body">
@@ -959,6 +836,17 @@
                   </button>
                   <button
                     type="button"
+                    data-action="click->articles#saveDraft"
+                    data-provider="grok"
+                    data-articles-target="saveDraftButtonGrok"
+                    class="btn-success btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
+                    保存
+                  </button>
+                  <button
+                    type="button"
                     data-action="click->articles#copyDraftHtml"
                     data-provider="grok"
                     data-articles-target="copyDraftHtmlButtonGrok"
@@ -988,6 +876,12 @@
             >
               <p class="text-muted">初稿生成中...</p>
             </div>
+            <textarea
+              data-articles-target="draftGrokEdit"
+              class="w-full px-4 py-3 text-base border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
+              rows="15"
+              style="display: none;"
+            ></textarea>
           </div>
           
           <!-- Qwen Draft -->
@@ -1012,6 +906,17 @@
                   >
                     <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
                     编辑
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#saveDraft"
+                    data-provider="qwen"
+                    data-articles-target="saveDraftButtonQwen"
+                    class="btn-success btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
+                    保存
                   </button>
                   <button
                     type="button"
@@ -1044,6 +949,12 @@
             >
               <p class="text-muted">初稿生成中...</p>
             </div>
+            <textarea
+              data-articles-target="draftQwenEdit"
+              class="w-full px-4 py-3 text-base border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
+              rows="15"
+              style="display: none;"
+            ></textarea>
           </div>
           
           <!-- DeepSeek Draft -->
@@ -1068,6 +979,17 @@
                   >
                     <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
                     编辑
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#saveDraft"
+                    data-provider="deepseek"
+                    data-articles-target="saveDraftButtonDeepseek"
+                    class="btn-success btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
+                    保存
                   </button>
                   <button
                     type="button"
@@ -1100,6 +1022,12 @@
             >
               <p class="text-muted">初稿生成中...</p>
             </div>
+            <textarea
+              data-articles-target="draftDeepseekEdit"
+              class="w-full px-4 py-3 text-base border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
+              rows="15"
+              style="display: none;"
+            ></textarea>
           </div>
           
           <!-- Gemini Draft -->
@@ -1124,6 +1052,17 @@
                   >
                     <%= lucide_icon "edit", class: "w-4 h-4 inline-block mr-1" %>
                     编辑
+                  </button>
+                  <button
+                    type="button"
+                    data-action="click->articles#saveDraft"
+                    data-provider="gemini"
+                    data-articles-target="saveDraftButtonGemini"
+                    class="btn-success btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
+                    保存
                   </button>
                   <button
                     type="button"
@@ -1156,25 +1095,31 @@
             >
               <p class="text-muted">初稿生成中...</p>
             </div>
+            <textarea
+              data-articles-target="draftGeminiEdit"
+              class="w-full px-4 py-3 text-base border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
+              rows="15"
+              style="display: none;"
+            ></textarea>
           </div>
           
-          <!-- Zhipu Draft -->
+          <!-- Doubao Draft -->
           <div class="card card-elevated p-5 rounded-none">
             <div class="flex items-center justify-between mb-3">
               <h3 class="font-bold text-primary flex items-center gap-2">
-                <%= image_tag "zhipu-logo.png", class: "w-5 h-5", alt: "智谱" %>
-                智谱初稿
+                <%= image_tag "doubao-logo.png", class: "w-5 h-5", alt: "豆包" %>
+                豆包初稿
               </h3>
               <div class="flex items-center gap-3">
-                <span class="text-sm text-muted" data-articles-target="draftCharCountZhipu">
+                <span class="text-sm text-muted" data-articles-target="draftCharCountDoubao">
                   字数：<span class="font-semibold text-primary">0</span>
                 </span>
                 <div class="flex gap-2">
                   <button
                     type="button"
                     data-action="click->articles#editDraft"
-                    data-provider="zhipu"
-                    data-articles-target="editDraftButtonZhipu"
+                    data-provider="doubao"
+                    data-articles-target="editDraftButtonDoubao"
                     class="btn-secondary btn-sm"
                     style="display: none;"
                   >
@@ -1183,9 +1128,20 @@
                   </button>
                   <button
                     type="button"
+                    data-action="click->articles#saveDraft"
+                    data-provider="doubao"
+                    data-articles-target="saveDraftButtonDoubao"
+                    class="btn-success btn-sm"
+                    style="display: none;"
+                  >
+                    <%= lucide_icon "save", class: "w-4 h-4 inline-block mr-1" %>
+                    保存
+                  </button>
+                  <button
+                    type="button"
                     data-action="click->articles#copyDraftHtml"
-                    data-provider="zhipu"
-                    data-articles-target="copyDraftHtmlButtonZhipu"
+                    data-provider="doubao"
+                    data-articles-target="copyDraftHtmlButtonDoubao"
                     class="btn-primary btn-sm"
                     style="display: none;"
                   >
@@ -1195,8 +1151,8 @@
                   <button
                     type="button"
                     data-action="click->articles#copyDraftMarkdown"
-                    data-provider="zhipu"
-                    data-articles-target="copyDraftMarkdownButtonZhipu"
+                    data-provider="doubao"
+                    data-articles-target="copyDraftMarkdownButtonDoubao"
                     class="btn-outline btn-sm"
                     style="display: none;"
                   >
@@ -1207,10 +1163,46 @@
               </div>
             </div>
             <div 
-              data-articles-target="draftZhipu"
+              data-articles-target="draftDoubao"
               class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert p-4 rounded-none min-h-[150px] max-h-[400px] overflow-y-auto"
             >
               <p class="text-muted">初稿生成中...</p>
+            </div>
+            <textarea
+              data-articles-target="draftDoubaoEdit"
+              class="w-full px-4 py-3 text-base border-2 border-border rounded-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground bg-surface"
+              rows="15"
+              style="display: none;"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage Guide Section -->
+      <div class="mt-12 mb-8">
+        <div class="card card-elevated p-6 rounded-none bg-gradient-to-br from-primary/5 to-secondary/5">
+          <div class="flex items-center justify-center gap-4 flex-wrap">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+                1
+              </div>
+              <span class="text-primary font-semibold">5选1挑选初稿</span>
+            </div>
+            <%= lucide_icon "arrow-right", class: "w-5 h-5 text-primary hidden sm:block" %>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+                2
+              </div>
+              <span class="text-primary font-semibold">编辑并复制Markdown</span>
+            </div>
+            <%= lucide_icon "arrow-right", class: "w-5 h-5 text-primary hidden sm:block" %>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+                3
+              </div>
+              <span class="text-primary font-semibold">
+                前往 <a href="https://hongzhong.app" target="_blank" class="hover:underline">hongzhong.app</a> 排版发布
+              </span>
             </div>
           </div>
         </div>
