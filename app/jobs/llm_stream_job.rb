@@ -473,30 +473,6 @@ class LlmStreamJob < ApplicationJob
       Rails.logger.error "[LLM STREAM JOB ERROR] Error Type: #{e.class}, Message: #{e.message}"
       Rails.logger.error "[LLM STREAM JOB ERROR] Backtrace: #{e.backtrace.first(5).join("\n")}"
       
-      # 友好的错误消息
-      error_message = parse_error_message(e, provider)
-      
-      # 广播错误到前端
-      ActionCable.server.broadcast(stream_name, {
-        type: 'error',
-        message: error_message
-      })
-      
-      # 保存错误状态到数据库
-      if article_id && provider
-        article = Article.find_by(id: article_id)
-        if article
-          # Handle brainstorm providers
-          if Article::BRAINSTORM_PROVIDERS.include?(provider.to_s)
-            article.set_brainstorm_status(provider, 'error', error_message)
-          # Handle draft_xxx providers
-          elsif provider.to_s.match(/^draft_(.+)$/)
-            provider_name = $1
-            article.set_draft_status(provider_name, 'error', error_message)
-          end
-        end
-      end
-      
       # 记录错误日志（包含完整堆栈）
       Rails.logger.error "[LLM API ERROR SUMMARY] Provider: #{get_provider_display_name(provider)}, Status: #{extract_status_code(e)}, Message: #{e.message[0..500]}"
       
@@ -507,10 +483,37 @@ class LlmStreamJob < ApplicationJob
       if is_non_retryable
         # 认证/配置错误：不重试，直接失败
         Rails.logger.error "Non-retryable API error, job will not retry: #{e.message}"
+        
+        # 生成友好的错误消息
+        error_message = parse_error_message(e, provider)
+        
+        # 广播错误到前端（仅对不可重试的错误）
+        ActionCable.server.broadcast(stream_name, {
+          type: 'error',
+          message: error_message
+        })
+        
+        # 保存错误状态到数据库
+        if article_id && provider
+          article = Article.find_by(id: article_id)
+          if article
+            # Handle brainstorm providers
+            if Article::BRAINSTORM_PROVIDERS.include?(provider.to_s)
+              article.set_brainstorm_status(provider, 'error', error_message)
+            # Handle draft_xxx providers
+            elsif provider.to_s.match(/^draft_(.+)$/)
+              provider_name = $1
+              article.set_draft_status(provider_name, 'error', error_message)
+            end
+          end
+        end
+        
         # 不抛出异常，任务标记为完成但失败
       else
-        # 可重试的错误（包括503、网络问题、临时故障等）：重新抛出让 retry_on 处理
+        # 可重试的错误（包括503、429、网络问题、临时故障等）：静默重试，不通知前端
         Rails.logger.info "Transient error detected, will retry automatically (up to 3 times): #{e.message}"
+        Rails.logger.info "Not broadcasting error to frontend - letting retry_on handle it silently"
+        # 重新抛出让 retry_on 处理，前端保持等待状态
         raise e
       end
     end
