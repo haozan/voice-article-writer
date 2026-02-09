@@ -269,10 +269,17 @@ class LlmService < ApplicationService
     end
   rescue Net::ReadTimeout
     raise TimeoutError, "Request timed out after #{@timeout}s"
+  rescue => e
+    # Log any unexpected errors with full context
+    base_url = @base_url || ENV.fetch('LLM_BASE_URL')
+    provider = detect_provider_from_url(base_url)
+    Rails.logger.error "[LLM REQUEST ERROR] Provider: #{provider}, Error: #{e.class} - #{e.message}"
+    raise
   end
 
   def prepare_http_request(stream)
     base_url = @base_url || ENV.fetch('LLM_BASE_URL')
+    provider = detect_provider_from_url(base_url)
     
     # Detect if this is Gemini API
     is_gemini = base_url.include?('generativelanguage.googleapis.com')
@@ -305,35 +312,51 @@ class LlmService < ApplicationService
 
     body = build_request_body(is_gemini: is_gemini, stream: stream)
     request.body = body.to_json
+    
+    # Log request details
+    Rails.logger.info "[LLM REQUEST] Provider: #{provider}, URL: #{uri}, Model: #{@model}, Stream: #{stream}"
+    Rails.logger.debug "[LLM REQUEST BODY] #{sanitize_body_for_log(body)}"
 
     [http, request]
   end
 
   def handle_blocking_response(http, request)
     response = http.request(request)
+    
+    base_url = @base_url || ENV.fetch('LLM_BASE_URL')
+    provider = detect_provider_from_url(base_url)
 
     case response.code.to_i
     when 200
+      Rails.logger.info "[LLM RESPONSE] Provider: #{provider}, Status: 200 OK"
       JSON.parse(response.body)
     when 429
+      Rails.logger.error "[LLM RESPONSE] Provider: #{provider}, Status: 429 Rate Limit, Body: #{response.body[0..500]}"
       raise ApiError, "Rate limit exceeded"
     when 500..599
+      Rails.logger.error "[LLM RESPONSE] Provider: #{provider}, Status: #{response.code} Server Error, Body: #{response.body[0..500]}"
       raise ApiError, "Server error: #{response.code}"
     else
+      Rails.logger.error "[LLM RESPONSE] Provider: #{provider}, Status: #{response.code} Error, Body: #{response.body[0..1000]}"
       raise ApiError, "API error: #{response.code} - #{response.body}"
     end
   rescue JSON::ParserError => e
+    Rails.logger.error "[LLM RESPONSE] Provider: #{provider}, JSON Parse Error: #{e.message}"
     raise ApiError, "Invalid JSON response: #{e.message}"
   end
 
   def handle_stream_response(http, request, &block)
     base_url = @base_url || ENV.fetch('LLM_BASE_URL')
     is_gemini = base_url.include?('generativelanguage.googleapis.com')
+    provider = detect_provider_from_url(base_url)
     
     http.request(request) do |response|
       unless response.code.to_i == 200
+        Rails.logger.error "[LLM STREAM RESPONSE] Provider: #{provider}, Status: #{response.code} Error, Body: #{response.body[0..1000]}"
         raise ApiError, "API error: #{response.code} - #{response.body}"
       end
+      
+      Rails.logger.info "[LLM STREAM RESPONSE] Provider: #{provider}, Status: 200 OK, Streaming..."
 
       buffer = ""
       response.read_body do |chunk|
@@ -657,5 +680,50 @@ class LlmService < ApplicationService
         parts: [{ text: msg[:content].to_s }]
       }
     end
+  end
+  
+  # Detect provider from base URL for logging
+  def detect_provider_from_url(base_url)
+    return 'Qwen' if base_url.include?('dashscope')
+    return 'DeepSeek' if base_url.include?('deepseek')
+    return 'Gemini' if base_url.include?('generativelanguage')
+    return 'Doubao' if base_url.include?('volcengine') || base_url.include?('doubao')
+    return 'ChatGPT' if base_url.include?('openai')
+    return 'Grok' if base_url.include?('x.ai') || base_url.include?('xai')
+    'Unknown'
+  end
+  
+  # Sanitize request body for logging (truncate long prompts, hide sensitive data)
+  def sanitize_body_for_log(body)
+    sanitized = body.deep_dup
+    
+    # Truncate messages content to first 200 chars
+    if sanitized[:messages].is_a?(Array)
+      sanitized[:messages] = sanitized[:messages].map do |msg|
+        if msg[:content].is_a?(String) && msg[:content].length > 200
+          msg.merge(content: msg[:content][0..200] + "... (truncated)")
+        else
+          msg
+        end
+      end
+    end
+    
+    # Similar for Gemini format
+    if sanitized[:contents].is_a?(Array)
+      sanitized[:contents] = sanitized[:contents].map do |content|
+        if content[:parts].is_a?(Array)
+          content[:parts] = content[:parts].map do |part|
+            if part[:text].is_a?(String) && part[:text].length > 200
+              part.merge(text: part[:text][0..200] + "... (truncated)")
+            else
+              part
+            end
+          end
+        end
+        content
+      end
+    end
+    
+    sanitized.to_json
   end
 end

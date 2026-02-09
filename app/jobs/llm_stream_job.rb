@@ -58,6 +58,19 @@ class LlmStreamJob < ApplicationJob
   #     streaming: true  # Optional: use streaming (default) or blocking mode
   #   )
   def perform(stream_name:, prompt:, llm_config: nil, article_id: nil, provider: nil, thinking_framework: 'original', streaming: true, **options)
+    # Log job start with detailed parameters
+    Rails.logger.info "[LLM STREAM JOB START] Provider: #{provider || 'default'}, Article ID: #{article_id}, Stream: #{stream_name}, Framework: #{thinking_framework}, Streaming: #{streaming}"
+    
+    # Log LLM configuration details
+    if llm_config
+      base_url = llm_config[:base_url] || llm_config['base_url']
+      model = llm_config[:model] || llm_config['model']
+      detected_provider = detect_provider(llm_config)
+      Rails.logger.info "[LLM STREAM JOB CONFIG] Detected Provider: #{detected_provider}, Base URL: #{base_url}, Model: #{model}"
+    else
+      Rails.logger.info "[LLM STREAM JOB CONFIG] Using default ENV config - Base URL: #{ENV['LLM_BASE_URL']}, Model: #{ENV['LLM_MODEL']}"
+    end
+    
     # Detect provider and build appropriate system prompt
     provider_name = llm_config ? detect_provider(llm_config) : 'Grok'
     
@@ -455,6 +468,11 @@ class LlmStreamJob < ApplicationJob
       # 重新抛出让 retry_on 处理
       raise e
     rescue LlmService::ApiError => e
+      # Log full error details with provider context
+      Rails.logger.error "[LLM STREAM JOB ERROR] Provider: #{provider || 'default'}, Article ID: #{article_id}"
+      Rails.logger.error "[LLM STREAM JOB ERROR] Error Type: #{e.class}, Message: #{e.message}"
+      Rails.logger.error "[LLM STREAM JOB ERROR] Backtrace: #{e.backtrace.first(5).join("\n")}"
+      
       # 友好的错误消息
       error_message = parse_error_message(e, provider)
       
@@ -480,7 +498,7 @@ class LlmStreamJob < ApplicationJob
       end
       
       # 记录错误日志（包含完整堆栈）
-      Rails.logger.error "LLM Stream Error (#{provider}): #{e.message}\n#{e.backtrace.first(10).join("\n")}"
+      Rails.logger.error "[LLM API ERROR SUMMARY] Provider: #{get_provider_display_name(provider)}, Status: #{extract_status_code(e)}, Message: #{e.message[0..500]}"
       
       # 检查是否是不可重试的错误（认证/配置错误）
       non_retryable_errors = ['401', '400', '403', 'invalid', 'Incorrect API key', 'Invalid API key']
@@ -598,6 +616,20 @@ class LlmStreamJob < ApplicationJob
     when 'chatgpt' then 'ChatGPT'
     else provider.to_s.capitalize
     end
+  end
+  
+  # Extract HTTP status code from error message
+  def extract_status_code(error)
+    message = error.message
+    # Try to extract status code from messages like "API error: 403 - ..."
+    if match = message.match(/API error: (\d{3})/)
+      return match[1]
+    end
+    # Try to extract from other formats
+    if match = message.match(/(\d{3})/)
+      return match[1]
+    end
+    'Unknown'
   end
   
   # Trigger draft generation after brainstorm completes
