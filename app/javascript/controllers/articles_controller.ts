@@ -297,6 +297,51 @@ export default class extends BaseChannelController {
             console.log('Article created with ID:', this.currentArticleId)
             // Check if there's already saved content in database that wasn't rendered
             this.loadSavedContentIfExists()
+          } else if (data.type === 'error') {
+            // Handle general errors (e.g., insufficient credits)
+            console.error('[GENERAL ERROR]', data.message)
+            
+            // Stop all progress bars
+            const providers = ['grok', 'qwen', 'deepseek', 'gemini', 'doubao']
+            providers.forEach(provider => {
+              this.stopSmoothProgress(provider)
+            })
+            
+            // Hide progress container
+            if (this.progressContainerTarget) {
+              this.progressContainerTarget.style.display = 'none'
+            }
+            
+            // Show error toast
+            showToast(data.message, 'danger')
+            
+            // Show error in responses container if it's visible
+            if (this.responsesContainerTarget && this.responsesContainerTarget.style.display !== 'none') {
+              this.responsesContainerTarget.innerHTML = `
+                <div class="flex items-start gap-3 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 
+                  dark:border-red-800 max-w-2xl mx-auto">
+                  <svg class="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" 
+                    viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" 
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 
+                        101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 
+                        00-1.414-1.414L10 8.586 8.707 7.293z" 
+                      clip-rule="evenodd"/>
+                  </svg>
+                  <div class="flex-1">
+                    <p class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">生成失败</p>
+                    <p class="text-base text-red-700 dark:text-red-300 mb-4">${data.message}</p>
+                    <a href="/packages" class="btn-primary inline-flex items-center gap-2">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                      </svg>
+                      购买套餐
+                    </a>
+                  </div>
+                </div>
+              `
+            }
           } else if (data.type === 'final-saved') {
             showToast("定稿已保存", "success")
           } else if (data.type === 'draft-saved') {

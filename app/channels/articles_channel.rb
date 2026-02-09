@@ -430,7 +430,10 @@ class ArticlesChannel < ApplicationCable::Channel
     streaming = data['streaming'] || false
     
     # Check credits before creating article
+    Rails.logger.info "[DEBUG] current_user: #{current_user.inspect}"
+    Rails.logger.info "[DEBUG] current_user.credits: #{current_user&.credits}"
     if current_user && current_user.credits <= 0
+      Rails.logger.error "[CREDITS] User #{current_user.id} has insufficient credits: #{current_user.credits}"
       ActionCable.server.broadcast(
         @stream_name,
         {
