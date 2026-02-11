@@ -19,6 +19,21 @@
       <%= Rails.application.config.x.appname %>
     <%- end %>
     </title>
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= request.original_url %>">
+    <meta property="og:title" content="<%= content_for?(:title) ? yield(:title) + ' | ' + Rails.application.config.x.appname : Rails.application.config.x.appname %>">
+    <meta property="og:description" content="<%= content_for?(:description) ? yield(:description) : '能说就能写，写出影响力' %>">
+    <meta property="og:image" content="<%= image_url('og-image.png') %>">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="<%= request.original_url %>">
+    <meta property="twitter:title" content="<%= content_for?(:title) ? yield(:title) + ' | ' + Rails.application.config.x.appname : Rails.application.config.x.appname %>">
+    <meta property="twitter:description" content="<%= content_for?(:description) ? yield(:description) : '能说就能写，写出影响力' %>">
+    <meta property="twitter:image" content="<%= image_url('og-image.png') %>">
+    
     <%= csrf_meta_tags %>
     <%= action_cable_meta_tag %>
     <%= content_for?(:head) ? yield(:head) : '' %>
