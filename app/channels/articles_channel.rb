@@ -148,6 +148,180 @@ class ArticlesChannel < ApplicationCable::Channel
     FRAMEWORK
   end
   
+  # Build prompt for 27 titles generation using 林桂枝's copywriting methods
+  def build_27_titles_prompt(draft_content)
+    <<~PROMPT
+      # 角色设定
+      你是顶尖文案专家林桂枝，擅长用27种专业文案技巧创作极具吸引力的标题。
+      
+      # 工作流程
+      
+      ## 第一步：洞察提炼（内部工作，不输出）
+      从文章中提炼3个核心洞察：
+      1. **核心利益点**：读者能获得什么？（知识/方法/启发/情绪价值）
+      2. **痛点/需求**：文章解决了什么问题？触及了哪些情绪？
+      3. **独特角度**：这篇文章的与众不同之处是什么？
+      
+      ## 第二步：文案创作（输出27个标题）
+      
+      ### 全局约束（贯穿所有标题）
+      
+      #### 1. 获得感第一
+      - **读者视角**：标题必须让读者立即感受到"这对我有用"
+      - **价值前置**：把收获、结果、好处放在显眼位置
+      - **避免卖关子**：除非使用悬念类技巧，否则要明确说明价值
+      
+      #### 2. KISS法则（Keep It Simple and Stupid）
+      - **避免高级词汇**：用小学生能懂的大白话
+      - **一句话讲清**：标题长度一般不超过25字，特殊技巧可适当放宽
+      - **避免复杂句式**：不用从句、被动语态、专业术语
+      
+      #### 3. 禁止虚假承诺
+      - **基于文章内容**：标题必须反映文章真实内容，不夸大
+      - **避免绝对化**："保证"、"100%"、"终极秘诀"等词慎用
+      - **可验证性**：读者看完文章后，应该觉得"标题没骗我"
+      
+      ### 27种文案方法（每个方法生成1个标题）
+      
+      #### 1. 利益承诺法
+      **核心**：直接告诉读者能获得什么具体好处  
+      **公式**：[动作] + [具体结果]  
+      **示例**：
+      - "每天10分钟，30天练出马甲线"
+      - "用这个方法，我的阅读速度提升了3倍"
+      
+      **你的标题**：
+      
+      #### 2. 痛点戳心法
+      **核心**：精准描述读者的困扰，引发共鸣  
+      **公式**：为什么 [痛点场景]？  
+      **示例**：
+      - "为什么你的努力，总是得不到认可？"
+      - "为什么明明很累，却还是睡不着？"
+      
+      **你的标题**：
+      
+      #### 3. 数字具象法
+      **核心**：用数字让抽象变具体，增强可信度  
+      **公式**：[数字] + [具体事物/方法]  
+      **示例**：
+      - "3个动作，解决90%的腰痛问题"
+      - "我用5年时间，总结出这7条人生经验"
+      
+      **你的标题**：
+      
+      #### 4. 对比反差法
+      **核心**：通过前后对比，制造戏剧性  
+      **公式**：从 [A状态] 到 [B状态]  
+      **示例**：
+      - "从月薪3千到年入百万，我只做对了一件事"
+      - "曾经社恐的我，现在成了演讲教练"
+      
+      **你的标题**：
+      
+      #### 5. 身份代入法
+      **核心**：用具体身份标签，让目标读者快速识别  
+      **公式**：[身份标签] 必看/专属/千万别  
+      **示例**：
+      - "35岁以上的职场人，这3个建议请收好"
+      - "新手父母最容易犯的5个错误"
+      
+      **你的标题**：
+      
+      #### 6. 场景带入法
+      **核心**：描述具体场景，让读者瞬间代入  
+      **公式**：当你 [场景] 时，[解决方案]  
+      **示例**：
+      - "当领导批评你时，这样回应最聪明"
+      - "深夜焦虑睡不着？试试这个方法"
+      
+      **你的标题**：
+      
+      #### 7. 权威背书法
+      **核心**：借用权威/名人/数据增强可信度  
+      **公式**：[权威来源] 证实/推荐/使用  
+      **示例**：
+      - "哈佛研究：每天做这件事的人更容易成功"
+      - "100位CEO都在用的时间管理法"
+      
+      **你的标题**：
+      
+      #### 8. 反常识法
+      **核心**：挑战常识，激发好奇  
+      **公式**：其实/真相是/别再  
+      **示例**：
+      - "真相：多喝水不一定对身体好"
+      - "别再早睡早起了，适合你的作息才最重要"
+      
+      **你的标题**：
+      
+      #### 9. 恐惧营销法
+      **核心**：指出风险/损失，刺激行动  
+      **公式**：小心/别让/正在毁掉  
+      **示例**：
+      - "小心！这些习惯正在悄悄毁掉你的健康"
+      - "别让低效努力，毁了你的30岁"
+      
+      **你的标题**：
+      
+      #### 10. 稀缺紧迫法
+      **核心**：制造稀缺感/紧迫感，促使点击  
+      **公式**：仅限/最后/错过就没了  
+      **示例**：
+      - "这个窗口期只有3年，错过就晚了"
+      - "30岁前必须明白的5个道理"
+      
+      **你的标题**：
+      
+      #### 11. 故事悬念法
+      **核心**：讲一个未完成的故事，吊胃口  
+      **公式**：[故事开头] + [悬念]  
+      **示例**：
+      - "那天我拒绝了老板的加薪，现在..."
+      - "凌晨3点，我收到了一条改变命运的消息"
+      
+      **你的标题**：
+      
+      #### 12. 金句提炼法
+      **核心**：把文章核心观点浓缩成金句  
+      **公式**：[简短有力的观点]  
+      **示例**：
+      - "能力决定下限，态度决定上限"
+      - "内耗的本质，是对自己不够狠"
+      
+      **你的标题**：
+      
+      #### 13. 具体化场景法
+      **核心**：把抽象概念具象到细节场景  
+      **公式**：[具体细节] 里藏着 [道理]  
+      **示例**：
+      - "从你发微信的方式，就能看出情商高低"
+      - "你点菜的习惯，暴露了你的格局"
+      
+      **你的标题**：
+      
+      #### 14-27. 其他创意方法
+      基于以上13种核心方法，继续发挥创意，生成剩余14个标题。可以组合使用多种方法，或从不同角度切入文章主题。
+      
+      ### 输出要求
+      
+      1. **严格输出27个标题**：每个标题单独一行
+      2. **标题编号**：使用 `1. 标题内容` 格式（Markdown 有序列表）
+      3. **直接输出**：不要解释、不要分析、不要额外说明
+      4. **基于文章内容**：所有标题必须基于下方提供的文章内容
+      
+      ─────────────────────────
+      【文章内容】
+      
+      #{draft_content}
+      
+      ─────────────────────────
+      
+      现在，请基于上述文章内容，使用林桂枝的27种文案方法，生成27个吸引人的标题：
+    PROMPT
+  end
+  
+  # Build draft prompt (generate article draft from transcript + brainstorm)
   def build_draft_prompt(transcript, brainstorm_content, model_display_name, writing_style = 'original')
     <<~PROMPT
       ⚠️ 【核心任务】
@@ -322,6 +496,68 @@ class ArticlesChannel < ApplicationCable::Channel
         article_id: article.id
       }
     )
+  end
+  
+  # Generate 27 titles from selected draft using 林桂枝's copywriting methods
+  def generate_27_titles(data)
+    article_id = data['article_id']
+    selected_draft_source = data['selected_draft_source']  # e.g., "grok", "qwen", etc.
+    
+    unless article_id && selected_draft_source
+      Rails.logger.error "Missing article_id or selected_draft_source for 27 titles generation"
+      return
+    end
+    
+    article = Article.find_by(id: article_id)
+    unless article
+      Rails.logger.error "Article not found: #{article_id}"
+      return
+    end
+    
+    # Get the selected draft content
+    draft_content = article.send("draft_#{selected_draft_source}")
+    
+    unless draft_content.present?
+      Rails.logger.error "Draft content not found for provider: #{selected_draft_source}"
+      ActionCable.server.broadcast(
+        @stream_name,
+        {
+          type: 'titles-27-error',
+          message: "未找到选中的初稿内容"
+        }
+      )
+      return
+    end
+    
+    # Build the 27 titles prompt
+    titles_prompt = build_27_titles_prompt(draft_content)
+    
+    # Always use Grok for title generation
+    llm_config = get_llm_config('grok')
+    llm_config_with_timeout = llm_config.merge(timeout: 240, max_tokens: 8000)
+    
+    # Trigger LLM job (non-streaming mode)
+    LlmStreamJob.perform_later(
+      stream_name: "#{@stream_name}_titles_27",
+      prompt: titles_prompt,
+      llm_config: llm_config_with_timeout,
+      article_id: article.id,
+      provider: "titles_27",
+      streaming: false,
+      titles_27_source: selected_draft_source  # Pass source to job for saving
+    )
+    
+    # Broadcast that title generation started
+    ActionCable.server.broadcast(
+      @stream_name,
+      {
+        type: 'titles-27-started',
+        article_id: article.id,
+        source: selected_draft_source
+      }
+    )
+    
+    Rails.logger.info "Triggered 27 titles generation for article #{article.id} using #{selected_draft_source} draft"
   end
   
   # Regenerate a single provider's draft

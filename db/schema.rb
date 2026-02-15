@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_08_041753) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_15_124120) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -101,6 +101,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_08_041753) do
     t.text "draft_doubao"
     t.jsonb "draft_status", default: {}
     t.string "writing_style", default: "original"
+    t.jsonb "titles_27"
+    t.string "titles_27_source"
     t.index ["chapter_id"], name: "index_articles_on_chapter_id"
     t.index ["user_id"], name: "index_articles_on_user_id"
   end

@@ -1178,6 +1178,77 @@
         </div>
       </div>
 
+      <!-- Step 3: 27 Titles Generation Section -->
+      <div id="step-3-titles" style="display: none;" class="mt-8">
+        <div class="card card-elevated p-6 rounded-none">
+          <h2 class="text-2xl font-bold text-primary mb-6 flex items-center gap-2">
+            <%= lucide_icon "sparkles", class: "w-6 h-6" %>
+            Step 3: 生成27种标题
+          </h2>
+
+          <!-- Draft Source Selector -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-foreground mb-3">
+              选择初稿来源：
+            </label>
+            <div class="flex flex-wrap gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="draft-source" value="grok" class="w-4 h-4 text-primary">
+                <span class="text-foreground">Grok</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="draft-source" value="qwen" class="w-4 h-4 text-primary">
+                <span class="text-foreground">千问</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="draft-source" value="deepseek" class="w-4 h-4 text-primary">
+                <span class="text-foreground">DeepSeek</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="draft-source" value="gemini" class="w-4 h-4 text-primary">
+                <span class="text-foreground">Gemini</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="draft-source" value="doubao" class="w-4 h-4 text-primary">
+                <span class="text-foreground">豆包</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Generate Button -->
+          <button
+            type="button"
+            data-action="click->articles#generate27Titles"
+            class="btn-primary mb-6"
+          >
+            <%= lucide_icon "wand-2", class: "w-5 h-5 inline-block mr-2" %>
+            生成27种标题
+          </button>
+
+          <!-- Loading State -->
+          <div id="titles-27-loading" style="display: none;" class="flex items-center gap-3 p-6 bg-primary/5 rounded-none mb-6">
+            <div class="loading-spinner w-6 h-6"></div>
+            <span class="text-primary font-medium">AI正在使用林桂枝的27种文案方法生成标题...</span>
+          </div>
+
+          <!-- Results Container -->
+          <div class="border-2 border-border rounded-none p-6">
+            <div class="mb-4">
+              <h3 class="font-bold text-primary flex items-center gap-2">
+                <%= lucide_icon "list", class: "w-5 h-5" %>
+                生成结果
+              </h3>
+            </div>
+            <div 
+              id="titles-27-result"
+              class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert min-h-[200px] max-h-[600px] overflow-y-auto"
+            >
+              <p class="text-muted">请先选择初稿来源并点击"生成27种标题"按钮</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Usage Guide Section -->
       <div class="mt-12 mb-8">
         <div class="card card-elevated p-6 rounded-none bg-gradient-to-br from-primary/5 to-secondary/5">

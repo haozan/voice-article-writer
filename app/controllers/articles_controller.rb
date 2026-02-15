@@ -18,6 +18,7 @@ class ArticlesController < ApplicationController
       {
         id: article.id,
         created_at: article.created_at.strftime('%Y-%m-%d %H:%M'),
+        title: article.title&.truncate(50, omission: '...'),
         transcript_preview: article.transcript&.truncate(100, omission: '...') || '无内容',
         status: article.status_label,
         status_class: article.status_badge_class,

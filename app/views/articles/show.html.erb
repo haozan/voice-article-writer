@@ -157,7 +157,7 @@
 
     <!-- Drafts (5 models) -->
     <% if @article.has_drafts? %>
-      <div class="mb-6">
+      <div class="mb-6" data-controller="article-show">
         <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
           <div class="w-1 h-6 bg-orange-500"></div>
           AI 初稿生成
@@ -170,14 +170,37 @@
                   <%= image_tag "grok-logo.png", class: "w-5 h-5", alt: "Grok" %>
                   Grok 初稿
                 </h3>
-                <span class="text-sm text-muted">
-                  字数：<span class="font-semibold text-primary"><%= @article.draft_grok.length %></span>
-                </span>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm text-muted">
+                    字数：<span class="font-semibold text-primary"><%= @article.draft_grok.length %></span>
+                  </span>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      data-action="click->article-show#copyHtml"
+                      data-content="<%= @article.draft_grok.to_json %>"
+                      class="btn-primary btn-sm"
+                    >
+                      <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                      复制HTML
+                    </button>
+                    <button
+                      type="button"
+                      data-action="click->article-show#copyMarkdown"
+                      data-content="<%= @article.draft_grok.to_json %>"
+                      class="btn-outline btn-sm"
+                    >
+                      <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                      复制Markdown
+                    </button>
+                  </div>
+                </div>
               </div>
               <div 
                 class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
                 data-controller="markdown-renderer"
                 data-markdown-renderer-content-value="<%= @article.draft_grok.to_json %>"
+                data-article-show-target="draftGrok"
               ></div>
             </div>
           <% end %>
@@ -189,14 +212,37 @@
                   <%= image_tag "qwen-logo.png", class: "w-5 h-5", alt: "千问" %>
                   千问初稿
                 </h3>
-                <span class="text-sm text-muted">
-                  字数：<span class="font-semibold text-primary"><%= @article.draft_qwen.length %></span>
-                </span>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm text-muted">
+                    字数：<span class="font-semibold text-primary"><%= @article.draft_qwen.length %></span>
+                  </span>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      data-action="click->article-show#copyHtml"
+                      data-content="<%= @article.draft_qwen.to_json %>"
+                      class="btn-primary btn-sm"
+                    >
+                      <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                      复制HTML
+                    </button>
+                    <button
+                      type="button"
+                      data-action="click->article-show#copyMarkdown"
+                      data-content="<%= @article.draft_qwen.to_json %>"
+                      class="btn-outline btn-sm"
+                    >
+                      <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                      复制Markdown
+                    </button>
+                  </div>
+                </div>
               </div>
               <div 
                 class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
                 data-controller="markdown-renderer"
                 data-markdown-renderer-content-value="<%= @article.draft_qwen.to_json %>"
+                data-article-show-target="draftQwen"
               ></div>
             </div>
           <% end %>
@@ -208,14 +254,37 @@
                   <%= image_tag "deepseek-logo.png", class: "w-5 h-5", alt: "DeepSeek" %>
                   DeepSeek 初稿
                 </h3>
-                <span class="text-sm text-muted">
-                  字数：<span class="font-semibold text-primary"><%= @article.draft_deepseek.length %></span>
-                </span>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm text-muted">
+                    字数：<span class="font-semibold text-primary"><%= @article.draft_deepseek.length %></span>
+                  </span>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      data-action="click->article-show#copyHtml"
+                      data-content="<%= @article.draft_deepseek.to_json %>"
+                      class="btn-primary btn-sm"
+                    >
+                      <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                      复制HTML
+                    </button>
+                    <button
+                      type="button"
+                      data-action="click->article-show#copyMarkdown"
+                      data-content="<%= @article.draft_deepseek.to_json %>"
+                      class="btn-outline btn-sm"
+                    >
+                      <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                      复制Markdown
+                    </button>
+                  </div>
+                </div>
               </div>
               <div 
                 class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
                 data-controller="markdown-renderer"
                 data-markdown-renderer-content-value="<%= @article.draft_deepseek.to_json %>"
+                data-article-show-target="draftDeepseek"
               ></div>
             </div>
           <% end %>
@@ -227,14 +296,37 @@
                   <%= image_tag "gemini-logo.png", class: "w-5 h-5", alt: "Gemini" %>
                   Gemini 初稿
                 </h3>
-                <span class="text-sm text-muted">
-                  字数：<span class="font-semibold text-primary"><%= @article.draft_gemini.length %></span>
-                </span>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm text-muted">
+                    字数：<span class="font-semibold text-primary"><%= @article.draft_gemini.length %></span>
+                  </span>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      data-action="click->article-show#copyHtml"
+                      data-content="<%= @article.draft_gemini.to_json %>"
+                      class="btn-primary btn-sm"
+                    >
+                      <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                      复制HTML
+                    </button>
+                    <button
+                      type="button"
+                      data-action="click->article-show#copyMarkdown"
+                      data-content="<%= @article.draft_gemini.to_json %>"
+                      class="btn-outline btn-sm"
+                    >
+                      <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                      复制Markdown
+                    </button>
+                  </div>
+                </div>
               </div>
               <div 
                 class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
                 data-controller="markdown-renderer"
                 data-markdown-renderer-content-value="<%= @article.draft_gemini.to_json %>"
+                data-article-show-target="draftGemini"
               ></div>
             </div>
           <% end %>
@@ -246,17 +338,62 @@
                   <%= image_tag "doubao-logo.png", class: "w-5 h-5", alt: "豆包" %>
                   豆包初稿
                 </h3>
-                <span class="text-sm text-muted">
-                  字数：<span class="font-semibold text-primary"><%= @article.draft_doubao.length %></span>
-                </span>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm text-muted">
+                    字数：<span class="font-semibold text-primary"><%= @article.draft_doubao.length %></span>
+                  </span>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      data-action="click->article-show#copyHtml"
+                      data-content="<%= @article.draft_doubao.to_json %>"
+                      class="btn-primary btn-sm"
+                    >
+                      <%= lucide_icon "copy", class: "w-4 h-4 inline-block mr-1" %>
+                      复制HTML
+                    </button>
+                    <button
+                      type="button"
+                      data-action="click->article-show#copyMarkdown"
+                      data-content="<%= @article.draft_doubao.to_json %>"
+                      class="btn-outline btn-sm"
+                    >
+                      <%= lucide_icon "file-code", class: "w-4 h-4 inline-block mr-1" %>
+                      复制Markdown
+                    </button>
+                  </div>
+                </div>
               </div>
               <div 
                 class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
                 data-controller="markdown-renderer"
                 data-markdown-renderer-content-value="<%= @article.draft_doubao.to_json %>"
+                data-article-show-target="draftDoubao"
               ></div>
             </div>
           <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- 27 Titles Section -->
+    <% if @article.titles_27.present? %>
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+          <div class="w-1 h-6 bg-orange-500"></div>
+          27种标题（林桂枝文案方法）
+        </h2>
+        <div class="card card-elevated p-6 rounded-none">
+          <div class="flex items-center justify-between mb-4">
+            <div class="text-sm text-muted">
+              基于 <span class="font-semibold text-primary"><%= @article.titles_27_source&.upcase || '未知' %></span> 初稿生成
+            </div>
+          </div>
+          <div 
+            class="text-secondary text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+            data-controller="markdown-renderer"
+            data-markdown-renderer-content-value="<%= @article.titles_27.to_json %>"
+          ></div>
         </div>
       </div>
     <% end %>

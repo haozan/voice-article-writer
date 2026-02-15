@@ -553,6 +553,10 @@ class LlmStreamJob < ApplicationJob
           article.set_draft_status(provider_name, 'success')
         when 'final'
           article.update!(final_content: full_content)
+        when 'titles_27'
+          # Parse titles and save to jsonb field
+          titles_27_source = options[:titles_27_source] || options['titles_27_source']
+          article.update!(titles_27: full_content, titles_27_source: titles_27_source)
         end
       end
     end

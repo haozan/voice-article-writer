@@ -232,6 +232,9 @@ export default class extends BaseChannelController {
   private commandSubscription: any = null
   private draftSubscription: any = null
   private draftContent: string = ""
+  private titles27Subscription: any = null
+  private titles27Content: string = ""
+  private titles27Generating: boolean = false
   private responseEditMode: { [key: string]: boolean } = {
     grok: false,
     qwen: false,
@@ -388,6 +391,16 @@ export default class extends BaseChannelController {
               doubao: "豆包"
             }
             this.resetDraftArea(provider, `${modelNames[provider]} 等待AI响应...`)
+          } else if (data.type === 'titles-27-started') {
+            console.log('27 titles generation started')
+            this.titles27Generating = true
+            this.titles27Content = ""
+            // Show loading state in Step 3 section
+            this.show27TitlesLoadingState()
+          } else if (data.type === 'titles-27-error') {
+            console.error('27 titles generation error:', data.message)
+            this.titles27Generating = false
+            showToast(data.message, 'danger')
           }
         }
       }
@@ -440,6 +453,26 @@ export default class extends BaseChannelController {
       )
     })
     
+    // Subscribe to titles_27 channel
+    const titles27StreamName = `${this.streamNameValue}_titles_27`
+    this.titles27Subscription = consumer.subscriptions.create(
+      {
+        channel: "ArticlesChannel",
+        stream_name: titles27StreamName
+      },
+      {
+        connected: () => {
+          console.log('titles_27 channel connected')
+        },
+        disconnected: () => {
+          console.log('titles_27 channel disconnected')
+        },
+        received: (data: any) => {
+          this.handleTitles27Message(data)
+        }
+      }
+    )
+    
     // CRITICAL FIX: Check for saved content after all subscriptions are set up
     // This handles the case where WebSocket 'complete' messages were missed
     // but content was already saved to database
@@ -456,6 +489,10 @@ export default class extends BaseChannelController {
     // Unsubscribe from draft channels
     this.draftSubscription?.unsubscribe()
     this.draftSubscription = null
+    
+    // Unsubscribe from titles_27 channel
+    this.titles27Subscription?.unsubscribe()
+    this.titles27Subscription = null
     
     // Unsubscribe from all provider channels
     Object.values(this.subscriptions).forEach(subscription => {
@@ -1000,6 +1037,19 @@ export default class extends BaseChannelController {
       // Scroll to drafts section
       draftsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
+    
+    // Check if all 5 drafts are complete, then show Step 3
+    if (this.completedDrafts.size === 5) {
+      console.log('All 5 drafts completed, showing Step 3')
+      const step3Section = document.getElementById('step-3-titles')
+      if (step3Section) {
+        step3Section.style.display = 'block'
+        // Scroll to Step 3 section after a short delay
+        setTimeout(() => {
+          step3Section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 500)
+      }
+    }
   }
   
   // Handle draft error for a specific provider
@@ -1046,6 +1096,20 @@ export default class extends BaseChannelController {
       `
     } else {
       console.error(`[DRAFT ERROR] Failed to get draft target for ${provider}`)
+    }
+    
+    // Check if all 5 drafts are complete (including errors), then show Step 3
+    console.log(`[DRAFT ERROR] Completed drafts count: ${this.completedDrafts.size}`)
+    if (this.completedDrafts.size === 5) {
+      console.log('All 5 drafts completed (including errors), showing Step 3')
+      const step3Section = document.getElementById('step-3-titles')
+      if (step3Section) {
+        step3Section.style.display = 'block'
+        // Scroll to Step 3 section after a short delay
+        setTimeout(() => {
+          step3Section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 500)
+      }
     }
   }
   
@@ -1493,6 +1557,9 @@ export default class extends BaseChannelController {
             <div class="flex items-start justify-between mb-2">
               <div class="flex-1">
                 <div class="text-xs text-muted mb-1">${article.created_at}</div>
+                ${article.title ? `
+                  <div class="font-bold text-primary mb-1">${article.title}</div>
+                ` : ''}
                 <div class="text-sm text-secondary line-clamp-3">${article.transcript_preview}</div>
               </div>
             </div>
@@ -2263,4 +2330,125 @@ export default class extends BaseChannelController {
     // Show toast notification
     showToast(`🎉 ${modelNames[provider]} 生成完成！`, "success")
   }
+  
+  // Handle messages from titles_27 channel
+  private handleTitles27Message(data: any): void {
+    if (data.type === 'chunk') {
+      this.titles27Content += data.chunk
+      // Accumulate only, don't render
+    } else if (data.type === 'complete') {
+      this.handleTitles27Complete()
+    } else if (data.type === 'error') {
+      this.handleTitles27Error(data.message)
+    }
+  }
+  
+  // Handle titles_27 complete
+  private handleTitles27Complete(): void {
+    console.log('27 titles generation complete')
+    this.titles27Generating = false
+    
+    // Render all titles at once
+    const titles27Container = document.getElementById('titles-27-result')
+    if (titles27Container) {
+      // Parse and render the 27 titles
+      const fixedMarkdown = fixMarkdownHeaders(this.titles27Content)
+      titles27Container.innerHTML = marked.parse(fixedMarkdown) as string
+      
+      // Show copy button
+      const copyButton = document.getElementById('copy-titles-27-button')
+      if (copyButton) {
+        copyButton.style.display = 'inline-flex'
+      }
+      
+      // Hide loading state
+      const loadingState = document.getElementById('titles-27-loading')
+      if (loadingState) {
+        loadingState.style.display = 'none'
+      }
+      
+      // Scroll to titles section
+      titles27Container.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+    
+    showToast('27种标题生成完成！', 'success')
+  }
+  
+  // Handle titles_27 error
+  private handleTitles27Error(message: string): void {
+    console.error('27 titles generation error:', message)
+    this.titles27Generating = false
+    
+    const titles27Container = document.getElementById('titles-27-result')
+    if (titles27Container) {
+      titles27Container.innerHTML = `
+        <div class="alert alert-danger">
+          <div class="flex items-center gap-2 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-circle w-5 h-5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span class="font-medium">27种标题生成失败</span>
+          </div>
+          <p class="text-sm text-muted">${message}</p>
+        </div>
+      `
+    }
+    
+    // Hide loading state
+    const loadingState = document.getElementById('titles-27-loading')
+    if (loadingState) {
+      loadingState.style.display = 'none'
+    }
+    
+    showToast(message, 'danger')
+  }
+  
+  // Show loading state for 27 titles generation
+  private show27TitlesLoadingState(): void {
+    const loadingState = document.getElementById('titles-27-loading')
+    const resultContainer = document.getElementById('titles-27-result')
+    const copyButton = document.getElementById('copy-titles-27-button')
+    
+    if (loadingState) {
+      loadingState.style.display = 'flex'
+    }
+    if (resultContainer) {
+      resultContainer.innerHTML = ''
+    }
+    if (copyButton) {
+      copyButton.style.display = 'none'
+    }
+  }
+  
+  // Generate 27 titles from selected draft
+  generate27Titles(event: Event): void {
+    event.preventDefault()
+    
+    if (!this.currentArticleId) {
+      showToast('请先生成初稿', 'danger')
+      return
+    }
+    
+    // Check if all 5 drafts are complete
+    if (this.completedDrafts.size < 5) {
+      showToast('请等待所有初稿生成完成后再生成标题', 'warning')
+      return
+    }
+    
+    // Get selected draft source from radio buttons
+    const selectedRadio = document.querySelector('input[name="draft-source"]:checked') as HTMLInputElement
+    if (!selectedRadio) {
+      showToast('请先选择一个初稿来源', 'warning')
+      return
+    }
+    
+    const selectedDraftSource = selectedRadio.value
+    console.log('Generating 27 titles from:', selectedDraftSource)
+    
+    // Send generate command via WebSocket
+    this.commandSubscription?.perform('generate_27_titles', {
+      article_id: this.currentArticleId,
+      selected_draft_source: selectedDraftSource
+    })
+  }
+  
+
 }
