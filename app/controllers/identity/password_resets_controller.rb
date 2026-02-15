@@ -35,8 +35,25 @@ class Identity::PasswordResetsController < ApplicationController
   private
 
   def set_user
-    @user = User.find_by_token_for!(:password_reset, params[:sid])
-  rescue StandardError
+    Rails.logger.info "=== Password Reset Token Debug ==="
+    
+    # 防御性处理：移除可能由邮件客户端添加的空白字符
+    raw_sid = params[:sid]
+    trimmed_sid = raw_sid&.strip
+    
+    Rails.logger.info "Raw sid: #{raw_sid.inspect}"
+    Rails.logger.info "Raw sid length: #{raw_sid&.length}"
+    Rails.logger.info "Trimmed sid: #{trimmed_sid.inspect}"
+    Rails.logger.info "Trimmed sid length: #{trimmed_sid&.length}"
+    Rails.logger.info "Has whitespace difference: #{raw_sid != trimmed_sid}"
+    
+    @user = User.find_by_token_for!(:password_reset, trimmed_sid)
+    Rails.logger.info "✅ Token validated successfully for user: #{@user.email}"
+  rescue StandardError => e
+    Rails.logger.error "❌ Token validation failed!"
+    Rails.logger.error "Error class: #{e.class}"
+    Rails.logger.error "Error message: #{e.message}"
+    Rails.logger.error "Backtrace: #{e.backtrace.first(5).join("\n")}"
     redirect_to new_identity_password_reset_path, alert: "该密码重置链接已失效"
   end
 

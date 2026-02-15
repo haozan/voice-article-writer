@@ -19,8 +19,22 @@ class Identity::EmailVerificationsController < ApplicationController
   private
 
   def set_user
-    @user = User.find_by_token_for!(:email_verification, params[:sid])
-  rescue StandardError
+    Rails.logger.info "=== Email Verification Token Debug ==="
+    
+    # 防御性处理：移除可能由邮件客户端添加的空白字符
+    raw_sid = params[:sid]
+    trimmed_sid = raw_sid&.strip
+    
+    Rails.logger.info "Raw sid: #{raw_sid.inspect}"
+    Rails.logger.info "Trimmed sid: #{trimmed_sid.inspect}"
+    Rails.logger.info "Has whitespace difference: #{raw_sid != trimmed_sid}"
+    
+    @user = User.find_by_token_for!(:email_verification, trimmed_sid)
+    Rails.logger.info "✅ Token validated successfully for user: #{@user.email}"
+  rescue StandardError => e
+    Rails.logger.error "❌ Email verification token validation failed!"
+    Rails.logger.error "Error class: #{e.class}"
+    Rails.logger.error "Error message: #{e.message}"
     redirect_to edit_identity_email_path, alert: "该邮箱验证链接无效"
   end
 
