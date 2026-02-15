@@ -16,9 +16,9 @@ class ProfilesController < ApplicationController
       need_email_verification = @user.previous_changes.include?(:email)
       if need_email_verification
         send_email_verification
-        additional_notice = "and sent a verification email to your new email address"
+        additional_notice = "并已向新邮箱发送验证邮件"
       end
-      redirect_to profile_path, notice: "Profile updated #{additional_notice}"
+      redirect_to profile_path, notice: "个人资料已更新#{additional_notice}"
     else
       render :edit, status: :unprocessable_entity
     end
