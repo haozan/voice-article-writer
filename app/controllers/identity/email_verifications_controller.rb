@@ -5,6 +5,16 @@ class Identity::EmailVerificationsController < ApplicationController
 
   def show
     @user.update! verified: true
+    
+    # 验证成功后自动登录用户（如果未登录）
+    unless Current.user
+      # 创建 Session 记录
+      session = @user.sessions.create!
+      # 设置 session cookie
+      cookies.signed.permanent[:session_token] = { value: session.id, httponly: true }
+      Rails.logger.info "✅ Email verified and user auto-logged in: #{@user.email}"
+    end
+    
     redirect_to profile_path, notice: "感谢你验证邮箱地址"
   end
 
