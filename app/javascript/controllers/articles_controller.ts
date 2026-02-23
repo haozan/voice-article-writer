@@ -1013,6 +1013,7 @@ export default class extends BaseChannelController {
   // Handle draft complete for a specific provider
   private handleDraftCompleteForProvider(provider: string): void {
     console.log(`${provider} draft generation complete`)
+    console.log(`[DEBUG] ${provider} draft content length:`, this.draftContents[provider]?.length || 0)
     this.completedDrafts.add(provider)
     
     // Stop smooth progress and set to 100% (draft complete)
@@ -1023,10 +1024,13 @@ export default class extends BaseChannelController {
     const target = this.getDraftTarget(provider)
     const charCountTarget = this.getDraftCharCountTarget(provider)
     
+    console.log(`[DEBUG] ${provider} draft target found:`, !!target)
+    
     if (target) {
       // CRITICAL: Always update target HTML, even if content is empty
       // This clears the "正在生成初稿..." loading state
-      if (this.draftContents[provider]) {
+      if (this.draftContents[provider] && this.draftContents[provider].trim().length > 0) {
+        console.log(`[DEBUG] ${provider} rendering draft content (${this.draftContents[provider].length} chars)`)
         const fixedMarkdown = fixMarkdownHeaders(this.draftContents[provider])
         target.innerHTML = marked.parse(fixedMarkdown) as string
         
@@ -1040,8 +1044,19 @@ export default class extends BaseChannelController {
         }
       } else {
         // Empty content - clear loading state and show placeholder
+        console.log(`[DEBUG] ${provider} draft content is empty, showing placeholder`)
         target.innerHTML = `<p class="text-muted">初稿生成完成，但内容为空</p>`
+        
+        // Update character count to 0
+        if (charCountTarget) {
+          const countSpan = charCountTarget.querySelector('.font-semibold')
+          if (countSpan) {
+            countSpan.textContent = '0'
+          }
+        }
       }
+    } else {
+      console.error(`[ERROR] ${provider} draft target not found! Cannot update UI.`)
     }
     
     // Show draft action buttons (edit, copy, copyMarkdown)
@@ -1833,10 +1848,9 @@ export default class extends BaseChannelController {
             if (copyDraftHtmlButton) copyDraftHtmlButton.style.display = "inline-flex"
             if (copyDraftMarkdownButton) copyDraftMarkdownButton.style.display = "inline-flex"
             
-            // Set progress to 100%
-            if (provider !== 'doubao') {
-              this.updateProgress(provider, 100)
-            }
+            // Set progress to 100% for all providers (no special case for doubao)
+            // This ensures the UI state is synchronized when loading from database
+            this.updateProgress(provider, 100)
           }
         }
       })
