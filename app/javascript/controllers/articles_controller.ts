@@ -1812,9 +1812,22 @@ export default class extends BaseChannelController {
           frontendContentLength: frontendContent?.length || 0
         })
         
-        // If database has content but frontend doesn't (or is empty), render it
-        if (dbContent && !frontendContent) {
-          console.log(`[loadSavedContentIfExists] ✅ Found saved draft for ${provider}, rendering now`)
+        // CRITICAL FIX: Check if database has COMPLETE content that frontend doesn't have
+        // Database content is considered "complete" if:
+        // 1. It exists and has significant length (> 100 chars)
+        // 2. Frontend content is empty OR much shorter (< 50% of database length)
+        // This handles the case where:
+        // - User refreshes page during generation (WebSocket chunks received but incomplete)
+        // - Database has the full completed draft
+        // - We should use database content to replace incomplete frontend chunks
+        const dbContentComplete = dbContent && dbContent.length > 100
+        const frontendIncomplete = !frontendContent || (frontendContent.length < dbContent?.length * 0.5)
+        
+        if (dbContentComplete && frontendIncomplete) {
+          console.log(
+            `[loadSavedContentIfExists] ✅ Found saved draft for ${provider}, rendering now ` +
+            `(DB: ${dbContent.length} chars, Frontend: ${frontendContent?.length || 0} chars)`
+          )
           
           hasDrafts = true
           
