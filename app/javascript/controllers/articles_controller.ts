@@ -270,6 +270,13 @@ export default class extends BaseChannelController {
     gemini: 45,
     doubao: 45
   }
+  private fireworksLaunched: { [key: string]: boolean } = {
+    grok: false,
+    qwen: false,
+    deepseek: false,
+    gemini: false,
+    doubao: false
+  }
 
   connect(): void {
     console.log("Articles controller connected")
@@ -739,6 +746,15 @@ export default class extends BaseChannelController {
       deepseek: 0,
       gemini: 0,
       doubao: 0
+    }
+    
+    // CRITICAL: Reset fireworks flag for all providers
+    this.fireworksLaunched = {
+      grok: false,
+      qwen: false,
+      deepseek: false,
+      gemini: false,
+      doubao: false
     }
     
     // Show and reset progress bars
@@ -2209,8 +2225,9 @@ export default class extends BaseChannelController {
       progressText.textContent = `${Math.floor(progress)}%`
     }
     
-    // Check if this model reached 100% and trigger fireworks
-    if (progress >= 100) {
+    // Check if this model reached 100% and trigger fireworks (only once)
+    if (progress >= 100 && !this.fireworksLaunched[provider]) {
+      this.fireworksLaunched[provider] = true
       this.launchFireworks(provider)
     }
   }
