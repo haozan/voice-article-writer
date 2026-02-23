@@ -1007,17 +1007,24 @@ export default class extends BaseChannelController {
     const target = this.getDraftTarget(provider)
     const charCountTarget = this.getDraftCharCountTarget(provider)
     
-    if (target && this.draftContents[provider]) {
-      const fixedMarkdown = fixMarkdownHeaders(this.draftContents[provider])
-      target.innerHTML = marked.parse(fixedMarkdown) as string
-      
-      // Update character count
-      if (charCountTarget) {
-        const charCount = this.draftContents[provider].length
-        const countSpan = charCountTarget.querySelector('.font-semibold')
-        if (countSpan) {
-          countSpan.textContent = charCount.toString()
+    if (target) {
+      // CRITICAL: Always update target HTML, even if content is empty
+      // This clears the "正在生成初稿..." loading state
+      if (this.draftContents[provider]) {
+        const fixedMarkdown = fixMarkdownHeaders(this.draftContents[provider])
+        target.innerHTML = marked.parse(fixedMarkdown) as string
+        
+        // Update character count
+        if (charCountTarget) {
+          const charCount = this.draftContents[provider].length
+          const countSpan = charCountTarget.querySelector('.font-semibold')
+          if (countSpan) {
+            countSpan.textContent = charCount.toString()
+          }
         }
+      } else {
+        // Empty content - clear loading state and show placeholder
+        target.innerHTML = `<p class="text-muted">初稿生成完成，但内容为空</p>`
       }
     }
     
