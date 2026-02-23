@@ -1848,9 +1848,20 @@ export default class extends BaseChannelController {
             if (copyDraftHtmlButton) copyDraftHtmlButton.style.display = "inline-flex"
             if (copyDraftMarkdownButton) copyDraftMarkdownButton.style.display = "inline-flex"
             
-            // Set progress to 100% for all providers (no special case for doubao)
-            // This ensures the UI state is synchronized when loading from database
-            this.updateProgress(provider, 100)
+            // CRITICAL FIX: Manually update progress bar WITHOUT triggering fireworks
+            // When loading from database, we just need to sync the UI state
+            // We should NOT trigger notifications again (user already saw them during real-time generation)
+            this.modelProgress[provider] = 100
+            const progressBar = this.getProgressBarTarget(provider)
+            const progressText = this.getProgressTextTarget(provider)
+            if (progressBar) {
+              progressBar.style.width = '100%'
+            }
+            if (progressText) {
+              progressText.textContent = '100%'
+            }
+            // Mark fireworks as already launched to prevent double notifications
+            this.fireworksLaunched[provider] = true
           }
         }
       })
