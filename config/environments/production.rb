@@ -47,12 +47,16 @@ Rails.application.configure do
 
   if ENV["EMAIL_SMTP_PASSWORD"].present?
     config.action_mailer.smtp_settings = {
-      address: ENV.fetch("EMAIL_SMTP_ADDRESS"),
-      port: ENV.fetch("EMAIL_SMTP_PORT"),
-      user_name: ENV.fetch("EMAIL_SMTP_USERNAME"),
-      password: ENV.fetch("EMAIL_SMTP_PASSWORD")
+      address:              ENV.fetch("EMAIL_SMTP_ADDRESS"),
+      port:                 ENV.fetch("EMAIL_SMTP_PORT").to_i,
+      domain:               ENV.fetch("EMAIL_SMTP_DOMAIN", "localhost"),
+      user_name:            ENV.fetch("EMAIL_SMTP_USERNAME"),
+      password:             ENV.fetch("EMAIL_SMTP_PASSWORD"),
+      authentication:       :login,
+      enable_starttls_auto: false
     }
     config.action_mailer.delivery_method = :smtp
+    config.action_mailer.perform_deliveries = true
   end
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.

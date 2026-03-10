@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_15_124120) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_10_020132) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -124,6 +124,68 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_15_124120) do
     t.index ["user_id"], name: "index_books_on_user_id"
   end
 
+  create_table "case_authors", force: :cascade do |t|
+    t.bigint "legal_case_id"
+    t.bigint "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["legal_case_id"], name: "index_case_authors_on_legal_case_id"
+    t.index ["user_id"], name: "index_case_authors_on_user_id"
+  end
+
+  create_table "case_deadlines", force: :cascade do |t|
+    t.bigint "legal_case_id"
+    t.string "deadline_type"
+    t.datetime "deadline_date"
+    t.text "description"
+    t.boolean "is_completed", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["legal_case_id"], name: "index_case_deadlines_on_legal_case_id"
+    t.index ["user_id"], name: "index_case_deadlines_on_user_id"
+  end
+
+  create_table "case_organizations", force: :cascade do |t|
+    t.bigint "legal_case_id"
+    t.bigint "organization_id"
+    t.string "stage"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "case_number"
+    t.decimal "claim_amount"
+    t.integer "primary_contact_id"
+    t.integer "secondary_contact_id"
+    t.string "crime_name"
+    t.string "officer_name"
+    t.string "assistant_name"
+    t.integer "tertiary_contact_id"
+    t.index ["legal_case_id"], name: "index_case_organizations_on_legal_case_id"
+    t.index ["organization_id"], name: "index_case_organizations_on_organization_id"
+  end
+
+  create_table "case_parties", force: :cascade do |t|
+    t.bigint "legal_case_id"
+    t.bigint "client_id"
+    t.string "party_role"
+    t.boolean "is_client", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_case_parties_on_client_id"
+    t.index ["legal_case_id"], name: "index_case_parties_on_legal_case_id"
+  end
+
+  create_table "categories", force: :cascade do |t|
+    t.string "name"
+    t.string "slug"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_categories_on_name", unique: true
+    t.index ["slug"], name: "index_categories_on_slug", unique: true
+  end
+
   create_table "chapters", force: :cascade do |t|
     t.bigint "book_id"
     t.bigint "parent_id"
@@ -134,6 +196,78 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_15_124120) do
     t.datetime "updated_at", null: false
     t.index ["book_id"], name: "index_chapters_on_book_id"
     t.index ["parent_id"], name: "index_chapters_on_parent_id"
+  end
+
+  create_table "client_notes", force: :cascade do |t|
+    t.bigint "client_id"
+    t.text "content"
+    t.bigint "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_client_notes_on_client_id"
+    t.index ["user_id"], name: "index_client_notes_on_user_id"
+  end
+
+  create_table "clients", force: :cascade do |t|
+    t.string "name_first"
+    t.string "name_middle"
+    t.string "name_last"
+    t.date "date_birth"
+    t.string "citizen_number"
+    t.string "gender", default: "unknown"
+    t.string "civil_status", default: "unknown"
+    t.string "income", default: "unknown"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "client_type", default: "individual"
+    t.string "company_name"
+    t.string "unified_social_credit_code"
+    t.string "legal_representative"
+    t.text "address"
+    t.string "phone"
+    t.string "star_level", default: "none"
+    t.bigint "user_id"
+    t.index ["star_level"], name: "index_clients_on_star_level"
+    t.index ["user_id"], name: "index_clients_on_user_id"
+  end
+
+  create_table "court_hearings", force: :cascade do |t|
+    t.bigint "legal_case_id"
+    t.datetime "hearing_date"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["legal_case_id"], name: "index_court_hearings_on_legal_case_id"
+    t.index ["user_id"], name: "index_court_hearings_on_user_id"
+  end
+
+  create_table "feedbacks", force: :cascade do |t|
+    t.bigint "user_id"
+    t.text "content"
+    t.text "admin_reply", default: ""
+    t.string "status", default: "pending"
+    t.datetime "replied_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_feedbacks_on_user_id"
+  end
+
+  create_table "followups", force: :cascade do |t|
+    t.string "type_followup", default: "consultation"
+    t.text "description"
+    t.datetime "date_start"
+    t.datetime "date_end"
+    t.decimal "sumbilled"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "legal_case_id"
+    t.bigint "user_id", null: false
+    t.boolean "is_billable", default: false, null: false
+    t.index ["legal_case_id"], name: "index_followups_on_legal_case_id"
+    t.index ["user_id"], name: "index_followups_on_user_id"
   end
 
   create_table "friendly_id_slugs", force: :cascade do |t|
@@ -237,6 +371,76 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_15_124120) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
+  create_table "legal_cases", force: :cascade do |t|
+    t.string "title", default: "Untitled Case"
+    t.string "status", default: "open"
+    t.text "notes"
+    t.date "date_assignment"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.date "entrust_date"
+    t.decimal "lawyer_fee"
+    t.string "cause_of_action"
+    t.string "procedure_stage"
+    t.string "project_type", default: "civil", null: false
+    t.bigint "user_id", null: false
+    t.index ["created_at", "project_type"], name: "index_legal_cases_on_created_at_and_project_type"
+    t.index ["project_type"], name: "index_legal_cases_on_project_type"
+    t.index ["user_id"], name: "index_legal_cases_on_user_id"
+  end
+
+  create_table "memberships", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "plan_type", default: "trial"
+    t.datetime "started_at"
+    t.datetime "expires_at"
+    t.string "status", default: "active"
+    t.string "stripe_subscription_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "is_trial_upgrade", default: false, null: false
+    t.boolean "trial_discount_applied", default: false, null: false
+    t.index ["user_id"], name: "index_memberships_on_user_id"
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "product_name"
+    t.decimal "amount"
+    t.string "currency", default: "usd"
+    t.string "status", default: "pending"
+    t.string "stripe_payment_intent_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_orders_on_user_id"
+  end
+
+  create_table "organization_contacts", force: :cascade do |t|
+    t.bigint "organization_id"
+    t.string "contact_type"
+    t.string "name"
+    t.string "phone"
+    t.text "address"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.text "notes"
+    t.string "star_level", default: "none"
+    t.bigint "user_id"
+    t.index ["organization_id"], name: "index_organization_contacts_on_organization_id"
+    t.index ["star_level"], name: "index_organization_contacts_on_star_level"
+    t.index ["user_id"], name: "index_organization_contacts_on_user_id"
+  end
+
+  create_table "organizations", force: :cascade do |t|
+    t.string "name"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "org_type"
+    t.bigint "user_id"
+    t.index ["user_id"], name: "index_organizations_on_user_id"
+  end
+
   create_table "packages", force: :cascade do |t|
     t.string "name"
     t.integer "price"
@@ -246,6 +450,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_15_124120) do
     t.integer "position", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "payment_records", force: :cascade do |t|
+    t.bigint "legal_case_id"
+    t.date "payment_date", null: false
+    t.decimal "amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["legal_case_id"], name: "index_payment_records_on_legal_case_id"
+    t.index ["payment_date"], name: "index_payment_records_on_payment_date"
+    t.index ["user_id"], name: "index_payment_records_on_user_id"
   end
 
   create_table "payments", force: :cascade do |t|
@@ -285,6 +502,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_15_124120) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "skills", force: :cascade do |t|
+    t.string "title"
+    t.text "description"
+    t.decimal "price", default: "99.0"
+    t.bigint "category_id"
+    t.string "author_name"
+    t.integer "template_count", default: 0
+    t.integer "download_count", default: 0
+    t.decimal "rating", default: "0.0"
+    t.string "slug"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_skills_on_category_id"
+    t.index ["slug"], name: "index_skills_on_slug", unique: true
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name"
     t.string "email", null: false
@@ -295,7 +528,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_15_124120) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "credits", default: 30
+    t.string "email_verification_code"
+    t.datetime "email_verification_code_expires_at"
     t.index ["email"], name: "index_users_on_email", unique: true
+  end
+
+  create_table "video_resources", force: :cascade do |t|
+    t.string "title"
+    t.string "bilibili_url"
+    t.string "duration"
+    t.integer "views_count", default: 0
+    t.bigint "category_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_video_resources_on_category_id"
   end
 
   create_table "writing_tips", force: :cascade do |t|
@@ -312,5 +558,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_15_124120) do
   add_foreign_key "articles", "chapters"
   add_foreign_key "articles", "users"
   add_foreign_key "books", "users"
+  add_foreign_key "followups", "legal_cases", on_delete: :nullify
+  add_foreign_key "payment_records", "legal_cases", on_delete: :nullify
   add_foreign_key "sessions", "users"
 end

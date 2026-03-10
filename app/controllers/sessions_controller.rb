@@ -18,6 +18,17 @@ class SessionsController < ApplicationController
 
   def create
     if user = User.authenticate_by(email: params[:user][:email], password: params[:user][:password])
+      # 检查邮箱是否已验证
+      unless user.verified?
+        # 重新发送验证码并引导到验证页
+        code = user.generate_email_verification_code!
+        UserMailer.with(user: user, code: code).email_verification_code.deliver_later
+        Rails.logger.info "[登录验证码补发] #{user.email} → #{code}"
+        session[:pending_user_id] = user.id
+        redirect_to verify_sign_up_path, alert: "您的邮箱尚未验证，已重新发送验证码，请完成验证后登录"
+        return
+      end
+
       @session = user.sessions.create!
       cookies.signed.permanent[:session_token] = { value: @session.id, httponly: true }
       redirect_to root_path, notice: "登录成功"
@@ -25,7 +36,6 @@ class SessionsController < ApplicationController
       redirect_to sign_in_path(email_hint: params[:user][:email]), alert: "邮箱或密码错误"
     end
   end
-
 
   def destroy
     @session = Current.session

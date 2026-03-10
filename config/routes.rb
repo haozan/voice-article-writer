@@ -34,6 +34,9 @@ Rails.application.routes.draw do
   post "sign_in", to: "sessions#create"
   delete 'sign_out', to: 'sessions#destroy', as: :sign_out
   get  "sign_up", to: "registrations#new"
+  get  "sign_up/verify", to: "registrations#verify", as: :verify_sign_up
+  post "sign_up/confirm", to: "registrations#confirm", as: :confirm_sign_up
+  post "sign_up/resend_code", to: "registrations#resend_code", as: :resend_code_sign_up
   post "sign_up", to: "registrations#create"
   resource :session, only: [:new, :show, :destroy] do
     get :devices, on: :member

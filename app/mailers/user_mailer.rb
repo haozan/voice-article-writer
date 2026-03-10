@@ -19,4 +19,16 @@ class UserMailer < ApplicationMailer
 
     mail to: @user.email, subject: "[#{Rails.application.config.x.appname}] Invitation instructions"
   end
+
+  # 发送 6 位数字验证码
+  def email_verification_code
+    @user = params[:user]
+    @code = params[:code]
+
+    # 开发环境无 SMTP 时，验证码打印到日志方便调试
+    Rails.logger.info "[UserMailer] 验证码 → #{@user.email} : #{@code}"
+
+    mail to: @user.email,
+         subject: "[#{Rails.application.config.x.appname}] 您的注册验证码：#{@code}"
+  end
 end

@@ -4,30 +4,6 @@ class User < ApplicationRecord
 
   has_secure_password validations: false
 
-  # ========== Role-based Access Control (Optional) ==========
-  # If you need roles (premium, moderator, etc.), add a `role` field:
-  #   rails g migration AddRoleToUsers role:string
-  #   # In migration: add_column :users, :role, :string, default: 'user', null: false
-  #   # Then add in this model:
-  #   ROLES = %w[user premium moderator].freeze
-  #   validates :role, inclusion: { in: ROLES }
-  #   def premium? = role == 'premium'
-  #   def moderator? = role == 'moderator'
-  # ==========================================================
-
-  # ========== Multi-Role Separate Routes (e.g. Doctor/Patient) ==========
-  # For apps needing separate signup/login pages per role:
-  #   1. ROLES = %w[doctor patient].freeze
-  #   2. Add scoped routes: scope '/doctor', as: 'doctor' do ... end
-  #   3. In RegistrationsController#create: @user.role = params[:role]
-  #   4. Create role-specific views: sessions/new_doctor.html.erb
-  #   5. For extra fields per role, use polymorphic Profile:
-  #      has_one :doctor_profile, dependent: :destroy
-  #      has_one :patient_profile, dependent: :destroy
-  #      def profile = doctor? ? doctor_profile : patient_profile
-  # See generator output for full setup instructions.
-  # ======================================================================
-
   generates_token_for :email_verification, expires_in: 2.days do
     email
   end
@@ -58,18 +34,15 @@ class User < ApplicationRecord
     name = auth.info.name.presence || "#{SecureRandom.hex(10)}_user"
     email = auth.info.email.presence || User.generate_email(name)
 
-    # First, try to find user by email
     user = find_by(email: email)
     if user
       user.update(provider: auth.provider, uid: auth.uid)
       return user
     end
 
-    # Then, try to find user by provider and uid
     user = find_by(provider: auth.provider, uid: auth.uid)
     return user if user
 
-    # If not found, create a new user
     verified = !email.end_with?(GENERATED_EMAIL_SUFFIX)
     create(
       name: name,
@@ -88,8 +61,6 @@ class User < ApplicationRecord
     end
   end
 
-  public
-
   def oauth_user?
     provider.present? && uid.present?
   end
@@ -103,6 +74,31 @@ class User < ApplicationRecord
     password_digest.blank? || password.present?
   end
 
-  # write your own code here
+  # ========== 邮箱验证码 ==========
+
+  # 生成 6 位数字验证码，有效期 15 分钟
+  def generate_email_verification_code!
+    code = rand(100000..999999).to_s
+    update_columns(
+      email_verification_code: code,
+      email_verification_code_expires_at: 15.minutes.from_now
+    )
+    code
+  end
+
+  # 校验验证码：正确且未过期返回 true，同时清空验证码
+  def verify_email_code!(code)
+    return false if email_verification_code.blank?
+    return false if email_verification_code_expires_at.blank? ||
+                    email_verification_code_expires_at < Time.current
+    return false if email_verification_code != code.to_s.strip
+
+    update_columns(
+      verified: true,
+      email_verification_code: nil,
+      email_verification_code_expires_at: nil
+    )
+    true
+  end
 
 end
